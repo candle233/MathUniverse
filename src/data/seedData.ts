@@ -7,17 +7,21 @@ export const initialMathNodes: MathNode[] = [
   {
     id: 'def-limit-sequence',
     slug: 'definition-limit-of-sequence',
-    titleZh: '数列极限 (ε-N 定义)',
-    titleEn: 'Limit of a Sequence (ε-N Definition)',
+    titleZh: '数列极限',
+    titleEn: 'Limit of a Sequence',
     nodeType: 'DEFINITION',
     disciplineId: 'analysis',
     mscCode: '26A03',
     statementLatex: `\\forall \\varepsilon > 0, \\exists N \\in \\mathbb{N}, \\forall n > N \\implies |x_n - L| < \\varepsilon`,
     statementPlainZh: '设 \\((x_n)\\) 为实数序列，\\(L \\in \\mathbb{R}\\)。若对任意正实数 \\(\\varepsilon > 0\\)，都存在正整数 \\(N\\)，使得当 \\(n > N\\) 时恒有 \\(|x_n - L| < \\varepsilon\\)，则称数列 \\((x_n)\\) 收敛于 \\(L\\)，记作 \\(\\lim_{n \\to \\infty} x_n = L\\)。',
+    statementPlainEn: "Let (x_n) be a sequence of real numbers and L \\in \\mathbb{R}. If for every \\varepsilon > 0, there exists a positive integer N such that for all n > N we have |x_n - L| < \\varepsilon, then (x_n) converges to L, denoted \\lim_{n \\to \\infty} x_n = L.",
     intuitionMd: `### 几何直觉与物理动机
 **“无论你给出多么严苛的误差范围 \\(\\varepsilon\\)，数列最终都会落入 \\((L-\\varepsilon, L+\\varepsilon)\\) 这个开邻域内，且永远不再逃出。”**
 
 - **动态捕获**：\\(N\\) 是一个“门槛截断点”。无论显微镜放大多少倍（\\(\\varepsilon\\) 多么小），从第 \\(N+1\\) 项开始的所有无限个点都被关在 \\(L\\) 周围的微小带状区域内。`,
+    intuitionEn: "### Geometric Intuition & Motivation\n**\"No matter how small the error tolerance \\(\\varepsilon\\) is, the sequence eventually falls into \\((L-\\varepsilon, L+\\varepsilon)\\) and never escapes.\"**\n\n- **Threshold Capture**: \\(N\\) is the cutoff index. All infinitely many points after the \\(N\\)-th term remain trapped within the tiny band around \\(L\\).",
+    historicalContextZh: "数列极限的 ε-N 严谨语言由波尔查诺 (Bolzano)、柯西 (Cauchy) 和魏尔斯特拉斯 (Weierstrass) 在19世纪奠定，彻底消除了牛顿与莱布尼茨早期微积分无穷小量的基础危机。",
+    historicalContextEn: "The rigorous ε-N formal definition of limit was formulated in the 19th century by Bolzano, Cauchy, and Weierstrass, resolving the foundational crisis of early infinitesimals.",
     verification: 'FORMALLY_VERIFIED',
     reputationScore: 420,
     viewCount: 3820,
@@ -142,9 +146,13 @@ def sequence_limit_plot(epsilon=0.15, max_n=50):
     mscCode: '26D15',
     statementLatex: `|\\langle u, v \\rangle|^2 \\le \\langle u, u \\rangle \\cdot \\langle v, v \\rangle, \\quad \\forall u, v \\in V`,
     statementPlainZh: '设 \\(V\\) 为实或复内积空间。对任意向量 \\(u, v \\in V\\)，其内积的模平方必不超过两向量各自范数的平方之积。等号成立当且仅当 \\(u\\) 与 \\(v\\) 线性相关。',
+    statementPlainEn: "For all vectors u, v in an inner product space V, |\\langle u, v \\rangle|^2 \\le \\langle u, u \\rangle \\cdot \\langle v, v \\rangle. Equality holds if and only if u and v are linearly dependent.",
     intuitionMd: `### 几何直觉与动机
 - **广义余弦定理**：在欧几里得空间中，\\(\\langle u, v \\rangle = \\|u\\| \\|v\\| \\cos \\theta\\)。因为 \\(|\\cos \\theta| \\le 1\\)，所以天然有 \\(|\\langle u, v \\rangle| \\le \\|u\\| \\|v\\|\\)。
 - **二次判别式技巧**：构造一个关于实参数 \\(t\\) 的非负二次多项式 \\(P(t) = \\|u - t v\\|^2 \\ge 0\\)。由于多项式恒非负，其判别式 \\(\\Delta = b^2 - 4ac \\le 0\\)，从而直接导出不等式！`,
+    intuitionEn: "### Geometric Intuition & Motivation\n- **Generalized Law of Cosines**: In Euclidean space, \\(\\langle u, v \\rangle = \\|u\\| \\|v\\| \\cos \\theta\\). Since \\(|\\cos \\theta| \\le 1\\), it naturally follows that \\(|\\langle u, v \\rangle| \\le \\|u\\| \\|v\\|\\).\n- **Quadratic Discriminant**: Constructing the non-negative quadratic \\(P(t) = \\|u - t v\\|^2 \\ge 0\\) forces the discriminant \\(\\Delta \\le 0\\), immediately yielding the inequality.",
+    historicalContextZh: "该不等式由柯西于1821年对离散和形式提出，施瓦茨于1885年在现代内积积分形式中严格证明，布尼亚科夫斯基在1859年亦独立提出积分形式。",
+    historicalContextEn: "Formulated by Cauchy in 1821 for discrete sums and extended to integrals and inner products by Buniakovsky (1859) and Schwarz (1885).",
     verification: 'FORMALLY_VERIFIED',
     reputationScore: 890,
     viewCount: 6420,
@@ -277,18 +285,22 @@ def compute_cauchy_schwarz(ux=1.0, uy=2.0, uz=3.0, vx=4.0, vy=-1.0, vz=2.0):
   {
     id: 'thm-ftc',
     slug: 'fundamental-theorem-of-calculus',
-    titleZh: '微积分基本定理 (牛顿-莱布尼茨公式)',
-    titleEn: 'Fundamental Theorem of Calculus (Newton-Leibniz Formula)',
+    titleZh: '微积分基本定理',
+    titleEn: 'Fundamental Theorem of Calculus',
     nodeType: 'THEOREM',
     disciplineId: 'analysis',
     mscCode: '26A42',
     statementLatex: `\\int_a^b f(x) \\, dx = F(b) - F(a), \\quad \\text{where } F'(x) = f(x)`,
     statementPlainZh: `若函数 \\(f: [a, b] \\to \\mathbb{R}\\) 在闭区间 \\([a, b]\\) 上连续，且 \\(F\\) 为 \\(f\\) 的任意一个原函数（即 \\(F'(x) = f(x)\\)），则 \\(f\\) 在 \\([a, b]\\) 上的定积分等于原函数在两端点的增量 \\(F(b) - F(a)\\)。`,
+    statementPlainEn: "If f: [a, b] \\to \\mathbb{R} is continuous on [a, b] and F is any antiderivative of f (i.e. F'(x) = f(x)), then \\int_a^b f(x) dx = F(b) - F(a).",
     intuitionMd: `### 几何直觉与物理桥梁
 - **微分与积分是互逆运算**：
   - 微分是**局部变化率**（速度 \\(v(t)\\)）；
   - 积分是**无限微元累积和**（总位移 \\(\\Delta s\\)）。
 - 累加每一个瞬间的极小位移 \\(dF = f(x)dx\\)，其总和必然等于总改变量 \\(F(b) - F(a)\\)。它是 17 世纪人类科学史最伟大的发现。`,
+    intuitionEn: "### Geometric Intuition & Physical Bridge\n- **Inverse Operations**: Differentiation measures the instantaneous rate of change (velocity \\(v(t)\\)), while integration accumulates infinitely many differential changes (net displacement \\(\\Delta s\\)).\n- Accumulating each infinitesimal displacement \\(dF = f(x)dx\\) yields the total net change \\(F(b) - F(a)\\).",
+    historicalContextZh: "微积分基本定理统一了古代阿基米德以来的求积法与17世纪费马、笛卡尔等人的切线法，由牛顿与莱布尼茨独立系统化建立。",
+    historicalContextEn: "Unifies accumulation (integration) and instantaneous rate of change (differentiation), discovered independently by Newton and Leibniz.",
     verification: 'FORMALLY_VERIFIED',
     reputationScore: 1250,
     viewCount: 9800,
@@ -414,13 +426,14 @@ def riemann_ftc_approx(a=0.0, b=2.0, n=20):
   {
     id: 'thm-stokes',
     slug: 'generalized-stokes-theorem',
-    titleZh: '一般化斯托克斯公式 (微分形式)',
-    titleEn: 'Generalized Stokes Theorem (Differential Forms)',
+    titleZh: '一般化斯托克斯公式',
+    titleEn: 'Generalized Stokes Theorem',
     nodeType: 'THEOREM',
     disciplineId: 'topology',
     mscCode: '58A10',
     statementLatex: `\\int_{\\partial \\Omega} \\omega = \\int_{\\Omega} d\\omega`,
     statementPlainZh: '设 \\(\\Omega\\) 为 \\(n\\) 维带边紧致定向光滑流形，\\(\\partial \\Omega\\) 为其赋予诱导定向的 \\((n-1)\\) 维光滑边界。若 \\(\\omega\\) 是 \\(\\Omega\\) 上的任意光滑 \\((n-1)\\)-微分形式，则 \\(\\omega\\) 在边界上的积分等于其外微分 \\(d\\omega\\) 在整个流形上的积分。',
+    statementPlainEn: "Let \\Omega be an n-dimensional compact oriented smooth manifold with boundary \\partial \\Omega. If \\omega is any smooth (n-1)-differential form on \\Omega, then \\int_{\\partial \\Omega} \\omega = \\int_{\\Omega} d\\omega.",
     intuitionMd: `### 万流归宗的几何终极统一
 **“内部所有微小旋转与源的抵消累积，最终精确显现为边界上的净环流。”**
 
@@ -429,6 +442,9 @@ def riemann_ftc_approx(a=0.0, b=2.0, n=20):
 2. **格林公式** (\\(n=2\\))：平面区域与环路线积分
 3. **高斯散度定理** (\\(n=3\\))：三维体积分与闭曲面积分
 4. **经典斯托克斯旋度定理**：曲面积分与闭边界线积分`,
+    intuitionEn: "### Universal Geometric Unification\n**\"The cancellation of all internal rotations and sources manifests precisely as the net boundary circulation.\"**\n\nSubsumes the Fundamental Theorem of Calculus (n=1), Green theorem (n=2), Gauss divergence theorem (n=3), and classical Kelvin-Stokes curl theorem.",
+    historicalContextZh: "现代微分形式斯托克斯定理由昂利·庞加莱于1899年和埃利·嘉当在20世纪初确立，将牛顿-莱布尼茨、格林、高斯散度与经典斯托克斯旋度定理完美统一为一个优美等式。",
+    historicalContextEn: "Unified by Poincaré and Élie Cartan, subsuming FTC, Green theorem, Gauss divergence theorem, and classical Kelvin-Stokes theorem.",
     verification: 'FORMALLY_VERIFIED',
     reputationScore: 1820,
     viewCount: 12400,
@@ -546,17 +562,21 @@ def compute_stokes_verification(radius=1.0):
   {
     id: 'def-group',
     slug: 'definition-group',
-    titleZh: '群的公理化定义 (Group)',
+    titleZh: '群的公理化定义',
     titleEn: 'Axiomatic Definition of a Group',
     nodeType: 'DEFINITION',
     disciplineId: 'algebra',
     mscCode: '20A05',
     statementLatex: `(G, \\cdot): \\quad \\forall a,b,c \\in G, \\; (a \\cdot b) \\cdot c = a \\cdot (b \\cdot c), \\; \\exists e, \\; a \\cdot e = a, \\; \\exists a^{-1}, \\; a \\cdot a^{-1} = e`,
     statementPlainZh: '群是一个集合 \\(G\\) 配备一个二元代数运算 \\(\\cdot : G \\times G \\to G\\)，满足结合律、存在唯一单位元 \\(e\\)、且每个元素 \\(a \\in G\\) 均存在逆元 \\(a^{-1}\\)。',
+    statementPlainEn: "A group (G, \\cdot) is a non-empty set equipped with a binary operation satisfying associativity, identity element existence, and inverse element existence.",
     intuitionMd: `### 对称性与变换的代数结晶
 **“群是‘对称’的数学语言。”**
 
 无论旋转一个正二十面体、解高次代数方程的根置换，还是量子力学中的规范场对称性，所有保持结构不变的变换集合在复合运算下都构成群。`,
+    intuitionEn: "### Algebraic Intuition & Symmetry\nThe abstract mathematical formalization of symmetry and reversible transformations across geometry and algebra.",
+    historicalContextZh: "群的概念源于伽罗瓦 (Évariste Galois) 在1832年研究多项式方程可解性时的置换群，后由阿瑟·凯莱与阿道夫·冯·戴克于19世纪末抽象为公理化体系。",
+    historicalContextEn: "Originated from Évariste Galois study of polynomial solvability and abstracted by Cayley and von Dyck.",
     verification: 'FORMALLY_VERIFIED',
     reputationScore: 680,
     viewCount: 5120,
@@ -669,19 +689,23 @@ theorem group_inv_unique (a b : G) (h : a * b = 1) : b = a⁻¹ := by
   {
     id: 'thm-lagrange-group',
     slug: 'lagrange-theorem-group',
-    titleZh: '拉格朗日群论定理 (子群阶整除群阶)',
-    titleEn: "Lagrange's Theorem (Group Theory)",
+    titleZh: '拉格朗日群论定理',
+    titleEn: "Lagrange's Theorem",
     nodeType: 'THEOREM',
     disciplineId: 'algebra',
     mscCode: '20D30',
     statementLatex: `|G| = [G : H] \\cdot |H|, \\quad \\forall H \\le G, \\; |G| < \\infty`,
     statementPlainZh: '若 \\(G\\) 为有限群，\\(H\\) 为 \\(G\\) 的子群，则 \\(H\\) 的阶数 \\(|H|\\) 必然能整除 \\(G\\) 的阶数 \\(|G|\\)。其商 \\([G:H]\\) 称为 \\(H\\) 在 \\(G\\) 中的指数（即陪集的个数）。',
+    statementPlainEn: "If G is a finite group and H is a subgroup of G, then the order of H divides the order of G, and |G| = |H| \\cdot [G : H].",
     intuitionMd: `### 陪集划分与几何等积性
 **“子群 \\(H\\) 的所有左陪集 \\(gH\\) 就像完美的瓷砖，大小完全相等且互不相交，天衣无缝地将整个群 \\(G\\) 铺满。”**
 
 - 每个陪集 \\(gH\\) 的元素个数严格等于 \\(|H|\\)。
 - 所有不同陪集构成 \\(G\\) 的一个划分（Equivalence Partition）。
 - 因此，总元素数 \\(|G|\\) 必然是 \\(|H|\\) 的整数倍！`,
+    intuitionEn: "### Algebraic Partition Intuition\nThe cosets of H form an exact partition of G of equal size, guaranteeing that |H| evenly divides |G|.",
+    historicalContextZh: "拉格朗日在1770年针对多项式置换证明了特例，近代形式由柯西与伽罗瓦推广到一般抽象群。",
+    historicalContextEn: "Proved in special polynomial cases by Lagrange (1770) and generalized to abstract groups by Cauchy.",
     verification: 'FORMALLY_VERIFIED',
     reputationScore: 920,
     viewCount: 6800,
@@ -785,16 +809,20 @@ theorem lagrange_group_order {G : Type*} [Group G] [Fintype G] (H : Subgroup G) 
   {
     id: 'thm-fermat-little',
     slug: 'fermats-little-theorem',
-    titleZh: '费马小定理 (Fermat Little Theorem)',
+    titleZh: '费马小定理',
     titleEn: "Fermat's Little Theorem",
     nodeType: 'THEOREM',
     disciplineId: 'number-theory',
     mscCode: '11A07',
     statementLatex: `a^{p-1} \\equiv 1 \\pmod p, \\quad \\forall p \\in \\mathbb{P}, \\; a \\in \\mathbb{Z}, \\; p \\nmid a`,
     statementPlainZh: '设 \\(p\\) 为素数，\\(a\\) 为任意不能被 \\(p\\) 整除的整数，则 \\(a^{p-1}\\) 除以 \\(p\\) 的余数恒为 1。等价形式为：对任意整数 \\(a\\)，均有 \\(a^p \\equiv a \\pmod p\\)。',
+    statementPlainEn: "If p is prime and gcd(a, p) = 1, then a^{p-1} \\equiv 1 \\pmod p. For any integer a, a^p \\equiv a \\pmod p.",
     intuitionMd: `### 群论透视与项链染色直觉
 - **群论秒杀**：模 \\(p\\) 的非零剩余类乘法群 \\((\\mathbb{Z}/p\\mathbb{Z})^\\times\\) 是一个阶为 \\(p-1\\) 的有限群。根据**拉格朗日定理**，群中任意元素的阶必整除群阶，因此 \\(a^{p-1} = e = 1 \\pmod p\\)！
 - **组合项链视角**：用 \\(a\\) 种颜色的珠子串成长度为 \\(p\\) 的项链，除去 \\(a\\) 种纯单色项链外，其余 \\(a^p - a\\) 种项链在旋转下每个等价轨道都恰好包含 \\(p\\) 个项链，因此 \\(p \\mid (a^p - a)\\)！`,
+    intuitionEn: "### Number Theoretic Residue Intuition\nMultiplication by a coprime integer a modulo p permutes the non-zero residue classes {1, 2, ..., p-1}.",
+    historicalContextZh: "费马于1640年在信件中提出此定理，欧拉在1736年给出第一个公开发表的严格证明，并将其推广为欧拉定理。",
+    historicalContextEn: "Stated by Fermat in 1640, first published proof given by Euler in 1736, later generalized to Euler totient theorem.",
     verification: 'FORMALLY_VERIFIED',
     reputationScore: 1100,
     viewCount: 8900,
@@ -917,17 +945,21 @@ theorem fermat_little_theorem (p : ℕ) [Fact (Nat.Prime p)] (a : ZMod p) (ha : 
   {
     id: 'thm-heine-borel',
     slug: 'heine-borel-theorem',
-    titleZh: '海涅-博雷尔定理 (有限覆盖定理)',
-    titleEn: 'Heine-Borel Theorem (Compactness in R^n)',
+    titleZh: '海涅-博雷尔定理',
+    titleEn: 'Heine-Borel Theorem',
     nodeType: 'THEOREM',
     disciplineId: 'topology',
     mscCode: '54D30',
     statementLatex: `K \\subset \\mathbb{R}^n \\text{ is compact} \\iff K \\text{ is closed and bounded}`,
     statementPlainZh: `在 \\(n\\) 维欧几里得空间 \\(\\mathbb{R}^n\\) 中，子集 \\(K\\) 是紧致的（即 \\(K\\) 的任意开覆盖都存在有限子覆盖）当且仅当 \\(K\\) 是有界闭集。`,
+    statementPlainEn: "A subset K of Euclidean space \\mathbb{R}^n is compact (every open cover has a finite subcover) if and only if K is closed and bounded.",
     intuitionMd: `### 无限与有限的桥梁
 **“紧致性是有限性在无限拓扑空间中的代数推广。”**
 - 在紧致空间上，任何连续实函数必然有界并能达到最大值与最小值；
 - 海涅-博雷尔定理给出了欧几里得空间中紧致性极其直观且可判定的几何充要条件：**“既不跑到无穷远（有界），也不缺少边界点（闭）”**。`,
+    intuitionEn: "### Topological Compactness Intuition\nTranslates topological compactness into elementary metric properties of being closed and bounded in Euclidean space.",
+    historicalContextZh: "定理得名于爱德华·海涅与埃米尔·博雷尔，经魏尔斯特拉斯和勒贝格的发展成为现代实分析与点集拓扑的基石。",
+    historicalContextEn: "Named after Eduard Heine and Émile Borel, fundamental to real analysis and point-set topology.",
     verification: 'FORMALLY_VERIFIED',
     reputationScore: 1450,
     viewCount: 7600,
@@ -1039,18 +1071,22 @@ theorem heine_borel_real (s : Set ℝ) :
   {
     id: 'thm-first-isomorphism',
     slug: 'first-isomorphism-theorem-groups',
-    titleZh: '群的第一同构定理 (同态基本定理)',
+    titleZh: '群的第一同构定理',
     titleEn: 'First Isomorphism Theorem for Groups',
     nodeType: 'THEOREM',
     disciplineId: 'algebra',
     mscCode: '20A05',
     statementLatex: `G / \\ker(\\phi) \\cong \\mathrm{im}(\\phi), \\quad \\text{where } \\phi: G \\to H \\text{ is a homomorphism}`,
     statementPlainZh: `设 \\(\\phi: G \\to H\\) 为群同态，则 \\(\\phi\\) 的核 \\(\\ker(\\phi)\\) 为 \\(G\\) 的正规子群，且商群 \\(G/\\ker(\\phi)\\) 自然同构于 \\(\\phi\\) 的像集 \\(\\mathrm{im}(\\phi)\\)。`,
+    statementPlainEn: "If \\phi: G \\to H is a group homomorphism, then \\ker(\\phi) is a normal subgroup of G, and G / \\ker(\\phi) \\cong \\operatorname{im}(\\phi).",
     intuitionMd: `### 代数投影与信息无损还原
 **“商群 \\(G/\\ker\\phi\\) 精确抹去了所有被同态映射为单位元的‘冗余盲区’，剩下的结构与像群 \\(\\mathrm{im}\\phi\\) 完全对称同构。”**
 
 - 交换图 (Commutative Diagram)：
   \\(G \\xrightarrow{\\phi} \\mathrm{im}\\phi\\) 与复合映射 \\(G \\xrightarrow{\\pi} G/\\ker\\phi \\xrightarrow{\\bar\\phi} \\mathrm{im}\\phi\\) 处处恒等！`,
+    intuitionEn: "### Categorical Homomorphism Factorization\nEvery algebraic homomorphism canonically factors into a surjective canonical quotient followed by an injective isomorphism.",
+    historicalContextZh: "同构定理系统由埃米·诺特 (Emmy Noether) 在1920年代建立近代抽象代数公理体系时提炼升华。",
+    historicalContextEn: "Formulated in modern abstract algebraic generality by Emmy Noether in the 1920s.",
     verification: 'FORMALLY_VERIFIED',
     reputationScore: 1600,
     viewCount: 8200,
@@ -1154,18 +1190,22 @@ theorem first_isomorphism_theorem {G H : Type*} [Group G] [Group H] (φ : G →*
   {
     id: 'conjecture-riemann-hypothesis',
     slug: 'riemann-hypothesis',
-    titleZh: '黎曼猜想 (Riemann Hypothesis)',
-    titleEn: 'The Riemann Hypothesis',
+    titleZh: '黎曼猜想',
+    titleEn: 'Riemann Hypothesis',
     nodeType: 'CONJECTURE',
     disciplineId: 'number-theory',
     mscCode: '11M26',
     statementLatex: `\\zeta(s) = 0 \\land s \\notin -2\\mathbb{N} \\implies \\mathrm{Re}(s) = \\frac{1}{2}`,
     statementPlainZh: `黎曼 Zeta 函数 \\(\\zeta(s) = \\sum_{n=1}^\\infty \\frac{1}{n^s}\\) 的所有非平凡零点均位于复平面上的临界线 \\(\\mathrm{Re}(s) = \\frac{1}{2}\\) 之上。`,
+    statementPlainEn: "All non-trivial zeros of the Riemann zeta function \\zeta(s) have real part equal to 1/2.",
     intuitionMd: `### 素数分布的终极和谐乐章
 **“素数的分布规律隐藏在黎曼 Zeta 函数零点的振动频谱之中。”**
 
 - 如果黎曼猜想成立，素数计数函数 \\(\\pi(x)\\) 与对数积分 \\(\\mathrm{Li}(x)\\) 的误差将达到理论最优的 \\(O(\\sqrt{x} \\ln x)\\) 随机波动界。
 - 它是千禧年七大数学难题之首，至今仍等待人类彻底攻克。`,
+    intuitionEn: "### Prime Vibration Spectrum Intuition\nThe precise distribution of prime numbers is governed by the vibrational spectrum of Riemann zeta zeros along the critical line.",
+    historicalContextZh: "伯恩哈德·黎曼于1859年在论文《论小于给定大小的素数个数》中提出，是千禧年七大数学难题之首。",
+    historicalContextEn: "Proposed by Bernhard Riemann in 1859, the premier unsolved problem in mathematics and millennium prize problem.",
     verification: 'UNVERIFIED',
     reputationScore: 9999,
     viewCount: 45000,
@@ -1208,7 +1248,11 @@ theorem first_isomorphism_theorem {G H : Type*} [Group G] [Group H] (φ : G →*
     mscCode: '00A05',
     statementLatex: 'e^{i\\pi} + 1 = 0',
     statementPlainZh: '数学中最美妙的恒等式，将自然对数的底 e、虚数单位 i、圆周率 pi、乘法单位元 1 与加法零元 0 融为一体。',
+    statementPlainEn: "The profound identity linking five fundamental mathematical constants: e^{i \\pi} + 1 = 0.",
     intuitionMd: '复数乘法在几何上对应于复平面上的旋转与伸缩。乘以 e^(iθ) 相当于在单位圆上逆时针旋转 θ 弧度。当旋转半周（即 π 弧度）时，点 1 旋转至 -1，故 e^(iπ) = -1，即 e^(iπ) + 1 = 0。',
+    intuitionEn: "### Complex Exponential Rotation Intuition\nContinuous exponential rotation in the complex plane by angle \\pi maps 1 to -1.",
+    historicalContextZh: "欧拉在1748年出版的《无穷分析引论》中给出复指数展开，被誉为“数学界最美公式”。",
+    historicalContextEn: "Published by Leonhard Euler in Introductio in analysin infinitorum (1748), celebrated as the most beautiful formula in mathematics.",
     verification: 'FORMALLY_VERIFIED',
     reputationScore: 3200,
     viewCount: 38900,
@@ -1298,7 +1342,11 @@ theorem euler_identity : exp (π * I) + 1 = 0 := by
     mscCode: '03E10',
     statementLatex: '|A| < |\\mathcal{P}(A)|',
     statementPlainZh: '对任意集合 A，其幂集 P(A) 的基数严格大于集合 A 本身的基数，不存在从 A 到 P(A) 的满射。',
+    statementPlainEn: "For any set A, the cardinality of its power set \\mathcal{P}(A) is strictly greater than |A|. No surjection from A to \\mathcal{P}(A) exists.",
     intuitionMd: '类似于“理发师悖论”，如果存在一个将集合元素映射到所有子集的全面对应方式，我们总能构造出一个由“不包含自己的元素”所组成的特异子集。该子集在逻辑上无法被任何原集合元素所对应，从而打破满射假设。',
+    intuitionEn: "### Diagonalization Argument Intuition\nConstructing the self-avoiding diagonal subset { x \\in A | x \\notin f(x) } proves no function can cover all subsets.",
+    historicalContextZh: "乔治·康托尔于1891年通过对角线论证法证明，建立了无穷大具有不同阶次的超限数体系。",
+    historicalContextEn: "Proved by Georg Cantor in 1891 via the diagonalization argument, establishing the hierarchy of transfinite cardinals.",
     verification: 'FORMALLY_VERIFIED',
     reputationScore: 2900,
     viewCount: 31200,
@@ -1383,18 +1431,22 @@ theorem cantor_surjective (A : Type*) (f : A → Set A) : ¬ Function.Surjective
   {
     id: 'thm-pythagorean',
     slug: 'pythagorean-theorem',
-    titleZh: '勾股定理 (毕达哥拉斯定理)',
+    titleZh: '勾股定理',
     titleEn: 'Pythagorean Theorem',
     nodeType: 'THEOREM',
     disciplineId: 'geometry',
     mscCode: '51M04',
     statementLatex: `a^2 + b^2 = c^2`,
     statementPlainZh: '在欧几里得平面的任意直角三角形中，两直角边长度 \\(a, b\\) 的平方和等于斜边长度 \\(c\\) 的平方，即 \\(a^2 + b^2 = c^2\\)。',
+    statementPlainEn: "In a planar right triangle with legs a and b and hypotenuse c, a^2 + b^2 = c^2.",
     intuitionMd: `### 几何直觉与物理动机
 **“把边长看作以各边为边长正方形的面积：斜边正方形的面积恰好等于两直角边正方形面积之和。”**
 
 - **赵爽弦图**：用四个全等的直角三角形拼成一个大正方形，中间镂空一个面积为 \\((b-a)^2\\) 的小正方形。
 - 大正方形面积既是 \\(c^2\\)，也是 \\(4 \\times (\\frac{1}{2}ab) + (b-a)^2 = 2ab + a^2 - 2ab + b^2 = a^2 + b^2\\)。`,
+    intuitionEn: "### Euclidean Metric Foundation\nThe area of the square on the hypotenuse equals the sum of the areas of the squares on the other two legs.",
+    historicalContextZh: "中国古代《周髀算经》记载商高“勾三股四弦五”，古希腊毕达哥拉斯学派给出几何论证。",
+    historicalContextEn: "Discovered in ancient Babylon, China (Zhoubi Suanjing), and Greece by Pythagoras; foundational to Euclidean geometry.",
     verification: 'FORMALLY_VERIFIED',
     reputationScore: 560,
     viewCount: 6200,
@@ -1472,18 +1524,22 @@ theorem pythagorean_theorem {V : Type*} [NormedAddCommGroup V] [InnerProductSpac
   {
     id: 'thm-am-gm',
     slug: 'am-gm-inequality',
-    titleZh: '均值不等式 (AM-GM 不等式)',
-    titleEn: 'Arithmetic Mean - Geometric Mean Inequality',
+    titleZh: '均值不等式',
+    titleEn: 'AM-GM Inequality',
     nodeType: 'THEOREM',
     disciplineId: 'analysis',
     mscCode: '26D15',
     statementLatex: `\\frac{a+b}{2} \\ge \\sqrt{ab}, \\quad \\forall a, b \\ge 0`,
     statementPlainZh: '对任意非负实数 \\(a, b \\ge 0\\)，其算术平均数恒不小于几何平均数，即 \\(\\frac{a+b}{2} \\ge \\sqrt{ab}\\)，当且仅当 \\(a = b\\) 时等号成立。',
+    statementPlainEn: "For non-negative real numbers, the arithmetic mean is greater than or equal to the geometric mean.",
     intuitionMd: `### 几何直觉与物理动机
 **“在周长固定的所有矩形中，正方形的面积最大。”**
 
 - 若长方形两边为 \\(a, b\\)，半周长为 \\(\\frac{a+b}{2}\\)，面积为 \\(ab\\)。
 - 平方差构造：\\((\\sqrt{a} - \\sqrt{b})^2 \\ge 0\\) 是最底层的非负性实数公理体现。`,
+    intuitionEn: "### Optimization & Geometric Box Intuition\nThe volume of an n-dimensional box is maximized when all side lengths are equal given a fixed sum of side lengths.",
+    historicalContextZh: "经典分析基础不等式，柯西于1821年用倒退数学归纳法给出了巧妙证明。",
+    historicalContextEn: "Fundamental analytical inequality, famously proved by Cauchy using backward mathematical induction in 1821.",
     verification: 'FORMALLY_VERIFIED',
     reputationScore: 480,
     viewCount: 4100,
@@ -1567,10 +1623,14 @@ theorem am_gm_two (a b : ℝ) (ha : 0 ≤ a) (hb : 0 ≤ b) :
     mscCode: '40A05',
     statementLatex: `\\sum_{k=0}^{n-1} r^k = \\frac{1 - r^n}{1 - r}, \\quad (r \\neq 1)`,
     statementPlainZh: '设公比 \\(r \\neq 1\\)，则有限等比数列的前 \\(n\\) 项和为 \\(S_n = 1 + r + r^2 + \\cdots + r^{n-1} = \\frac{1 - r^n}{1 - r}\\)。当 \\(|r| < 1\\) 时，无穷级数收敛于 \\(\\frac{1}{1-r}\\)。',
+    statementPlainEn: "Sum formula for geometric series with initial term a and ratio q. For |q| < 1, the infinite series converges to a / (1 - q).",
     intuitionMd: `### 几何直觉与物理动机
 **“错位相减：将数列整体乘上公比 \\(r\\) 后往后错开一位相减，中间的项像多米诺骨牌一样全部对消。”**
 
 - 无穷尺取悖论（芝诺悖论）：\\(\\frac{1}{2} + \\frac{1}{4} + \\frac{1}{8} + \\cdots = 1\\)。`,
+    intuitionEn: "### Telescoping Sum Intuition\nMultiplying by (1 - q) cancels all intermediate terms, leaving only the boundary terms.",
+    historicalContextZh: "阿基米德在《抛物线求积》中使用等比级数求和计算抛物线弓形面积，成为积分学前驱。",
+    historicalContextEn: "Used by Archimedes to compute the quadrature of the parabola, a precursor to modern integral calculus.",
     verification: 'FORMALLY_VERIFIED',
     reputationScore: 390,
     viewCount: 3750,
@@ -1658,10 +1718,14 @@ theorem geom_sum_formula (r : ℝ) (n : ℕ) (hr : r ≠ 1) :
     mscCode: '11A41',
     statementLatex: `|\\mathbb{P}| = \\infty`,
     statementPlainZh: '素数（质数）的集合 \\(\\mathbb{P}\\) 是无限集，不存在最大的素数。',
+    statementPlainEn: "There are infinitely many prime numbers. For any finite set of primes, N = p_1 \\cdot ... \\cdot p_k + 1 yields a new prime factor.",
     intuitionMd: `### 几何直觉与物理动机
 **“假设世界上只有有限个素数，把它们全部乘起来再加 1，这个新数就无法被已知的任何一个素数整除——必然诞生新素数！”**
 
 - 构造性反证法经典范式：\\(N = p_1 p_2 \\cdots p_k + 1\\)。`,
+    intuitionEn: "### Constructive Contradiction Intuition\nThe product of all assumed primes plus 1 cannot be divided by any prime in the list.",
+    historicalContextZh: "载于欧几里得《几何原本》第九卷命题20，是数学史上最古老且最具美感的反证法典范之一。",
+    historicalContextEn: "Recorded in Euclid Elements Book IX Proposition 20, one of the most elegant proofs in mathematical history.",
     verification: 'FORMALLY_VERIFIED',
     reputationScore: 590,
     viewCount: 5400,
@@ -1738,17 +1802,21 @@ theorem primes_infinite (n : ℕ) : ∃ p, p ≥ n ∧ Nat.Prime p := by
   {
     id: 'thm-intermediate-value',
     slug: 'intermediate-value-theorem',
-    titleZh: '介值定理 (零点存在定理)',
-    titleEn: 'Intermediate Value Theorem (IVT)',
+    titleZh: '介值定理',
+    titleEn: 'Intermediate Value Theorem',
     nodeType: 'THEOREM',
     disciplineId: 'analysis',
     mscCode: '26A15',
     statementLatex: `f(a) < u < f(b) \\implies \\exists c \\in (a, b), \\; f(c) = u`,
     statementPlainZh: '设函数 \\(f\\) 在闭区间 \\([a, b]\\) 上连续。若 \\(u\\) 介于 \\(f(a)\\) 与 \\(f(b)\\) 之间，则在开区间 \\((a, b)\\) 内至少存在一点 \\(c\\)，使得 \\(f(c) = u\\)。',
+    statementPlainEn: "If f is continuous on [a, b] and u is between f(a) and f(b), there exists c \\in (a, b) such that f(c) = u.",
     intuitionMd: `### 几何直觉与物理动机
 **“一笔画出一条不间断的曲线，如果它从河的一岸连到了另一岸，那么它一定在某一点跨过了整条河流。”**
 
 - **拓扑连通性**：连续函数保持连通性，连通集 \\([a, b]\\) 的像必为连通区间 \\([f(a), f(b)]\\)。`,
+    intuitionEn: "### Topological Connectedness Intuition\nA continuous curve cannot jump over an intermediate value without crossing it due to the connectedness of [a, b].",
+    historicalContextZh: "波尔查诺于1817年首次给出严格分析证明，成为实数连续统拓扑连通性的核心结论。",
+    historicalContextEn: "First rigorously proved by Bernard Bolzano in 1817, reflecting the topological connectedness of real intervals.",
     verification: 'FORMALLY_VERIFIED',
     reputationScore: 450,
     viewCount: 4900,
@@ -1837,10 +1905,14 @@ theorem intermediate_value_theorem {f : ℝ → ℝ} {a b u : ℝ} (hab : a ≤ 
     mscCode: '12D05',
     statementLatex: `\\forall P(z) = \\sum_{k=0}^{n} a_k z^k \\in \\mathbb{C}[z], \\; (n \\ge 1, a_n \\neq 0) \\implies \\exists z_0 \\in \\mathbb{C}, \\; P(z_0) = 0`,
     statementPlainZh: '任何次数 \\(n \\ge 1\\) 的复系数多项式在复数域 \\(\\mathbb{C}\\) 内至少存在一个复数根。由此可知复数域 \\(\\mathbb{C}\\) 是代数闭域，任意 \\(n\\) 次复多项式恰有 \\(n\\) 个复根（计入重数）。',
+    statementPlainEn: "Every non-constant single-variable polynomial with complex coefficients has at least one complex root.",
     intuitionMd: `### 几何直觉与复分析动机
 **“如果多项式在整个复平面上没有根，那么其倒数 \\(1/P(z)\\) 就是一个在整个复平面上处处有界的全纯函数——由刘维尔定理，它只能是常数函数，矛盾！”**
 
 - **缠绕数直觉**：当 \\(z\\) 在半径巨大的圆周上绕原点逆时针旋转一圈时，最高次项 \\(a_n z^n\\) 使得 \\(P(z)\\) 绕原点旋转 \\(n\\) 圈。连续缩小圆周半径至 0，由于缠绕数是拓扑不变量，曲线不可能在不穿过原点的情况下把缠绕数从 \\(n\\) 变为 0。`,
+    intuitionEn: "### Winding Number & Topology Intuition\nThe image of a large circle under polynomial mapping winds n times around the origin and must cover 0.",
+    historicalContextZh: "高斯在1799年博士论文中给出了该定理的第一个被广泛接受的几何证明，一生共给出四种不同证明。",
+    historicalContextEn: "First rigorously proved by Carl Friedrich Gauss in 1799, confirming that \\mathbb{C} is algebraically closed.",
     verification: 'FORMALLY_VERIFIED',
     reputationScore: 780,
     viewCount: 8900,
@@ -1926,17 +1998,21 @@ theorem fundamental_theorem_of_algebra (P : ℂ[X]) (hDeg : 0 < degree P) :
   {
     id: 'thm-sylow-first',
     slug: 'sylow-first-theorem',
-    titleZh: '西罗第一定理 (Sylow I)',
+    titleZh: '西罗第一定理',
     titleEn: "Sylow's First Theorem",
     nodeType: 'THEOREM',
     disciplineId: 'algebra',
     mscCode: '20D20',
     statementLatex: `|G| = p^k m, \\; (p \\nmid m) \\implies \\forall 1 \\le r \\le k, \\; \\exists H \\le G, \\; |H| = p^r`,
     statementPlainZh: '设 \\(G\\) 为有限群，\\(p\\) 为素数。若 \\(p^k\\) 整除 \\(|G|\\)，则对任意 \\(1 \\le r \\le k\\)，群 \\(G\\) 必存在阶为 \\(p^r\\) 的子群。特别地，存在阶为最高次幂 \\(p^k\\) 的 Sylow \\(p\\)-子群。',
+    statementPlainEn: "If p^k divides the order of a finite group G for prime p, then G contains a subgroup of order p^k.",
     intuitionMd: `### 几何直觉与群作用动机
 **“群作用的轨道-稳定子分解：拉格朗日定理逆命题在素数幂阶下的完美复活。”**
 
 - **轨道计数原理**：让群 \\(G\\) 通过左乘作用在大小为 \\(p^k\\) 的子集族上，通过模 \\(p\\) 同余公式证明存在长度不被 \\(p\\) 整除的轨道，其对应的稳定子群恰好具有所需的素数幂阶。`,
+    intuitionEn: "### Group Action Class Equation Intuition\nGroup conjugation action on cosets forces fixed points via the class equation modulo p.",
+    historicalContextZh: "挪威数学家彼得·西罗 (Ludwig Sylow) 于1872年提出，是有限群论中拉格朗日定理的部分逆定理。",
+    historicalContextEn: "Formulated by Ludwig Sylow in 1872, providing a powerful partial converse to Lagrange theorem.",
     verification: 'FORMALLY_VERIFIED',
     reputationScore: 680,
     viewCount: 6100,
@@ -2017,17 +2093,21 @@ theorem sylow_first_theorem (G : Type*) [Group G] [Fintype G] (p : ℕ) [Fact (N
   {
     id: 'thm-banach-fixed-point',
     slug: 'banach-fixed-point-theorem',
-    titleZh: '巴拿赫不动点定理 (压缩映射原理)',
-    titleEn: 'Banach Fixed-Point Theorem (Contraction Mapping)',
+    titleZh: '巴拿赫不动点定理',
+    titleEn: 'Banach Fixed-Point Theorem',
     nodeType: 'THEOREM',
     disciplineId: 'analysis',
     mscCode: '47H10',
     statementLatex: `(X, d) \\text{ complete}, \\; T: X \\to X, \\; d(T(x), T(y)) \\le k d(x, y), \\; (0 \\le k < 1) \\implies \\exists! x^* \\in X, \\; T(x^*) = x^*`,
     statementPlainZh: '设 \\((X, d)\\) 为非空完备度量空间。若映射 \\(T: X \\to X\\) 是严格压缩映射（存在常数 \\(0 \\le k < 1\\) 使得 \\(d(T(x), T(y)) \\le k d(x,y)\\)），则 \\(T\\) 在 \\(X\\) 内存在唯一的稳定不动点 \\(x^*\\)。对任意初始点 \\(x_0\\)，迭代序列 \\(x_{n+1} = T(x_n)\\) 必收敛于 \\(x^*\\)。',
+    statementPlainEn: "Let (X, d) be a non-empty complete metric space and T: X \\to X a contraction mapping. Then T has a unique fixed point.",
     intuitionMd: `### 几何直觉与物理动机
 **“把一张地图揉皱后扔在它所代表的真实地面上，地图上必有且仅有一个点，恰好位于它所代表的真实地理位置正上方。”**
 
 - **Picard 逐次逼近**：常微分方程解的存在唯一性定理 (Picard-Lindelöf) 的底层通用抽象工具。`,
+    intuitionEn: "### Metric Contraction Flow Intuition\nRepeatedly applying the contraction squeezes the entire metric space to a single unique point.",
+    historicalContextZh: "斯特凡·巴拿赫 (Stefan Banach) 于1922年提出，广泛应用于微分方程皮卡-林德洛夫定理与动力系统求解。",
+    historicalContextEn: "Published by Stefan Banach in 1922, essential for Picard-Lindelöf theorem in ODEs and numerical iteration.",
     verification: 'FORMALLY_VERIFIED',
     reputationScore: 620,
     viewCount: 6700,
@@ -2108,17 +2188,21 @@ theorem banach_fixed_point {X : Type*} [MetricSpace X] [CompleteSpace X] [Nonemp
   {
     id: 'thm-prime-number-theorem',
     slug: 'prime-number-theorem',
-    titleZh: '素数定理 (PNT)',
+    titleZh: '素数定理',
     titleEn: 'Prime Number Theorem',
     nodeType: 'THEOREM',
     disciplineId: 'number-theory',
     mscCode: '11N05',
     statementLatex: `\\pi(x) \\sim \\frac{x}{\\ln x} \\iff \\lim_{x \\to \\infty} \\frac{\\pi(x) \\ln x}{x} = 1`,
     statementPlainZh: '设 \\(\\pi(x)\\) 为不超过 \\(x\\) 的素数个数，则当 \\(x \\to \\infty\\) 时，\\(\\pi(x)\\) 渐近等价于 \\(\\frac{x}{\\ln x}\\)。即第 \\(n\\) 个素数的大小渐近于 \\(n \\ln n\\)。',
+    statementPlainEn: "The asymptotic distribution of the prime counting function: \\pi(x) \\sim x / \\ln(x) \\sim \\mathrm{Li}(x) as x \\to \\infty.",
     intuitionMd: `### 几何直觉与复分析动机
 **“素数的分布不是杂乱无章的噪点，它的宏观密度受控于黎曼 Zeta 函数在临界线 \\(\\mathrm{Re}(s)=1\\) 上的非零行为。”**
 
 - **Hadamard & de la Vallée Poussin (1896)**：证明了黎曼 Zeta 函数 \\(\\zeta(s)\\) 在直线 \\(\\mathrm{Re}(s) = 1\\) 上没有任何零点，由此直接推导出素数定理。`,
+    intuitionEn: "### Asymptotic Prime Density Intuition\nThe local probability of an integer near x being prime is approximately 1 / \\ln(x).",
+    historicalContextZh: "勒让德和高斯先后猜想，阿达马 (Hadamard) 与德·拉·瓦莱·普桑 (de la Vallée Poussin) 于1896年利用复变函数解析方法独立严格证明。",
+    historicalContextEn: "Conjectured by Gauss and Legendre, proved independently in 1896 by Hadamard and de la Vallée Poussin.",
     verification: 'FORMALLY_VERIFIED',
     reputationScore: 890,
     viewCount: 9500,

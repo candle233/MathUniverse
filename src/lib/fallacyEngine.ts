@@ -82,7 +82,8 @@ export const fallacyCases: FallacyCase[] = [
     storyContextZh:
       '一名代数初学者提交了一份声称“严格证明了 1 等于 2”的短推导。整个过程表面上应用了标准的乘法分配律与平方差公式，请找出隐藏在移项因式分解中的致命代数漏洞。',
     allegedConclusionLatex: '1 = 2',
-    formalTheoremNameZh: '代数域乘法群非零律 (Field Multiplicative Invertibility Theorem)',
+    formalTheoremNameZh: '代数域乘法群非零律',
+    formalTheoremNameEn: 'Field Multiplicative Invertibility Theorem',
     interactiveVisualizerType: 'series_partial_sums',
     steps: [
       {
@@ -135,7 +136,8 @@ export const fallacyCases: FallacyCase[] = [
     storyContextZh:
       '通过初等代数移项与括号结合技巧，计算公比 q = 2 的无穷发散几何级数，得出了一个荒谬的负数和 S = -1。请指出级数收敛域失效的致命步骤。',
     allegedConclusionLatex: '1 + 2 + 4 + 8 + 16 + \\dots = -1',
-    formalTheoremNameZh: '黎曼级数重排与柯西收敛准则 (Riemann Rearrangement & Cauchy Criterion)',
+    formalTheoremNameZh: '黎曼级数重排与柯西收敛准则',
+    formalTheoremNameEn: 'Riemann Rearrangement & Cauchy Criterion',
     interactiveVisualizerType: 'series_partial_sums',
     steps: [
       {
@@ -182,7 +184,8 @@ export const fallacyCases: FallacyCase[] = [
     storyContextZh:
       '利用虚数单位 i 的连续平方根代数变形，似乎严格证明了 -1 = 1。请指出复数多值分支与主值割线选取的非法步骤。',
     allegedConclusionLatex: '-1 = 1',
-    formalTheoremNameZh: '全纯函数分支割线定理 (Holomorphic Branch Cut & Monodromy Theorem)',
+    formalTheoremNameZh: '全纯函数分支割线定理',
+    formalTheoremNameEn: 'Holomorphic Branch Cut & Monodromy Theorem',
     interactiveVisualizerType: 'complex_riemann_surface',
     steps: [
       {
@@ -235,7 +238,8 @@ export const fallacyCases: FallacyCase[] = [
     storyContextZh:
       '利用直径为 1 的正方形外切圆，通过不断将外切折线阶梯对半细分逼近圆周点集。折线阶梯总长度始终严格为 4，从而断言极限圆周长 π = 4。请找出度量极限过程中的分析漏洞。',
     allegedConclusionLatex: '\\pi = 4',
-    formalTheoremNameZh: '弧长积分泛函下半连续性定理 (Arc Length Lower Semicontinuity Theorem)',
+    formalTheoremNameZh: '弧长积分泛函下半连续性定理',
+    formalTheoremNameEn: 'Arc Length Lower Semicontinuity Theorem',
     interactiveVisualizerType: 'staircase_pi',
     steps: [
       {
@@ -283,7 +287,8 @@ export const fallacyCases: FallacyCase[] = [
     storyContextZh:
       '在对 1/x 进行分部积分时，巧妙地在等式两边得到了完全相同的不定积分项 ∫ (1/x) dx。通过移项相消，导出了惊人的 0 = 1。请指出微积分不定积分概念上的混淆。',
     allegedConclusionLatex: '0 = 1',
-    formalTheoremNameZh: '原函数族商空间等价类定理 (Antiderivative Affine Coset Modulo Constant)',
+    formalTheoremNameZh: '原函数族商空间等价类定理',
+    formalTheoremNameEn: 'Antiderivative Affine Coset Modulo Constant',
     interactiveVisualizerType: 'integration_constant',
     steps: [
       {
@@ -337,7 +342,8 @@ export const fallacyCases: FallacyCase[] = [
     storyContextZh:
       '利用费曼技巧对含参变量积分 F(t) 在积分号下对参数求导。在跨越奇异原点 t → 0⁺ 时，由于忽略了被积核的非一致收敛性，得出了导数极限与原函数导数的尖锐对立。',
     allegedConclusionLatex: '\\lim_{t \\to 0^+} F\'(t) = 0 \\quad (\\text{Contradicting } \\lim_{t \\to 0^+} F\'(t) = -\\infty)',
-    formalTheoremNameZh: '勒贝格支配收敛与莱布尼茨积分法则 (Lebesgue Dominated Convergence & Leibniz Rule)',
+    formalTheoremNameZh: '勒贝格支配收敛与莱布尼茨积分法则',
+    formalTheoremNameEn: 'Lebesgue Dominated Convergence & Leibniz Rule',
     interactiveVisualizerType: 'integral_leibniz',
     steps: [
       {

@@ -16,6 +16,8 @@ import {
 } from '@/lib/prerequisiteClosure';
 import { getNodeTypeMeta, getVerificationMeta } from '@/lib/utils';
 import { InlineLaTeX } from '@/components/math/LaTeXRenderer';
+import { useLanguage } from '@/context/LanguageContext';
+import { getNodeTitle } from '@/lib/i18nHelper';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -68,6 +70,7 @@ interface StarfieldParticle {
 
 export default function Cosmos3DGraph() {
   const router = useRouter();
+  const { locale, isZh, t } = useLanguage();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -542,13 +545,14 @@ export default function Cosmos3DGraph() {
             ? '#e0f2fe'
             : '#cbd5e1';
 
-          ctx.fillText(node.titleZh, proj.sx + nodeRadius + 5, proj.sy + 3);
+          const displayTitle = getNodeTitle(node, locale);
+          ctx.fillText(displayTitle, proj.sx + nodeRadius + 5, proj.sy + 3);
 
           // Bottleneck badge badge text
           if (isBottleneck) {
             ctx.font = 'bold 9px sans-serif';
             ctx.fillStyle = '#ef4444';
-            ctx.fillText('⚡ 关键拓扑枢纽', proj.sx + nodeRadius + 5, proj.sy + 15);
+            ctx.fillText(isZh ? '⚡ 关键拓扑枢纽' : '⚡ Key Milestone', proj.sx + nodeRadius + 5, proj.sy + 15);
           }
         }
       });
@@ -571,6 +575,8 @@ export default function Cosmos3DGraph() {
     hoveredNodeId,
     nebulaDustParticles,
     backgroundStars,
+    locale,
+    isZh,
   ]);
 
   // Raycasting / Screen-Space Hit Detection
@@ -896,16 +902,16 @@ export default function Cosmos3DGraph() {
             <div className="flex items-center justify-between">
               <span
                 className={`text-[10px] px-2.5 py-0.5 rounded-full border font-semibold ${
-                  getNodeTypeMeta(selectedNode.nodeType).color
+                  getNodeTypeMeta(selectedNode.nodeType, locale).color
                 }`}
               >
-                {getNodeTypeMeta(selectedNode.nodeType).label}
+                {getNodeTypeMeta(selectedNode.nodeType, locale).label}
               </span>
               <span className="text-[11px] text-slate-400 font-mono">MSC {selectedNode.mscCode}</span>
             </div>
 
-            <h4 className="font-bold text-slate-100 text-sm">{selectedNode.titleZh}</h4>
-            <p className="text-xs text-slate-400 font-mono">{selectedNode.titleEn}</p>
+            <h4 className="font-bold text-slate-100 text-sm">{getNodeTitle(selectedNode, locale)}</h4>
+            <p className="text-xs text-slate-400 font-mono">{locale === 'zh' ? selectedNode.titleEn : selectedNode.titleZh}</p>
 
             <div className="p-2.5 bg-slate-900/90 rounded-xl border border-slate-800 text-xs text-cyan-200 font-mono overflow-x-auto">
               <InlineLaTeX formula={selectedNode.statementLatex} />
@@ -914,9 +920,9 @@ export default function Cosmos3DGraph() {
             <div className="flex items-center justify-between text-xs text-slate-300">
               <span className="flex items-center gap-1 text-emerald-400 font-medium">
                 <ShieldCheck className="w-4 h-4" />
-                {getVerificationMeta(selectedNode.verification).short}
+                {getVerificationMeta(selectedNode.verification, locale).short}
               </span>
-              <span className="text-slate-400">{selectedNode.proofs.length} 份形式化证明</span>
+              <span className="text-slate-400">{selectedNode.proofs.length} {isZh ? '份形式化证明' : 'proof(s)'}</span>
             </div>
 
             <div className="flex gap-2 pt-1">
@@ -929,14 +935,14 @@ export default function Cosmos3DGraph() {
                 }`}
               >
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>{knownNodeIds.includes(selectedNode.id) ? '已掌握' : '标记已学'}</span>
+                <span>{knownNodeIds.includes(selectedNode.id) ? (isZh ? '已掌握' : 'Mastered') : (isZh ? '标记已学' : 'Mark Learned')}</span>
               </button>
 
               <Link
                 href={`/node/${selectedNode.slug}`}
                 className="py-1.5 px-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs shadow-lg shadow-cyan-500/20 transition-colors flex items-center gap-1 cursor-pointer"
               >
-                <span>详情</span>
+                <span>{isZh ? '详情' : 'Details'}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>

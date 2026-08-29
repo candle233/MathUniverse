@@ -1,4 +1,4 @@
-﻿/**
+/**
  * MathUniverse ZFC to Modern Math RPG Progression Engine Types
  * 6 Epochs of Mathematical Civilization, Axiom Unlocking,
  * Entity Synthesis, and Step-by-Step Derivation Verification.
@@ -21,6 +21,7 @@ export interface ZfcAxiomDefinition {
   nameEn: string;
   firstOrderFormulaLatex: string;
   intuitionZh: string;
+  intuitionEn?: string;
   epochIntroduced: number;
   category: 'FOUNDATION' | 'CONSTRUCTION' | 'INFINITARY' | 'CHOICE';
 }
@@ -32,6 +33,7 @@ export interface ConstructedEntity {
   setNotation: string;
   formalDefinitionLatex: string;
   descriptionZh: string;
+  descriptionEn?: string;
   requiredAxioms: ZfcAxiomId[];
   requiredEntities: string[];
   unlockedAtEpoch: number;
@@ -41,10 +43,12 @@ export interface ConstructedEntity {
 export interface MilestoneDerivationStep {
   stepNumber: number;
   instructionZh: string;
+  instructionEn?: string;
   validAxiomChoices: ZfcAxiomId[];
   correctFormula: string;
   formulaChoices: string[];
   explanationZh: string;
+  explanationEn?: string;
 }
 
 export interface MilestoneChallenge {
@@ -53,6 +57,7 @@ export interface MilestoneChallenge {
   titleEn: string;
   goalFormula: string;
   descriptionZh: string;
+  descriptionEn?: string;
   inferenceSteps: MilestoneDerivationStep[];
 }
 
@@ -62,12 +67,15 @@ export interface CampaignEpoch {
   titleZh: string;
   titleEn: string;
   eraDescriptionZh: string;
+  eraDescriptionEn?: string;
   requiredAxiomIds: ZfcAxiomId[];
   requiredEntityIds: string[];
   constructibleEntities: ConstructedEntity[];
   milestoneChallenge: MilestoneChallenge;
   rewardXp: number;
   badgeTitle: string;
+  badgeTitleZh?: string;
+  badgeTitleEn?: string;
   themeColor: string;
 }
 
@@ -85,6 +93,8 @@ export interface UserCampaignProgress {
 export interface UserLevelInfo {
   level: number;
   title: string;
+  titleZh?: string;
+  titleEn?: string;
   currentLevelXp: number;
   nextLevelXp: number;
   progressPercent: number;

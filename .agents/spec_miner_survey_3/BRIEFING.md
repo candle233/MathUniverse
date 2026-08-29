@@ -1,4 +1,4 @@
-# BRIEFING — 2026-08-29T04:39:20Z
+# BRIEFING — 2026-08-29T04:43:20Z
 
 ## Mission
 Mine and document all UI components, views, dialogs, drawers, widgets, and user-facing text from ORIGINAL_REQUEST.md and the codebase. Enumerate R1-R4 requirements, all strings needing i18n (zh-CN, en-US), and dictionary namespaces/keys.
@@ -20,7 +20,7 @@ Mine and document all UI components, views, dialogs, drawers, widgets, and user-
 
 ## Current Parent
 - Conversation ID: 7e9390cd-5015-4406-8587-41cff9f6ebc6
-- Updated: not yet
+- Updated: 2026-08-29T04:43:20Z
 
 ## Task Summary
 - **What to build**: Specification report (handoff.md) covering UI components, requirements, and full localization inventory.
@@ -29,8 +29,11 @@ Mine and document all UI components, views, dialogs, drawers, widgets, and user-
 - **Code layout**: .agents/spec_miner_survey_3/
 
 ## Key Decisions Made
-- Systematic scan of ORIGINAL_REQUEST.md followed by codebase tree scan and deep inspection of all React/Vue/Svelte/HTML/TS/JS components.
+- Comprehensive scan of all 35+ components and 9 Next.js pages in `src/`.
+- Documented 43 specific features in "## Features Discovered" and 12 distinct edge cases in "## Edge Cases".
+- Cataloged complete dictionary schema across 13 namespaces (`nav`, `hero`, `graph`, `lean`, `community`, `editor`, `admin`, `sandbox`, `zfc`, `fallacy`, `exportStudio`, `common`, `footer`).
 
 ## Artifact Index
-- c:/Users/Mechrevo/Downloads/math-proj/.agents/spec_miner_survey_3/handoff.md — Final handoff report
-- c:/Users/Mechrevo/Downloads/math-proj/.agents/spec_miner_survey_3/progress.md — Progress tracker
+- `c:/Users/Mechrevo/Downloads/math-proj/.agents/spec_miner_survey_3/handoff.md` — Final handoff report
+- `c:/Users/Mechrevo/Downloads/math-proj/.agents/spec_miner_survey_3/progress.md` — Progress tracker
+- `c:/Users/Mechrevo/Downloads/math-proj/.agents/spec_miner_survey_3/DISPATCH.md` — Dispatch record

@@ -10,16 +10,16 @@ export function getNodeTitle(node: MathNode, locale: Locale): string {
 
 export function getNodeStatement(node: MathNode, locale: Locale): string {
   if (locale === 'en') {
-    return node.statementPlainEn || node.statementPlainZh;
+    return node.statementPlainEn || node.statementEn || node.statementPlainZh || node.statementZh || '';
   }
-  return node.statementPlainZh || node.statementPlainEn || '';
+  return node.statementPlainZh || node.statementZh || node.statementPlainEn || node.statementEn || '';
 }
 
 export function getNodeIntuition(node: MathNode, locale: Locale): string {
   if (locale === 'en') {
-    return node.intuitionEn || node.intuitionMd;
+    return node.intuitionEn || node.intuitionMd || node.intuitionZh || '';
   }
-  return node.intuitionMd || node.intuitionEn || '';
+  return node.intuitionMd || node.intuitionZh || node.intuitionEn || '';
 }
 
 export function getNodeHistorical(node: MathNode, locale: Locale): string {
@@ -32,7 +32,10 @@ export function getNodeHistorical(node: MathNode, locale: Locale): string {
 export function getNodeProofDescription(node: MathNode, locale: Locale): string {
   if (node.proofs && node.proofs.length > 0) {
     const primary = node.proofs.find((p) => p.isPrimary) || node.proofs[0];
-    return primary.rigorousProof || primary.motivation || '';
+    if (locale === 'en') {
+      return primary.rigorousProofEn || primary.motivationEn || primary.rigorousProof || primary.motivation || '';
+    }
+    return primary.rigorousProofZh || primary.motivationZh || primary.rigorousProof || primary.motivation || '';
   }
   return '';
 }
@@ -48,15 +51,15 @@ export function getDisciplineName(
 }
 
 export const NODE_TYPE_LABELS: Record<NodeType, { zh: string; en: string }> = {
-  AXIOM: { zh: '公理 (Axiom)', en: 'Axiom' },
-  DEFINITION: { zh: '定义 (Definition)', en: 'Definition' },
-  LEMMA: { zh: '引理 (Lemma)', en: 'Lemma' },
-  THEOREM: { zh: '定理 (Theorem)', en: 'Theorem' },
-  COROLLARY: { zh: '推论 (Corollary)', en: 'Corollary' },
-  PROPERTY: { zh: '性质 (Property)', en: 'Property' },
-  EXAMPLE: { zh: '范例 (Example)', en: 'Example' },
-  COUNTER_EXAMPLE: { zh: '反例 (Counterexample)', en: 'Counterexample' },
-  CONJECTURE: { zh: '猜想 (Conjecture)', en: 'Conjecture' },
+  AXIOM: { zh: '公理', en: 'Axiom' },
+  DEFINITION: { zh: '定义', en: 'Definition' },
+  LEMMA: { zh: '引理', en: 'Lemma' },
+  THEOREM: { zh: '定理', en: 'Theorem' },
+  COROLLARY: { zh: '推论', en: 'Corollary' },
+  PROPERTY: { zh: '性质', en: 'Property' },
+  EXAMPLE: { zh: '例子', en: 'Example' },
+  COUNTER_EXAMPLE: { zh: '反例', en: 'Counterexample' },
+  CONJECTURE: { zh: '猜想', en: 'Conjecture' },
 };
 
 export function getNodeTypeLabel(type: NodeType, locale: Locale): string {

@@ -77,6 +77,8 @@ import {
   createInitialFallacyProgress,
 } from '../src/lib/fallacyEngine.ts';
 import { runE2EIntegrationTests } from './e2ePlatformIntegration.test.ts';
+import { runI18nTests } from './i18n.test.ts';
+import { runI18nStressChaosTests } from './i18n_stress_chaos.test.ts';
 import { zh } from '../src/i18n/locales/zh.ts';
 import { en } from '../src/i18n/locales/en.ts';
 import {
@@ -90,7 +92,7 @@ import { disciplines } from '../src/data/disciplines.ts';
 
 function runTestSuite() {
   console.log('🧪 ==========================================');
-  console.log('🧪 Starting MathUniverse Test Suite (M1-M5: Groups 1-14)');
+  console.log('🧪 Starting MathUniverse Test Suite (M1-M5: Groups 1-15 Unified)');
   console.log('🧪 ==========================================\n');
 
   let passed = 0;
@@ -538,45 +540,17 @@ function runTestSuite() {
 
   // --- Test Group 15: i18n & Multi-Language Separation Architecture ---
   console.log('\n--- Test Group 15: i18n & Multi-Language Separation Architecture ---');
-  function getAllKeys(obj: any, prefix = ''): string[] {
-    let keys: string[] = [];
-    for (const k of Object.keys(obj)) {
-      const fullKey = prefix ? `${prefix}.${k}` : k;
-      if (typeof obj[k] === 'object' && obj[k] !== null && !Array.isArray(obj[k])) {
-        keys = keys.concat(getAllKeys(obj[k], fullKey));
-      } else {
-        keys.push(fullKey);
-      }
-    }
-    return keys;
-  }
+  const i18nResult = runI18nTests();
+  passed += i18nResult.passed;
+  failed += i18nResult.failed;
+  assert(i18nResult.failed === 0, `i18n Multi-Language Decoupling Test Suite must pass with 0 failures (${i18nResult.passed} assertions passed)`);
 
-  const zhKeys = getAllKeys(zh).sort();
-  const enKeys = getAllKeys(en).sort();
-  const missingInEn = zhKeys.filter((k) => !enKeys.includes(k));
-  const missingInZh = enKeys.filter((k) => !zhKeys.includes(k));
-
-  assert(missingInEn.length === 0, `i18n Parity: Missing keys in English dictionary (${missingInEn.join(', ')})`);
-  assert(missingInZh.length === 0, `i18n Parity: Missing keys in Chinese dictionary (${missingInZh.join(', ')})`);
-  assert(zhKeys.length >= 50, `i18n Dictionary must contain at least 50 localized keys (found ${zhKeys.length})`);
-
-  // Test Node text decoupling
-  const testNode = byId('thm-cauchy-schwarz');
-  const zhTitle = getNodeTitle(testNode, 'zh');
-  const enTitle = getNodeTitle(testNode, 'en');
-  assert(zhTitle.includes('柯西'), 'getNodeTitle(zh) must return clean Chinese title');
-  assert(!zhTitle.includes('Cauchy'), 'getNodeTitle(zh) must not leak English name');
-  assert(enTitle.includes('Cauchy'), 'getNodeTitle(en) must return clean English title');
-
-  // Test Discipline localization
-  const analysisDisc = disciplines.find((d) => d.id === 'analysis')!;
-  assert(getDisciplineName(analysisDisc, 'zh') === '实分析与微积分', 'Discipline zh name matches');
-  assert(getDisciplineName(analysisDisc, 'en') === 'Real Analysis & Calculus', 'Discipline en name matches');
-
-  // Test NodeType localization
-  assert(getNodeTypeLabel('THEOREM', 'zh').includes('定理'), 'NodeType THM zh localized');
-  assert(getNodeTypeLabel('THEOREM', 'en') === 'Theorem', 'NodeType THM en localized');
-  assert(getNodeTypeLabel('AXIOM', 'en') === 'Axiom', 'NodeType AXIOM en localized');
+  // --- Test Group 16: i18n Adversarial Stress & Chaos Verification ---
+  console.log('\n--- Test Group 16: i18n Adversarial Stress & Chaos Verification ---');
+  const chaosResult = runI18nStressChaosTests();
+  passed += chaosResult.passed;
+  failed += chaosResult.failed;
+  assert(chaosResult.failed === 0, `i18n Adversarial Stress & Chaos Test Suite must pass with 0 failures (${chaosResult.passed} assertions passed)`);
 
   console.log('\n==========================================');
   console.log(`📊 Total Unified Test Results: ${passed} passed, ${failed} failed`);

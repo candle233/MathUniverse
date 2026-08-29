@@ -1,33 +1,39 @@
-# E2E Test Infra: MathUniverse Expansion
+# E2E Test Infra: MathUniverse i18n & Verification
 
 ## Test Philosophy
-- Opaque-box, requirement-driven mathematical verification and system integrity testing.
-- Methodology: Category-Partition + Boundary Value Analysis (BVA) + Pairwise Combinatorial + Real-World Workloads.
+- Requirement-driven, opaque-box and contract-driven verification.
+- 4-Tier test suite structure covering feature isolation, boundaries, cross-feature interactions, and full platform application scenarios.
 
-## Feature Inventory & Test Coverage Matrix
-| # | Feature | Requirement Source | Tier 1 (Coverage) | Tier 2 (Boundary/Edge) | Tier 3 (Cross-Feature) | Tier 4 (Application) |
-|---|---------|-------------------|:-----------------:|:----------------------:|:----------------------:|:--------------------:|
-| F1 | DAG Engine & Transitive Closure | ORIGINAL_REQUEST §Acceptance Criteria | 5 | 5 | ✓ | ✓ |
-| F2 | Pyodide & SymPy Computation Engine | ORIGINAL_REQUEST §R1 | 5 | 5 | ✓ | ✓ |
-| F3 | Parameter Sliders & Live State | ORIGINAL_REQUEST §R1 | 5 | 5 | ✓ | ✓ |
-| F4 | Multi-Modal 2D/3D Plotting | ORIGINAL_REQUEST §R1 | 5 | 5 | ✓ | ✓ |
-| F5 | Automated Node Verification | ORIGINAL_REQUEST §R1 | 5 | 5 | ✓ | ✓ |
-| F6 | ZFC to Modern Math RPG Campaign | ORIGINAL_REQUEST §R2 | 5 | 5 | ✓ | ✓ |
-| F7 | Fallacy Detective Interactive Lab | ORIGINAL_REQUEST §R2 | 5 | 5 | ✓ | ✓ |
-| F8 | 3D WebGL Knowledge Cosmos | ORIGINAL_REQUEST §R3 | 5 | 5 | ✓ | ✓ |
-| F9 | Flythrough Navigation & Selection | ORIGINAL_REQUEST §R3 | 5 | 5 | ✓ | ✓ |
-| F10 | Minimum Prerequisite Closure Path | ORIGINAL_REQUEST §R3 | 5 | 5 | ✓ | ✓ |
-| F11 | Academic Exporter (LaTeX/Typst/Beamer/MD) | ORIGINAL_REQUEST §R4 | 5 | 5 | ✓ | ✓ |
-| F12 | Recursive Prerequisite Trees & TikZ-cd | ORIGINAL_REQUEST §R4 | 5 | 5 | ✓ | ✓ |
+## Feature Inventory
+| # | Feature | Source | Tier 1 | Tier 2 | Tier 3 |
+|---|---------|--------|:------:|:------:|:------:|
+| 1 | LanguageContext & Hook | ORIGINAL_REQUEST R1 | 5 | 5 | ✓ |
+| 2 | Key Path & Interpolation | ORIGINAL_REQUEST R1 | 5 | 5 | ✓ |
+| 3 | Dictionary Key Parity | ORIGINAL_REQUEST R1/R4 | 5 | 5 | ✓ |
+| 4 | MathNode Decoupling | ORIGINAL_REQUEST R2 | 5 | 5 | ✓ |
+| 5 | Seed Data Cleanliness | ORIGINAL_REQUEST R2 | 5 | 5 | ✓ |
+| 6 | Accessor Helper Fallbacks | ORIGINAL_REQUEST R2 | 5 | 5 | ✓ |
+| 7 | UI Component Localization | ORIGINAL_REQUEST R3 | 5 | 5 | ✓ |
+| 8 | ZFC & Fallacy Localization | ORIGINAL_REQUEST R3 | 5 | 5 | ✓ |
+| 9 | Academic Export Localization | ORIGINAL_REQUEST R3 | 5 | 5 | ✓ |
+| 10 | Next.js Production Compilation | ORIGINAL_REQUEST R4 | 5 | 5 | ✓ |
 
 ## Test Architecture
-- Test Runner: Node 20 `--experimental-strip-types tests/runTests.ts`
-- Verification Commands:
-  - `npm test` -> Executes full suite of unit and integration test assertions with detailed reporting.
-  - `npm run build` / `npx tsc --noEmit` -> Verifies TypeScript type cleanliness across all components.
+- **Test Runner**: Node 24 native type-stripping ESM runner (`node --experimental-strip-types tests/runTests.ts`).
+- **Test Locations**: `tests/i18n.test.ts`, `tests/e2ePlatformIntegration.test.ts`, `tests/runTests.ts`.
+- **Pass Semantics**: All test assertions must pass with exit code 0.
 
-## Coverage Goals
-- Tier 1: ≥5 per feature (Happy-path isolation tests verifying each module's core functions)
-- Tier 2: ≥5 per feature (Boundaries: empty graphs, single-node cycles, divergent series, division by zero, multi-branch ambiguities)
-- Tier 3: Pairwise combinations (e.g. DAG transitive closure fed into Academic Exporter, Pyodide parameters bound to 3D surfaces, ZFC unlock state unlocking Cosmos nebulae)
-- Tier 4: Real-world end-to-end mathematical workflows (e.g., Stokes theorem derivation from limit definitions, compiling complete differential geometry syllabus to Typst/LaTeX).
+## Real-World Application Scenarios (Tier 4)
+| # | Scenario | Features Exercised | Complexity |
+|---|----------|--------------------|------------|
+| 1 | Bilingual Exploration & Theme/Language Toggle | Locale Switcher, Navbar, Hero, 3D Cosmos, Seed Data | Medium |
+| 2 | Mathematical Theorem Deep Dive & Lean Formal Proof | Node Detail, Tabbed Intuition/Statement, Lean Web Prover, Certificate | High |
+| 3 | ZFC Campaign Axiom Unlock & Derivation Quest | ZFC Quest, Epochs, Synthesizer, XP calculation | High |
+| 4 | Fallacy Detective Forensics Lab Accusation Flow | Fallacy Lab, Step Accusation, Refutation, Score | High |
+| 5 | Full Academic Export Compilation (LaTeX, Typst, Beamer) | Academic Export Studio, Prerequisite Closure, Multilingual Content | High |
+
+## Coverage Thresholds
+- Tier 1: ≥5 per feature (50+ feature tests)
+- Tier 2: ≥5 per feature (boundary and fallback cases)
+- Tier 3: Pairwise combinations across language switches, storage states, and component rendering
+- Tier 4: 5 realistic end-to-end platform workflows

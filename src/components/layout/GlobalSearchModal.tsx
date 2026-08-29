@@ -3,7 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { initialMathNodes } from '@/data/seedData';
 import { getNodeTypeMeta } from '@/lib/utils';
-import { Search, Command, X, ArrowRight, BookOpen, Layers, Sparkles, Hash } from 'lucide-react';
+import { getNodeTitle } from '@/lib/i18nHelper';
+import { useLanguage } from '@/context/LanguageContext';
+import { Search, X, ArrowRight, Sparkles } from 'lucide-react';
 import { InlineLaTeX } from '@/components/math/LaTeXRenderer';
 import { useRouter } from 'next/navigation';
 
@@ -12,6 +14,7 @@ export default function GlobalSearchModal() {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const router = useRouter();
+  const { locale, isZh, t } = useLanguage();
 
   // Listen to Cmd+K / Ctrl+K keyboard shortcut
   useEffect(() => {
@@ -37,7 +40,7 @@ export default function GlobalSearchModal() {
       node.titleEn.toLowerCase().includes(q) ||
       node.statementLatex.toLowerCase().includes(q) ||
       node.mscCode.toLowerCase().includes(q) ||
-      node.tags.some((t) => t.toLowerCase().includes(q))
+      node.tags.some((tg) => tg.toLowerCase().includes(q))
     );
   });
 
@@ -64,12 +67,12 @@ export default function GlobalSearchModal() {
       {/* Trigger Button in Header/UI */}
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-slate-400 hover:text-slate-200 text-xs transition-all cursor-pointer shadow-inner"
+        className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-slate-400 hover:text-slate-200 text-xs transition-all cursor-pointer shadow-inner w-full"
       >
-        <Search className="w-3.5 h-3.5 text-cyan-400" />
-        <span className="hidden sm:inline">全局检索 (定理、公式、MSC)...</span>
-        <span className="sm:hidden">搜索</span>
-        <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-slate-950 border border-slate-800 text-[10px] font-mono text-slate-500">
+        <Search className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+        <span className="hidden sm:inline truncate">{t('nav.searchPlaceholder')}</span>
+        <span className="sm:hidden">{t('common.search')}</span>
+        <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-slate-950 border border-slate-800 text-[10px] font-mono text-slate-500 ml-auto">
           ⌘K
         </kbd>
       </button>
@@ -93,7 +96,7 @@ export default function GlobalSearchModal() {
                   setSelectedIndex(0);
                 }}
                 onKeyDown={handleInputKeyDown}
-                placeholder="搜索定理中文名、英文名、LaTeX公式或 MSC 分类号 (如 26A, 柯西, Stokes, \int)..."
+                placeholder={isZh ? "搜索定理中文名、英文名、LaTeX公式或 MSC 分类号 (如 26A, 柯西, Stokes, \\int)..." : "Search theorems, formulas, MSC code or keywords..."}
                 className="w-full bg-transparent text-slate-200 text-sm outline-none placeholder:text-slate-500 font-medium"
               />
               {query && (
@@ -116,8 +119,10 @@ export default function GlobalSearchModal() {
             <div className="flex-1 overflow-auto p-2 space-y-1">
               {results.length > 0 ? (
                 results.map((node, index) => {
-                  const meta = getNodeTypeMeta(node.nodeType);
+                  const meta = getNodeTypeMeta(node.nodeType, locale);
                   const isSelected = index === selectedIndex;
+                  const primaryTitle = getNodeTitle(node, locale);
+                  const secondaryTitle = locale === 'zh' ? node.titleEn : node.titleZh;
 
                   return (
                     <div
@@ -138,11 +143,13 @@ export default function GlobalSearchModal() {
                             {meta.label}
                           </span>
                           <span className="font-bold text-xs text-slate-200 truncate">
-                            {node.titleZh}
+                            {primaryTitle}
                           </span>
-                          <span className="text-[11px] text-slate-400 font-mono hidden sm:inline truncate">
-                            {node.titleEn}
-                          </span>
+                          {secondaryTitle && (
+                            <span className="text-[11px] text-slate-400 font-mono hidden sm:inline truncate">
+                              {secondaryTitle}
+                            </span>
+                          )}
                         </div>
                         <div className="text-[11px] text-cyan-300/80 font-mono truncate pl-1">
                           <InlineLaTeX formula={node.statementLatex} />
@@ -160,7 +167,7 @@ export default function GlobalSearchModal() {
                 })
               ) : (
                 <div className="p-8 text-center text-xs text-slate-500">
-                  未找到匹配的数学定理或命题，可尝试搜索缩写或 MSC 代码。
+                  {isZh ? '未找到匹配的数学定理或命题，可尝试搜索缩写或 MSC 代码。' : 'No matching theorems or propositions found.'}
                 </div>
               )}
             </div>
@@ -168,13 +175,13 @@ export default function GlobalSearchModal() {
             {/* Footer Hints */}
             <div className="px-4 py-2.5 bg-slate-950 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-500 font-mono">
               <div className="flex items-center gap-3">
-                <span>↑↓ 导航选择</span>
-                <span>↵ 回车跳转</span>
-                <span>ESC 退出</span>
+                <span>{isZh ? '↑↓ 导航选择' : '↑↓ Navigate'}</span>
+                <span>{isZh ? '↵ 回车跳转' : '↵ Select'}</span>
+                <span>{isZh ? 'ESC 退出' : 'ESC Close'}</span>
               </div>
               <div className="flex items-center gap-1 text-cyan-400">
                 <Sparkles className="w-3 h-3" />
-                <span>MathUniverse Unified Knowledge</span>
+                <span>MathUniverse</span>
               </div>
             </div>
           </div>

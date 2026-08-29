@@ -1,87 +1,64 @@
-# Project: MathUniverse Expansion
+# Project: MathUniverse i18n Architecture & Decoupling
 
 ## Architecture
-MathUniverse is a Next.js 15 (React 19) mathematical knowledge platform combining a formal directed acyclic graph (DAG) ontology, client-side Python/SymPy and TypeScript computation engines, gamified mathematical exploration (ZFC RPG and Fallacy Detective), 3D WebGL / Canvas cosmological visualization, and multi-format academic publishing exporters (LaTeX, Typst, Beamer, Markdown).
-
-```
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                                   MathUniverse UI Layer                                │
-│   ┌───────────────────┬───────────────────┬───────────────────┬────────────────────┐   │
-│   │ Interactive       │ Gamified RPG &    │ 3D Knowledge      │ Academic Export    │   │
-│   │ Python Sandbox    │ Fallacy Detective │ Cosmos (WebGL)    │ Studio             │   │
-│   │ (Pyodide / SymPy) │ (ZFC -> Modern)   │ (Nebulae & Paths) │ (LaTeX/Typst/etc.) │   │
-│   └─────────┬─────────┴─────────┬─────────┴─────────┬─────────┴──────────┬─────────┘   │
-└─────────────┼───────────────────┼───────────────────┼────────────────────┼─────────────┘
-              │                   │                   │                    │
-┌─────────────▼───────────────────▼───────────────────▼────────────────────▼─────────────┐
-│                            Core Mathematical & Engine Layer                            │
-│  - `dagEngine.ts`: Topological sort, Transitive Closure, Cycle Detection, Paths        │
-│  - `mathCompute.ts`: Simpson integration, Taylor series, ODE RK4, Matrix & Primes      │
-│  - `prerequisiteClosure.ts`: Minimum Prerequisite Closure, Bottleneck Analysis         │
-│  - `exportEngine.ts`: AMS-LaTeX, Typst 0.11+, Beamer, Quarto, Overleaf, TikZ-cd        │
-│  - `fallacyEngine.ts` / `campaignEngine.ts`: Game state, validation & verification     │
-│  - `pyodide.worker.ts`: Web Worker client-side Python/SymPy sandbox                    │
-└────────────────────────────────────────────────────────────────────────────────────────┘
-```
+- **Framework**: Next.js 15 (React 19, TypeScript 5.7, Tailwind CSS, KaTeX).
+- **Core i18n Engine**: `src/context/LanguageContext.tsx` with `LanguageProvider`, `useLanguage()`, `localStorage` key `'mathuniverse:user-locale'`, custom window event `'mathuniverse:locale-changed'`, and nested key interpolation `t(path, params)`.
+- **Localization Dictionaries**: `src/i18n/types.ts`, `src/i18n/locales/zh.ts`, `src/i18n/locales/en.ts` with 13 namespaces (`nav`, `hero`, `graph`, `lean`, `community`, `editor`, `admin`, `sandbox`, `zfc`, `fallacy`, `exportStudio`, `common`, `footer`) and 278 translation keys with 100% parity.
+- **Mathematical Entity Decoupling**: `src/types/math.ts`, `src/types/campaign.ts`, `src/types/fallacy.ts`, `src/data/seedData.ts`, `src/data/disciplines.ts`, `src/lib/i18nHelper.ts`.
+- **UI Component Matrix**: `src/components/layout/`, `src/components/graph/`, `src/components/lean/`, `src/components/community/`, `src/components/editor/`, `src/components/export/`, `src/components/sandbox/`, `src/components/node/`, `src/components/math/`, and `src/app/` pages.
 
 ## Feature Inventory
 | # | Feature | Description | Milestone | Source |
 |---|---------|-------------|-----------|--------|
-| 1 | DAG Core & Transitive Closure Exporter | Export `getTransitivePrerequisites`, normalize Kahn topological sort, cycle check, and pathfinder | M1 | survey |
-| 2 | Pyodide Web Worker & SymPy Engine | Dedicated Web Worker for Pyodide & SymPy with CDN lazy loading, 8s watchdog guard, and TS fallback | M1 | survey |
-| 3 | Reactive Parameter Sliders | Dynamic slider schema with debounced/throttled state binding injecting variables into Python scope | M1 | survey |
-| 4 | Multi-Modal Live 2D/3D Plotting | 2D curves, Taylor series, vector fields, RK4 phase plane, 3D parametric surfaces, strange attractors | M1 | survey |
-| 5 | Automated Mathematical Node Verification | Monte Carlo identities (Cauchy-Schwarz, FTC numerical integral, Fermat mod exp, Stokes flux/line) | M1 | survey |
-| 6 | ZFC to Modern Math RPG Campaign Tree | 6 Epochs (Genesis, Peano, Number Systems, Reals, Topology, Modern), Axiom unlock state, entity synthesis | M2 | survey |
-| 7 | Fallacy Detective Interactive Lab | 6 Fallacy categories (Zero Div, Divergent, Branch Cut, Semicontinuity, Int Constant, Leibniz), step debugger | M2 | survey |
-| 8 | 3D WebGL Knowledge Cosmos & Force Layout | 3D particle/force layout, clustering 6 discipline nebulae, radial/depth stratification from Axioms | M3 | survey |
-| 9 | Cinematic Camera Flythrough & Navigation | Damped orbit controls, discipline nebula focus, smooth node flythrough curves, raycasting selection | M3 | survey |
-| 10 | Minimum Prerequisite Closure Visualization | Topological closure reachability, Transitive Reduction / Hasse diagram, bottleneck analysis, neon path shaders | M3 | survey |
-| 11 | Multi-Target Academic Exporter Engine | AMS-LaTeX article with amsthm/listings, Modern Typst 0.11+, LaTeX Beamer, Quarto/Markdown, Overleaf | M4 | survey |
-| 12 | Recursive Prerequisite Compilation & Diagrams | Topologically ordered theorem compilation, TikZ dependency graphs, commutative diagrams tikz-cd, proof trees | M4 | survey |
-| 13 | Comprehensive Unit & Functional Test Suite | 10/10 existing DAG tests + comprehensive test suites for DAG, Math Compute, ZFC RPG, Fallacy, and Exporters | M5 | survey |
-| 14 | Clean Production Build & UI Integration | Zero TypeScript errors, clean `npm run build`, responsive design, full UI wiring across all pages | M5 | survey |
+| 1 | Core Language Context | Locale state ('zh'/'en'), persistence, event dispatch, HTML lang attribute sync | M1 | ORIGINAL_REQUEST R1 |
+| 2 | Key Path Resolution & Interpolation | Nested dot-notation traversal and parameter substitution with fallback | M1 | ORIGINAL_REQUEST R1 |
+| 3 | Navbar Language Switcher | Interactive language switcher button toggling between 简体中文 and English | M1 | ORIGINAL_REQUEST R1 |
+| 4 | Type-Safe Translation Dictionaries | Complete parity across 13 namespaces for zh-CN and en-US | M1 | ORIGINAL_REQUEST R1 |
+| 5 | MathNode Schema Decoupling | Bilingual fields (statementPlainEn/Zh, intuitionEn/Zh, historicalEn/Zh) in MathNode & ProofStep | M2 | ORIGINAL_REQUEST R2 |
+| 6 | Seed Data Bilingual Separation | 21 seed nodes cleansed of parenthetical clumping with full English and Chinese prose | M2 | ORIGINAL_REQUEST R2 |
+| 7 | Discipline & Category Decoupling | Pure Chinese & English labels for disciplines, node types, and verification badges | M2 | ORIGINAL_REQUEST R2 |
+| 8 | ZFC Campaign & Fallacy Decoupling | Pure localized axiom titles, epoch badges, and fallacy case descriptions | M2 | ORIGINAL_REQUEST R2 |
+| 9 | LaTeX & Symbol Preservation | Formulas and LaTeX strings kept untouched and locale-neutral | M2 | ORIGINAL_REQUEST R2 |
+| 10 | Entity Accessor Helpers | i18n helper methods returning active locale text with safe fallbacks | M2 | ORIGINAL_REQUEST R2 |
+| 11 | Layout & Navigation UI Localization | Navbar, Footer, SearchModal, BookmarkDrawer, Admin switcher | M3 | ORIGINAL_REQUEST R3 |
+| 12 | 3D/2D Cosmos & Learning Tree Localization | 3D Cosmos HUD, flythrough controls, star chart, topological skill tree | M3 | ORIGINAL_REQUEST R3 |
+| 13 | Lean 4 Lab & Verification UI | Lean editor, tactic simulator, tactics deck, Mathlib finder, certificate | M3 | ORIGINAL_REQUEST R3 |
+| 14 | Community & Editor UI | PR review desk, propose revision modal, Notion-style block editor, symbol studio | M3 | ORIGINAL_REQUEST R3 |
+| 15 | Compute Sandbox & Sliders UI | Python/SymPy sandbox, compute engine, parameter sliders, 2D/3D plots, verification panel | M3 | ORIGINAL_REQUEST R3 |
+| 16 | Auxiliary Labs & Game Quest UI | ZFC Quest, Fallacy Lab, dynamical systems, commutative diagrams, counterexamples, flashcards | M3 | ORIGINAL_REQUEST R3 |
+| 17 | Admin Console & Academic Export Studio | Page assembler, DAG health audit, AMS-LaTeX / Typst / Beamer export studio | M3 | ORIGINAL_REQUEST R3 |
+| 18 | 100% Dictionary Key Parity Testing | Test asserting 0 missing keys and 1:1 bidirectional structure match | M4 | ORIGINAL_REQUEST R4 |
+| 19 | Locale Reactivity & Fallback Testing | Test validating persistence, event handling, interpolation, and fallbacks | M4 | ORIGINAL_REQUEST R4 |
+| 20 | Zero TypeScript Compiler Errors | `npx tsc --noEmit` and `npm run build` pass with 0 errors | M4 | ORIGINAL_REQUEST R4 |
+| 21 | Full Platform Test Suite Execution | 100% pass rate on `npm test` across all unit, integration, and E2E test groups | M4 | ORIGINAL_REQUEST R4 |
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| M1 | Core DAG Fixes & Interactive Computation Sandbox (R1) | Features 1, 2, 3, 4, 5: `dagEngine.ts` export fix, Pyodide/SymPy worker, sliders, 2D/3D plots, node verification | none | DONE |
-| M2 | Gamified Progression (ZFC RPG) & Fallacy Detective (R2) | Features 6, 7: 6-epoch ZFC progression, axiom unlocker, construction validator, 6-category fallacy lab | M1 | DONE |
-| M3 | 3D WebGL Knowledge Cosmos & Prerequisite Pathway (R3) | Features 8, 9, 10: 3D force layout, nebulae clusters, camera flythrough, minimum prerequisite closure | M1 | DONE |
-| M4 | Academic Publishing & Toolchain Exporter (R4) | Features 11, 12: AMS-LaTeX, Typst 0.11+, Beamer, Overleaf, TikZ-cd diagrams, recursive prerequisite compiler | M1 | DONE |
-| M5 | Comprehensive Testing, E2E Integration & Quality Gate | Features 13, 14: Comprehensive unit & functional test suite, `npm test` 100% pass, `npm run build` 0 errors | M1, M2, M3, M4 | DONE |
+| M1 | Core i18n Architecture & Dictionaries | `src/i18n/types.ts`, `src/i18n/locales/zh.ts`, `src/i18n/locales/en.ts`, `src/context/LanguageContext.tsx`, `src/components/layout/Navbar.tsx` | none | DONE |
+| M2 | Math Content & Node Data Decoupling | `src/types/math.ts`, `src/types/campaign.ts`, `src/types/fallacy.ts`, `src/data/seedData.ts`, `src/data/disciplines.ts`, `src/lib/campaignEngine.ts`, `src/lib/fallacyEngine.ts`, `src/lib/i18nHelper.ts`, `src/lib/utils.ts` | M1 | DONE |
+| M3 | Full-Spectrum UI & Component Localization | `src/components/layout/*`, `src/components/graph/*`, `src/components/lean/*`, `src/components/community/*`, `src/components/editor/*`, `src/components/export/*`, `src/components/sandbox/*`, `src/components/node/*`, `src/components/math/*`, `src/app/*` | M1, M2 | DONE |
+| M4 | Comprehensive Testing, Parity & Verification | `tests/i18n.test.ts`, `tests/runTests.ts`, `tests/e2ePlatformIntegration.test.ts`, `npm test`, `npm run build` | M1, M2, M3 | DONE |
 
 ## Interface Contracts
+### LanguageContext ↔ All Components
+- `useLanguage(): { locale: 'zh' | 'en'; setLocale: (l: 'zh' | 'en') => void; toggleLocale: () => void; isZh: boolean; isEn: boolean; t: (path: string, params?: Record<string, string | number>) => string }`
 
-### 1. `dagEngine.ts` ↔ All Consumer Modules
-- `getTransitivePrerequisites(nodeId: string, allNodes: MathNode[]): string[]`
-  - Returns array of ancestor node IDs required directly or transitively by `nodeId`.
-- `topologicalSort(nodes: MathNode[]): { sorted: MathNode[]; isDAG: boolean }`
-  - Returns topologically sorted array of `MathNode` objects and DAG validity boolean.
-- `checkCircularDependency(nodes: MathNode[], fromNodeId: string, toNodeId: string): { hasCycle: boolean; cyclePath?: string[] }`
-- `findDerivationPaths(nodes: MathNode[], startId: string, targetId: string): string[][]`
-
-### 2. `pyodide.worker` ↔ `PythonSandbox.tsx`
-- Request: `{ type: 'RUN_CODE', runId: string, code: string, params: Record<string, number>, timeoutMs?: number }`
-- Response: `{ type: 'EXECUTION_SUCCESS', runId: string, stdout: string, latexResult?: string, plotData?: any, executionTimeMs: number }` | `{ type: 'EXECUTION_ERROR', runId: string, errorMessage: string }`
-- Fallback: `mathCompute.ts` evaluated with zero latency when worker is loading or offline.
-
-### 3. `campaign.ts` & `fallacy.ts` ↔ UI Components
-- `ZfcCampaignQuest`: Consumes 6 `CampaignEpoch` definitions, manages `UserCampaignProgress`, validates axiom choices and constructive derivations.
-- `FallacyDetectiveLab`: Consumes 6 `FallacyCase` definitions, validates step accusations, outputs formal refutations and Lean disproofs.
-
-### 4. `exportEngine.ts` ↔ `AcademicExportStudio.tsx`
-- `generateLatexPaper(targetNode: MathNode, allNodes: MathNode[], options: ExportOptions): string`
-- `generateTypstDoc(targetNode: MathNode, allNodes: MathNode[], options: ExportOptions): string`
-- `generateBeamerPresentation(targetNode: MathNode, allNodes: MathNode[], options: ExportOptions): string`
-- `generateMarkdownDoc(targetNode: MathNode, allNodes: MathNode[], options: ExportOptions): string`
-- `generateOverleafUrl(targetNode: MathNode, allNodes: MathNode[]): string`
+### i18nHelper ↔ Math Entities
+- `getNodeTitle(node: MathNode, locale: Locale): string`
+- `getNodeStatement(node: MathNode, locale: Locale): string`
+- `getNodeIntuition(node: MathNode, locale: Locale): string`
+- `getNodeHistorical(node: MathNode, locale: Locale): string`
+- `getNodeProofDescription(node: MathNode, locale: Locale): string`
+- `getDisciplineName(discipline: MathDiscipline, locale: Locale): string`
+- `getNodeTypeLabel(type: NodeType, locale: Locale): string`
 
 ## Code Layout
-- `src/types/`: `math.ts`, `campaign.ts`, `fallacy.ts`, `export.ts`, `sandbox.ts`
-- `src/lib/`: `dagEngine.ts`, `mathCompute.ts`, `prerequisiteClosure.ts`, `exportEngine.ts`, `campaignEngine.ts`, `fallacyEngine.ts`
-- `src/components/sandbox/`: `PythonSandbox.tsx`, `MathComputeEngine.tsx`, `ParameterSliders.tsx`, `Plot2DCanvas.tsx`, `Plot3DSurface.tsx`
-- `src/components/math/`: `ZfcCampaignQuest.tsx`, `FallacyDetectiveLab.tsx`, `ThreeMathSurface.tsx`, `DynamicalSystemsLab.tsx`, `TikzStudio.tsx`
-- `src/components/graph/`: `Cosmos3DGraph.tsx`, `KnowledgeStarChart.tsx`, `LearningPathTree.tsx`
-- `src/components/export/`: `AcademicExportStudio.tsx`
-- `tests/`: `runTests.ts` (test runner), `dagEngine.test.ts`, `mathCompute.test.ts`, `campaign.test.ts`, `fallacy.test.ts`, `exportEngine.test.ts`, `e2ePlatformIntegration.test.ts`
+- `src/i18n/`: Translation dictionary definitions (`types.ts`, `locales/zh.ts`, `locales/en.ts`).
+- `src/context/`: React context providers (`LanguageContext.tsx`).
+- `src/types/`: Domain TypeScript type definitions (`math.ts`, `campaign.ts`, `fallacy.ts`, `export.ts`, `sandbox.ts`).
+- `src/data/`: Static seed datasets (`seedData.ts`, `disciplines.ts`).
+- `src/lib/`: Business logic engines & helpers (`i18nHelper.ts`, `utils.ts`, `campaignEngine.ts`, `fallacyEngine.ts`, `dagEngine.ts`, `exportEngine.ts`, `mathCompute.ts`, `customPageEngine.ts`).
+- `src/components/`: Modular React components.
+- `src/app/`: Next.js App Router entry points and routes.
+- `tests/`: Automated test suites (`runTests.ts`, `i18n.test.ts`, `i18n_stress_chaos.test.ts`, etc.).

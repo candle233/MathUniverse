@@ -266,7 +266,7 @@ export default function NodeDetailClient({ node }: NodeDetailClientProps) {
           }`}
         >
           <BookOpen className="w-4 h-4" />
-          <span>推导与证明 ({node.proofs.length})</span>
+          <span>{isZh ? `推导与证明 (${node.proofs.length})` : `Proofs (${node.proofs.length})`}</span>
         </button>
 
         <button
@@ -278,7 +278,7 @@ export default function NodeDetailClient({ node }: NodeDetailClientProps) {
           }`}
         >
           <ShieldCheck className="w-4 h-4" />
-          <span>Lean 4 形式化验证</span>
+          <span>{isZh ? 'Lean 4 形式化验证' : 'Lean 4 Verification'}</span>
         </button>
 
         {node.codeSnippets && node.codeSnippets.length > 0 && (
@@ -291,7 +291,7 @@ export default function NodeDetailClient({ node }: NodeDetailClientProps) {
             }`}
           >
             <Code2 className="w-4 h-4" />
-            <span>Python / SymPy 沙盒</span>
+            <span>{isZh ? 'Python / SymPy 沙盒' : 'Python / SymPy Sandbox'}</span>
           </button>
         )}
 
@@ -304,7 +304,7 @@ export default function NodeDetailClient({ node }: NodeDetailClientProps) {
           }`}
         >
           <Calculator className="w-4 h-4" />
-          <span>符号计算与求解</span>
+          <span>{isZh ? '符号计算与求解' : 'Symbolic & Numerical'}</span>
         </button>
 
         <button
@@ -316,7 +316,7 @@ export default function NodeDetailClient({ node }: NodeDetailClientProps) {
           }`}
         >
           <FileText className="w-4 h-4" />
-          <span>学术排版与 Typst 导出</span>
+          <span>{isZh ? '学术排版与 Typst 导出' : 'Academic Export'}</span>
         </button>
 
         <button
@@ -328,7 +328,7 @@ export default function NodeDetailClient({ node }: NodeDetailClientProps) {
           }`}
         >
           <GitFork className="w-4 h-4" />
-          <span>DAG 拓扑依赖关系</span>
+          <span>{isZh ? 'DAG 拓扑依赖关系' : 'DAG Dependencies'}</span>
         </button>
 
         <button
@@ -340,7 +340,7 @@ export default function NodeDetailClient({ node }: NodeDetailClientProps) {
           }`}
         >
           <Quote className="w-4 h-4" />
-          <span>学术引用与文献批注</span>
+          <span>{isZh ? '学术引用与文献批注' : 'Citations & Notes'}</span>
         </button>
 
         <button
@@ -352,7 +352,7 @@ export default function NodeDetailClient({ node }: NodeDetailClientProps) {
           }`}
         >
           <GitPullRequest className="w-4 h-4" />
-          <span>修订 PR 与同行评审</span>
+          <span>{isZh ? '修订 PR 与同行评审' : 'Peer Review PRs'}</span>
         </button>
       </div>
 
@@ -397,16 +397,18 @@ export default function NodeDetailClient({ node }: NodeDetailClientProps) {
               <div className="p-6 rounded-2xl border border-slate-800 bg-slate-950 space-y-4">
                 <div className="flex items-center gap-2 text-sm font-bold text-purple-400">
                   <GitFork className="w-4 h-4" />
-                  <span>前置依赖基础 (Prerequisites)</span>
+                  <span>{isZh ? '前置依赖基础 (Prerequisites)' : 'Prerequisites'}</span>
                 </div>
                 <p className="text-xs text-slate-400">
-                  要严谨推导并理解当前节点，底层逻辑依赖于以下前置公理与引理：
+                  {isZh
+                    ? '要严谨推导并理解当前节点，底层逻辑依赖于以下前置公理与引理：'
+                    : 'To rigorously derive this node, foundational logic depends on the following prerequisite axioms and lemmas:'}
                 </p>
 
                 {prerequisiteNodes.length > 0 ? (
                   <div className="space-y-2.5">
                     {prerequisiteNodes.map((pre) => {
-                      const preMeta = getNodeTypeMeta(pre.nodeType);
+                      const preMeta = getNodeTypeMeta(pre.nodeType, locale);
                       return (
                         <Link
                           key={pre.id}
@@ -422,7 +424,7 @@ export default function NodeDetailClient({ node }: NodeDetailClientProps) {
                             <span className="text-[10px] text-slate-500 font-mono">MSC {pre.mscCode}</span>
                           </div>
                           <h4 className="font-semibold text-slate-200 text-xs group-hover:text-purple-300 pointer-events-none">
-                            {pre.titleZh}
+                            {getNodeTitle(pre, locale)}
                           </h4>
                           <div className="text-[11px] text-purple-300/80 font-mono truncate mt-1 pointer-events-none">
                             <InlineLaTeX formula={pre.statementLatex} />
@@ -433,7 +435,7 @@ export default function NodeDetailClient({ node }: NodeDetailClientProps) {
                   </div>
                 ) : (
                   <div className="p-4 rounded-xl bg-slate-900 text-xs text-slate-500 text-center">
-                    该节点属于基础公理/第一性原理定义，无更前置依赖。
+                    {isZh ? '该节点属于基础公理/第一性原理定义，无更前置依赖。' : 'This node is a foundational axiom or primitive definition without prerequisites.'}
                   </div>
                 )}
               </div>
@@ -442,16 +444,18 @@ export default function NodeDetailClient({ node }: NodeDetailClientProps) {
               <div className="p-6 rounded-2xl border border-slate-800 bg-slate-950 space-y-4">
                 <div className="flex items-center gap-2 text-sm font-bold text-emerald-400">
                   <Layers className="w-4 h-4" />
-                  <span>后续推论与衍生应用 (Dependents)</span>
+                  <span>{isZh ? '后续推论与衍生应用 (Dependents)' : 'Subsequent Dependents & Applications'}</span>
                 </div>
                 <p className="text-xs text-slate-400">
-                  以下高级定理的推导直接使用了当前节点的结论：
+                  {isZh
+                    ? '以下高级定理的推导直接使用了当前节点的结论：'
+                    : 'The derivations of the following propositions directly rely on this node:'}
                 </p>
 
                 {dependentNodes.length > 0 ? (
                   <div className="space-y-2.5">
                     {dependentNodes.map((dep) => {
-                      const depMeta = getNodeTypeMeta(dep.nodeType);
+                      const depMeta = getNodeTypeMeta(dep.nodeType, locale);
                       return (
                         <Link
                           key={dep.id}
@@ -467,7 +471,7 @@ export default function NodeDetailClient({ node }: NodeDetailClientProps) {
                             <span className="text-[10px] text-slate-500 font-mono">MSC {dep.mscCode}</span>
                           </div>
                           <h4 className="font-semibold text-slate-200 text-xs group-hover:text-emerald-300">
-                            {dep.titleZh}
+                            {getNodeTitle(dep, locale)}
                           </h4>
                           <div className="text-[11px] text-emerald-300/80 font-mono truncate mt-1">
                             <InlineLaTeX formula={dep.statementLatex} />
@@ -478,7 +482,7 @@ export default function NodeDetailClient({ node }: NodeDetailClientProps) {
                   </div>
                 ) : (
                   <div className="p-4 rounded-xl bg-slate-900 text-xs text-slate-500 text-center">
-                    暂无下游定理关联，欢迎贡献新的衍生推论！
+                    {isZh ? '暂无下游定理关联，欢迎贡献新的衍生推论！' : 'No downstream dependents currently registered. Contributions welcome!'}
                   </div>
                 )}
               </div>

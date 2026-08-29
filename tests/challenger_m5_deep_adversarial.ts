@@ -196,7 +196,7 @@ async function runChallengerDeepAdversarialSuite() {
   assert(cyclicResult.sorted.length < cyclicNodes.length, `Cyclic graph has unresolvable nodes due to cycle`);
 
   // Test checkCircularDependency function with safe and cyclic additions
-  assert(checkCircularDependency(randomDagNodes, 'rand-0', 'rand-299').hasCycle === false, `Forward edge (rand-0 depends on rand-299) is non-cyclic when 299 has no path to 0`);
+  assert(checkCircularDependency(randomDagNodes, 'rand-299', 'rand-0').hasCycle === false, `Forward edge (rand-299 depends on rand-0) is non-cyclic when 0 has no path to 299`);
   assert(checkCircularDependency(randomDagNodes, parentId, nodeWithDep.id).hasCycle === true, `Back-edge on existing path (${parentId} depends on ${nodeWithDep.id}) is detected as cycle`);
 
 

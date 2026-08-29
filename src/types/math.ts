@@ -22,6 +22,8 @@ export type EdgeRelationType =
   | 'COUNTEREXAMPLE_TO'
   | 'GENERALIZATION_OF';
 
+export type DisciplineId = string;
+
 export interface MathDiscipline {
   id: string;
   mscCode: string; // e.g. "26" for Real Analysis, "11" for Number Theory
@@ -30,12 +32,16 @@ export interface MathDiscipline {
   color: string;
   icon: string;
   description: string;
+  descriptionZh?: string;
+  descriptionEn?: string;
 }
 
 export interface ProofStep {
   id: string;
   stepIndex: number;
   explanation: string;
+  explanationZh?: string;
+  explanationEn?: string;
   latexText: string;
   usedLemmas?: string[]; // IDs of referenced lemmas/definitions
   commentsCount: number;
@@ -45,6 +51,8 @@ export interface Proof {
   id: string;
   nodeId: string;
   title: string;
+  titleZh?: string;
+  titleEn?: string;
   approachType: 'ALGEBRAIC' | 'GEOMETRIC' | 'ANALYTIC' | 'COMBINATORIAL' | 'CONSTRUCTIVE' | 'FORMAL_LEAN';
   author: {
     id: string;
@@ -54,7 +62,11 @@ export interface Proof {
     isModerator?: boolean;
   };
   motivation: string; // Intuitive breakdown, metaphors, visual reasoning
+  motivationZh?: string;
+  motivationEn?: string;
   rigorousProof: string; // Full LaTeX/Markdown derivation
+  rigorousProofZh?: string;
+  rigorousProofEn?: string;
   steps: ProofStep[];
   isPrimary: boolean;
   verification: VerificationStatus;
@@ -146,7 +158,10 @@ export interface MathNode {
   statementLatex: string;
   statementPlainZh: string;
   statementPlainEn?: string;
+  statementZh?: string;
+  statementEn?: string;
   intuitionMd: string;
+  intuitionZh?: string;
   intuitionEn?: string;
   historicalContextZh?: string;
   historicalContextEn?: string;
@@ -160,10 +175,12 @@ export interface MathNode {
   dependents: string[];   // Array of node IDs that depend on this node
   
   proofs: Proof[];
+  proofSteps?: ProofStep[];
   leanFormalization?: LeanVerification;
   codeSnippets?: CodeSnippet[];
   comments?: StepComment[];
   
   tags: string[];
+  tagsEn?: string[];
   lastModified: string;
 }

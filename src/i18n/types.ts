@@ -17,6 +17,8 @@ export interface TranslationDict {
     language: string;
     langZh: string;
     langEn: string;
+    bookmarks: string;
+    bookmarksCount: string;
   };
   hero: {
     badge: string;
@@ -64,6 +66,22 @@ export interface TranslationDict {
     targetTheorem: string;
     calculateClosure: string;
     totalPrereqs: string;
+    flowView: string;
+    hasseView: string;
+    fullView: string;
+    nebulaeCruise: string;
+    universeOverview: string;
+    readinessPercentage: string;
+    totalPrereqsCount: string;
+    unlearnedNodesCount: string;
+    estStudyHours: string;
+    hours: string;
+    bottlenecksTitle: string;
+    markLearned: string;
+    alreadyLearned: string;
+    learningTrajectory: string;
+    streamLoading: string;
+    fullMode: string;
   };
   lean: {
     title: string;
@@ -73,6 +91,7 @@ export interface TranslationDict {
     verifyStatus: string;
     checkAxioms: string;
     copyCode: string;
+    copied: string;
     verifiedBadge: string;
     failedBadge: string;
     unverifiedBadge: string;
@@ -80,6 +99,17 @@ export interface TranslationDict {
     runVerification: string;
     tacticState: string;
     goalsRemaining: string;
+    noOpenGoals: string;
+    simulatedNotice: string;
+    hypotheses: string;
+    targetGoal: string;
+    nextTactic: string;
+    resetProof: string;
+    whenToUse: string;
+    proofStateEffect: string;
+    finderTitle: string;
+    finderSubtitle: string;
+    copyDeclaration: string;
   };
   community: {
     title: string;
@@ -93,6 +123,13 @@ export interface TranslationDict {
     author: string;
     reviewers: string;
     status: string;
+    reputationReward: string;
+    currentVersion: string;
+    proposedVersion: string;
+    saveLocalDraft: string;
+    draftSavedTitle: string;
+    leaderboardTitle: string;
+    rulesTitle: string;
   };
   editor: {
     title: string;
@@ -100,6 +137,7 @@ export interface TranslationDict {
     blockEditor: string;
     latexStudio: string;
     preview: string;
+    returnToEdit: string;
     publishNode: string;
     mscCode: string;
     discipline: string;
@@ -108,6 +146,13 @@ export interface TranslationDict {
     titleEn: string;
     statement: string;
     addBlock: string;
+    addText: string;
+    addLatex: string;
+    addLean: string;
+    addIntuition: string;
+    symbolStudioTitle: string;
+    searchSymbols: string;
+    symbolCopied: string;
   };
   admin: {
     title: string;
@@ -140,6 +185,7 @@ export interface TranslationDict {
     subtitle: string;
     computeEngine: string;
     runCode: string;
+    resetCode: string;
     paramSliders: string;
     plot2D: string;
     plot3D: string;
@@ -149,8 +195,74 @@ export interface TranslationDict {
     exportLatex: string;
     exportTypst: string;
     exportBeamer: string;
+    exportQuarto: string;
+    exportTikz: string;
     detectiveVerdict: string;
     investigateFallacy: string;
+    maxError: string;
+    samplesCount: string;
+    executionTime: string;
+  };
+  zfc: {
+    title: string;
+    subtitle: string;
+    userLevel: string;
+    totalXp: string;
+    epochGenesis: string;
+    epochPeano: string;
+    epochNumberSystems: string;
+    epochReals: string;
+    epochTopology: string;
+    epochModern: string;
+    unlockEpoch: string;
+    unlockAxiom: string;
+    synthesizeEntity: string;
+    crucible: string;
+    recipeRequirements: string;
+    milestoneChallenge: string;
+    selectAxiomPrompt: string;
+    selectFormulaPrompt: string;
+    verifyStep: string;
+    stepCorrect: string;
+    stepIncorrect: string;
+  };
+  fallacy: {
+    title: string;
+    subtitle: string;
+    detectiveScore: string;
+    detectiveTitle: string;
+    allCategories: string;
+    zeroDiv: string;
+    divergentSeries: string;
+    branchCut: string;
+    semicontinuity: string;
+    intConstant: string;
+    leibnizRule: string;
+    caseStory: string;
+    allegedConclusion: string;
+    accuseStepButton: string;
+    verdictTitle: string;
+    formalCritique: string;
+    leanDisproof: string;
+  };
+  exportStudio: {
+    title: string;
+    subtitle: string;
+    targetTheoremLabel: string;
+    overleafCompile: string;
+    copyAll: string;
+    downloadCode: string;
+    docTitleCustom: string;
+    authorName: string;
+    institution: string;
+    togglePrereqs: string;
+    toggleProofs: string;
+    toggleIntuition: string;
+    toggleLean: string;
+    toggleTikz: string;
+    hierarchyPrereqs: string;
+    linesCount: string;
+    relatedPropositions: string;
   };
   common: {
     save: string;
@@ -176,5 +288,21 @@ export interface TranslationDict {
     history: string;
     references: string;
     tags: string;
+    share: string;
+    bookmark: string;
+    bookmarked: string;
+    viewProof: string;
+    backHome: string;
+    notFound: string;
+    demoBadge: string;
+  };
+  footer: {
+    brandSubtitle: string;
+    mission: string;
+    trustBadge: string;
+    coreExplore: string;
+    classicTheorems: string;
+    academicResources: string;
+    copyright: string;
   };
 }
