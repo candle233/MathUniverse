@@ -26,6 +26,7 @@ import {
   Tag,
   FolderPlus,
 } from 'lucide-react';
+import AdminFloatingToolbar from '@/components/admin/AdminFloatingToolbar';
 
 export default function CustomDynamicPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = use(params);
@@ -177,6 +178,9 @@ export default function CustomDynamicPage({ params }: { params: Promise<{ slug: 
           </div>
         ))}
       </div>
+
+      {/* Floating In-Situ Admin Toolbar */}
+      <AdminFloatingToolbar />
     </div>
   );
 }

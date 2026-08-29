@@ -15,6 +15,7 @@ import PullRequestViewer from '@/components/community/PullRequestViewer';
 import CommutativeDiagramViewer from '@/components/math/CommutativeDiagramViewer';
 import VerificationCertificate from '@/components/lean/VerificationCertificate';
 import SubmitPrModal from '@/components/community/SubmitPrModal';
+import AdminFloatingToolbar from '@/components/admin/AdminFloatingToolbar';
 import { useLanguage } from '@/context/LanguageContext';
 import { getNodeTitle, getNodeStatement, getNodeIntuition, getNodeTypeLabel, getDisciplineName } from '@/lib/i18nHelper';
 import Link from 'next/link';
@@ -48,6 +49,11 @@ interface NodeDetailClientProps {
 }
 
 export default function NodeDetailClient({ node }: NodeDetailClientProps) {
+  const [activeNode, setActiveNode] = useState<MathNode>(node);
+  useEffect(() => {
+    setActiveNode(node);
+  }, [node]);
+
   const { locale, isZh, t } = useLanguage();
   const [activeTab, setActiveTab] = useState<'proofs' | 'lean' | 'sandbox' | 'compute' | 'dag' | 'export' | 'prs' | 'citations'>('proofs');
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -592,6 +598,12 @@ export default function NodeDetailClient({ node }: NodeDetailClientProps) {
           </div>
         )}
       </div>
+
+      {/* Floating In-Situ Admin Quick-Edit Bar */}
+      <AdminFloatingToolbar
+        currentNode={activeNode}
+        onNodeUpdated={(updated) => setActiveNode(updated)}
+      />
     </div>
   );
 }
