@@ -17,6 +17,7 @@ import {
   Layout,
   Atom,
   GraduationCap,
+  Globe,
 } from 'lucide-react';
 import {
   loadCustomPages,
@@ -24,10 +25,12 @@ import {
   getIsAdminMode,
   setIsAdminMode,
 } from '@/lib/customPageEngine';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function Navbar() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [customPages, setCustomPages] = useState<CustomPageConfig[]>([]);
+  const { locale, toggleLocale, t } = useLanguage();
 
   useEffect(() => {
     setIsAdmin(getIsAdminMode());
@@ -67,14 +70,14 @@ export default function Navbar() {
           <div>
             <div className="flex items-center gap-1.5">
               <span className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-200 to-purple-300 text-lg tracking-tight">
-                MathUniverse
+                {t('nav.brand')}
               </span>
               <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 font-mono font-bold">
                 v1.5
               </span>
             </div>
             <p className="text-[10px] text-slate-400 font-mono leading-none hidden sm:block">
-              全学科数学开源知识库与形式化平台
+              {t('nav.brandSubtitle')}
             </p>
           </div>
         </Link>
@@ -91,7 +94,7 @@ export default function Navbar() {
             className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-cyan-300 hover:bg-slate-900 transition-colors cursor-pointer"
           >
             <Network className="w-3.5 h-3.5 text-cyan-400" />
-            <span className="hidden md:inline">知识星空</span>
+            <span className="hidden md:inline">{t('nav.graph')}</span>
           </Link>
 
           <Link
@@ -99,7 +102,7 @@ export default function Navbar() {
             className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-emerald-300 hover:bg-slate-900 transition-colors cursor-pointer"
           >
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="hidden md:inline">Lean 4 实验室</span>
+            <span className="hidden md:inline">{t('nav.lean')}</span>
           </Link>
 
           <Link
@@ -107,7 +110,7 @@ export default function Navbar() {
             className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-purple-300 hover:bg-slate-900 transition-colors cursor-pointer"
           >
             <GitPullRequest className="w-3.5 h-3.5 text-purple-400" />
-            <span className="hidden md:inline">同行评审</span>
+            <span className="hidden md:inline">{t('nav.community')}</span>
           </Link>
 
           <Link
@@ -115,11 +118,11 @@ export default function Navbar() {
             className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-amber-300 hover:bg-slate-900 transition-colors cursor-pointer"
           >
             <Edit3 className="w-3.5 h-3.5 text-amber-400" />
-            <span className="hidden md:inline">创作中心</span>
+            <span className="hidden md:inline">{t('nav.editor')}</span>
           </Link>
 
           {/* Dynamically Created Custom Pages in Navigation */}
-          {navCustomPages.slice(0, 2).map((page) => (
+          {navCustomPages.slice(0, 1).map((page) => (
             <Link
               key={page.id}
               href={`/custom/${page.slug}`}
@@ -132,7 +135,11 @@ export default function Navbar() {
               ) : (
                 <Layout className="w-3.5 h-3.5 text-cyan-400" />
               )}
-              <span>{page.titleZh.length > 8 ? `${page.titleZh.slice(0, 8)}...` : page.titleZh}</span>
+              <span>
+                {locale === 'en'
+                  ? page.titleEn.length > 12 ? `${page.titleEn.slice(0, 12)}...` : page.titleEn
+                  : page.titleZh.length > 8 ? `${page.titleZh.slice(0, 8)}...` : page.titleZh}
+              </span>
             </Link>
           ))}
 
@@ -144,14 +151,24 @@ export default function Navbar() {
                 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
             }`}
-            title="管理员控制台与页面装配器"
+            title={t('admin.title')}
           >
             <Settings className="w-3.5 h-3.5 text-amber-400" />
-            <span className="hidden md:inline">管理控制台</span>
+            <span className="hidden md:inline">{t('nav.admin')}</span>
           </Link>
 
           {/* User Bookmarks Quick Drawer Trigger */}
           <BookmarkDrawer />
+
+          {/* Language Switcher Button (🌐 中文 / EN) */}
+          <button
+            onClick={toggleLocale}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs font-mono font-bold transition-all cursor-pointer shadow-sm"
+            title={locale === 'zh' ? 'Switch to English' : '切换为中文'}
+          >
+            <Globe className="w-3.5 h-3.5 text-cyan-400" />
+            <span>{locale === 'zh' ? '中 / EN' : 'EN / 中'}</span>
+          </button>
 
           {/* User / Admin Mode Indicator & Switcher */}
           <div className="ml-1 pl-2 border-l border-slate-800 flex items-center gap-2">
@@ -162,9 +179,9 @@ export default function Navbar() {
                   ? 'bg-amber-500/20 border border-amber-500/50 text-amber-300 shadow-md shadow-amber-500/20'
                   : 'bg-slate-800/60 border border-slate-700 text-slate-400 hover:text-slate-200'
               }`}
-              title="点击切换 访客 / 管理员 模式"
+              title="Toggle Admin / Visitor Mode"
             >
-              {isAdmin ? '⚡ 管理员模式' : '访客 (点击切管理员)'}
+              {isAdmin ? t('nav.adminMode') : t('nav.visitorMode')}
             </button>
           </div>
         </nav>

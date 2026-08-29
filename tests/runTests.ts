@@ -77,6 +77,16 @@ import {
   createInitialFallacyProgress,
 } from '../src/lib/fallacyEngine.ts';
 import { runE2EIntegrationTests } from './e2ePlatformIntegration.test.ts';
+import { zh } from '../src/i18n/locales/zh.ts';
+import { en } from '../src/i18n/locales/en.ts';
+import {
+  getNodeTitle,
+  getNodeStatement,
+  getNodeIntuition,
+  getNodeTypeLabel,
+  getDisciplineName,
+} from '../src/lib/i18nHelper.ts';
+import { disciplines } from '../src/data/disciplines.ts';
 
 function runTestSuite() {
   console.log('🧪 ==========================================');
@@ -525,6 +535,48 @@ function runTestSuite() {
   passed += e2eResult.passed;
   failed += e2eResult.failed;
   assert(e2eResult.failed === 0, `E2E Integration test suite must pass with 0 failures (${e2eResult.passed} assertions passed)`);
+
+  // --- Test Group 15: i18n & Multi-Language Separation Architecture ---
+  console.log('\n--- Test Group 15: i18n & Multi-Language Separation Architecture ---');
+  function getAllKeys(obj: any, prefix = ''): string[] {
+    let keys: string[] = [];
+    for (const k of Object.keys(obj)) {
+      const fullKey = prefix ? `${prefix}.${k}` : k;
+      if (typeof obj[k] === 'object' && obj[k] !== null && !Array.isArray(obj[k])) {
+        keys = keys.concat(getAllKeys(obj[k], fullKey));
+      } else {
+        keys.push(fullKey);
+      }
+    }
+    return keys;
+  }
+
+  const zhKeys = getAllKeys(zh).sort();
+  const enKeys = getAllKeys(en).sort();
+  const missingInEn = zhKeys.filter((k) => !enKeys.includes(k));
+  const missingInZh = enKeys.filter((k) => !zhKeys.includes(k));
+
+  assert(missingInEn.length === 0, `i18n Parity: Missing keys in English dictionary (${missingInEn.join(', ')})`);
+  assert(missingInZh.length === 0, `i18n Parity: Missing keys in Chinese dictionary (${missingInZh.join(', ')})`);
+  assert(zhKeys.length >= 50, `i18n Dictionary must contain at least 50 localized keys (found ${zhKeys.length})`);
+
+  // Test Node text decoupling
+  const testNode = byId('thm-cauchy-schwarz');
+  const zhTitle = getNodeTitle(testNode, 'zh');
+  const enTitle = getNodeTitle(testNode, 'en');
+  assert(zhTitle.includes('柯西'), 'getNodeTitle(zh) must return clean Chinese title');
+  assert(!zhTitle.includes('Cauchy'), 'getNodeTitle(zh) must not leak English name');
+  assert(enTitle.includes('Cauchy'), 'getNodeTitle(en) must return clean English title');
+
+  // Test Discipline localization
+  const analysisDisc = disciplines.find((d) => d.id === 'analysis')!;
+  assert(getDisciplineName(analysisDisc, 'zh') === '实分析与微积分', 'Discipline zh name matches');
+  assert(getDisciplineName(analysisDisc, 'en') === 'Real Analysis & Calculus', 'Discipline en name matches');
+
+  // Test NodeType localization
+  assert(getNodeTypeLabel('THEOREM', 'zh').includes('定理'), 'NodeType THM zh localized');
+  assert(getNodeTypeLabel('THEOREM', 'en') === 'Theorem', 'NodeType THM en localized');
+  assert(getNodeTypeLabel('AXIOM', 'en') === 'Axiom', 'NodeType AXIOM en localized');
 
   console.log('\n==========================================');
   console.log(`📊 Total Unified Test Results: ${passed} passed, ${failed} failed`);

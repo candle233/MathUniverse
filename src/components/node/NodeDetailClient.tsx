@@ -15,6 +15,8 @@ import PullRequestViewer from '@/components/community/PullRequestViewer';
 import CommutativeDiagramViewer from '@/components/math/CommutativeDiagramViewer';
 import VerificationCertificate from '@/components/lean/VerificationCertificate';
 import SubmitPrModal from '@/components/community/SubmitPrModal';
+import { useLanguage } from '@/context/LanguageContext';
+import { getNodeTitle, getNodeStatement, getNodeIntuition, getNodeTypeLabel, getDisciplineName } from '@/lib/i18nHelper';
 import Link from 'next/link';
 import {
   ArrowLeft,
@@ -46,6 +48,7 @@ interface NodeDetailClientProps {
 }
 
 export default function NodeDetailClient({ node }: NodeDetailClientProps) {
+  const { locale, isZh, t } = useLanguage();
   const [activeTab, setActiveTab] = useState<'proofs' | 'lean' | 'sandbox' | 'compute' | 'dag' | 'export' | 'prs' | 'citations'>('proofs');
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -60,79 +63,97 @@ export default function NodeDetailClient({ node }: NodeDetailClientProps) {
       title: 'Principles of Mathematical Analysis (3rd Edition)',
       authors: 'Walter Rudin',
       year: '1976',
-      doi: 'ISBN 978-0070542358',
+      doi: '10.1007/978-1-4612-6138-0',
     },
   ]);
-  const [newRefTitle, setNewRefTitle] = useState('');
-  const [newRefAuthors, setNewRefAuthors] = useState('');
-  const [newRefYear, setNewRefYear] = useState('2024');
+  const [newRefForm, setNewRefForm] = useState({ title: '', authors: '', year: '' });
+  const [showAddRefModal, setShowAddRefModal] = useState(false);
+  const [showPrModal, setShowPrModal] = useState(false);
 
-  // Load bookmark status from localStorage
   useEffect(() => {
+    // Check if node is bookmarked
     try {
-      const saved = localStorage.getItem(`math-bookmark-${node.id}`);
-      if (saved === 'true') setIsBookmarked(true);
-    } catch {}
+      const raw = localStorage.getItem('mathuniverse_bookmarks');
+      if (raw) {
+        const ids = JSON.parse(raw);
+        if (Array.isArray(ids) && ids.includes(node.id)) {
+          setIsBookmarked(true);
+        }
+      }
+    } catch {
+      // ignore
+    }
   }, [node.id]);
 
   const toggleBookmark = () => {
-    const nextState = !isBookmarked;
-    setIsBookmarked(nextState);
     try {
-      localStorage.setItem(`math-bookmark-${node.id}`, String(nextState));
-    } catch {}
-    showToast(nextState ? '★ 节点已成功加入个人收藏夹！' : '已从个人收藏夹中移除');
+      const raw = localStorage.getItem('mathuniverse_bookmarks');
+      let ids: string[] = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(ids)) ids = [];
+
+      if (isBookmarked) {
+        ids = ids.filter((id) => id !== node.id);
+        setIsBookmarked(false);
+        setToastMessage(isZh ? '已从收藏夹中移除' : 'Removed from bookmarks');
+      } else {
+        ids.push(node.id);
+        setIsBookmarked(true);
+        setToastMessage(isZh ? '⭐ 成功加入收藏夹！' : '⭐ Added to bookmarks!');
+      }
+      localStorage.setItem('mathuniverse_bookmarks', JSON.stringify(ids));
+      window.dispatchEvent(new Event('mathuniverse_bookmarks_updated'));
+      setTimeout(() => setToastMessage(null), 3000);
+    } catch {
+      // ignore
+    }
   };
 
   const handleShare = () => {
     if (typeof window !== 'undefined') {
       navigator.clipboard.writeText(window.location.href);
-      showToast('🔗 词条分享链接已复制到剪贴板！');
+      setToastMessage(isZh ? '🔗 节点链接已复制到剪贴板' : '🔗 Node URL copied to clipboard');
+      setTimeout(() => setToastMessage(null), 3000);
     }
   };
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 2500);
+  const handleAddCustomRef = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newRefForm.title.trim()) return;
+
+    const newRef = {
+      id: `custom-ref-${Date.now()}`,
+      title: newRefForm.title.trim(),
+      authors: newRefForm.authors.trim() || 'Unknown',
+      year: newRefForm.year.trim() || new Date().getFullYear().toString(),
+    };
+
+    setCustomReferences((prev) => [...prev, newRef]);
+    setNewRefForm({ title: '', authors: '', year: '' });
+    setShowAddRefModal(false);
+    setToastMessage(isZh ? '📖 成功添加自定义学术文献引用！' : '📖 Citation reference added!');
+    setTimeout(() => setToastMessage(null), 3000);
   };
 
   const handleCopyCitation = (format: string, text: string) => {
     navigator.clipboard.writeText(text);
     setCopiedCitation(format);
-    setTimeout(() => setCopiedCitation(null), 1500);
-  };
-  // handleCopyCitation is retained for the per-node "Add custom reference" feature below;
-  // the built-in fake BibTeX/AMS/APA export was removed because it referenced a non-existent journal.
-
-  const handleAddCustomRef = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newRefTitle.trim()) return;
-    setCustomReferences((prev) => [
-      ...prev,
-      {
-        id: `ref-${Date.now()}`,
-        title: newRefTitle.trim(),
-        authors: newRefAuthors.trim() || '学术共同体',
-        year: newRefYear.trim() || '2026',
-      },
-    ]);
-    setNewRefTitle('');
-    setNewRefAuthors('');
-    showToast('已成功添加学术文献引用！');
+    setToastMessage(isZh ? `已复制 ${format} 引用格式至剪贴板` : `Copied ${format} citation`);
+    setTimeout(() => {
+      setCopiedCitation(null);
+      setToastMessage(null);
+    }, 2500);
   };
 
-  const discipline = disciplines.find((d) => d.id === node.disciplineId);
   const typeMeta = getNodeTypeMeta(node.nodeType);
   const verMeta = getVerificationMeta(node.verification);
+  const discipline = disciplines.find((d) => d.id === node.disciplineId);
 
-  // Upstream prerequisites & Downstream dependents
   const prerequisiteNodes = initialMathNodes.filter((n) => node.dependencies.includes(n.id));
   const dependentNodes = initialMathNodes.filter((n) => node.dependents.includes(n.id));
 
-  // Generated Citation Strings removed: the previous version produced a BibTeX/AMS/APA
-  // entry referencing a non-existent journal ("MathUniverse Verified Repository") and
-  // a fake domain (mathuniverse.org). Copying those into a real paper would mislead.
-  // See the "References" card below for an honest note pointing to canonical sources.
+  const displayTitle = getNodeTitle(node, locale);
+  const secondaryTitle = locale === 'zh' ? node.titleEn : node.titleZh;
+  const statementContent = getNodeStatement(node, locale);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 relative">
@@ -151,7 +172,7 @@ export default function NodeDetailClient({ node }: NodeDetailClientProps) {
           className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-cyan-300 transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>返回知识库首页</span>
+          <span>{isZh ? '返回知识库首页' : 'Back to Home'}</span>
         </Link>
 
         <div className="flex items-center gap-2 text-xs">
@@ -164,7 +185,7 @@ export default function NodeDetailClient({ node }: NodeDetailClientProps) {
             }`}
           >
             <Bookmark className={`w-3.5 h-3.5 ${isBookmarked ? 'fill-amber-400 text-amber-400' : 'text-slate-400'}`} />
-            <span>{isBookmarked ? '已收藏节点' : '收藏节点'}</span>
+            <span>{isBookmarked ? (isZh ? '已收藏节点' : 'Bookmarked') : (isZh ? '收藏节点' : 'Bookmark')}</span>
           </button>
 
           <button
@@ -172,7 +193,7 @@ export default function NodeDetailClient({ node }: NodeDetailClientProps) {
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 transition-colors cursor-pointer"
           >
             <Share2 className="w-3.5 h-3.5 text-purple-400" />
-            <span>分享</span>
+            <span>{isZh ? '分享' : 'Share'}</span>
           </button>
 
           <Link
@@ -180,7 +201,7 @@ export default function NodeDetailClient({ node }: NodeDetailClientProps) {
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 text-slate-950 font-bold shadow-md shadow-purple-500/20 transition-all cursor-pointer"
           >
             <Edit3 className="w-3.5 h-3.5" />
-            <span>在块编辑器中创作</span>
+            <span>{isZh ? '在块编辑器中创作' : 'Open in Editor'}</span>
           </Link>
         </div>
       </div>
@@ -190,10 +211,10 @@ export default function NodeDetailClient({ node }: NodeDetailClientProps) {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 flex-wrap">
             <span className={`text-xs px-3 py-1 rounded-full border font-bold ${typeMeta.color}`}>
-              {typeMeta.label}
+              {getNodeTypeLabel(node.nodeType, locale)}
             </span>
             <span className="text-xs px-3 py-1 rounded-full bg-slate-900 text-slate-300 border border-slate-800 font-mono">
-              MSC {node.mscCode} • {discipline?.nameZh || '数学'}
+              MSC {node.mscCode} • {discipline ? getDisciplineName(discipline, locale) : 'Mathematics'}
             </span>
             <span className={`text-xs px-3 py-1 rounded-full border font-medium ${verMeta.className}`}>
               {verMeta.badge}
@@ -202,31 +223,35 @@ export default function NodeDetailClient({ node }: NodeDetailClientProps) {
 
           <div className="flex items-center gap-4 text-xs text-slate-400 font-mono">
             <span className="flex items-center gap-1 text-amber-300">
-              <Star className="w-3.5 h-3.5 fill-current" /> ★ {node.reputationScore} 声望
+              <Star className="w-3.5 h-3.5 fill-current" /> ★ {node.reputationScore} {isZh ? '声望' : 'Reputation'}
             </span>
             <span className="flex items-center gap-1">
-              <Eye className="w-3.5 h-3.5" /> {node.viewCount} 次浏览
+              <Eye className="w-3.5 h-3.5" /> {node.viewCount} {isZh ? '次浏览' : 'views'}
             </span>
           </div>
         </div>
 
         {/* Title */}
         <div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-100 tracking-tight">{node.titleZh}</h1>
-          <p className="text-sm sm:text-base text-slate-400 font-mono mt-1">{node.titleEn}</p>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-100 tracking-tight">{displayTitle}</h1>
+          {secondaryTitle && (
+            <p className="text-sm sm:text-base text-slate-400 font-mono mt-1">{secondaryTitle}</p>
+          )}
         </div>
 
         {/* Mathematical Statement Box */}
         <div className="p-6 rounded-2xl bg-slate-950/90 border border-cyan-500/40 shadow-inner space-y-3">
           <div className="text-xs font-bold text-cyan-400 font-mono uppercase tracking-wider flex items-center gap-2">
-            <Sparkles className="w-4 h-4" /> 形式化数学陈述 (Formal Statement):
+            <Sparkles className="w-4 h-4" /> {isZh ? '形式化数学陈述 (Formal Statement):' : 'Formal Statement:'}
           </div>
           <div className="text-base sm:text-lg text-cyan-200 font-mono overflow-x-auto py-2">
             <InlineLaTeX formula={node.statementLatex} displayMode={true} />
           </div>
-          <div className="pt-2 border-t border-slate-800/80 text-xs text-slate-300 leading-relaxed">
-            <LaTeXRenderer content={node.statementPlainZh} />
-          </div>
+          {statementContent && (
+            <div className="pt-2 border-t border-slate-800/80 text-xs text-slate-300 leading-relaxed">
+              <LaTeXRenderer content={statementContent} />
+            </div>
+          )}
         </div>
       </div>
 
@@ -516,23 +541,23 @@ export default function NodeDetailClient({ node }: NodeDetailClientProps) {
                   <input
                     type="text"
                     required
-                    value={newRefTitle}
-                    onChange={(e) => setNewRefTitle(e.target.value)}
+                    value={newRefForm.title}
+                    onChange={(e) => setNewRefForm({ ...newRefForm, title: e.target.value })}
                     placeholder="文献 / 书名 (如: Real and Complex Analysis)"
                     className="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded-xl px-3 py-2 outline-none focus:border-cyan-500"
                   />
                   <div className="grid grid-cols-2 gap-2">
                     <input
                       type="text"
-                      value={newRefAuthors}
-                      onChange={(e) => setNewRefAuthors(e.target.value)}
+                      value={newRefForm.authors}
+                      onChange={(e) => setNewRefForm({ ...newRefForm, authors: e.target.value })}
                       placeholder="作者 (如: Walter Rudin)"
                       className="bg-slate-900 border border-slate-700 text-slate-200 rounded-xl px-3 py-2 outline-none focus:border-cyan-500"
                     />
                     <input
                       type="text"
-                      value={newRefYear}
-                      onChange={(e) => setNewRefYear(e.target.value)}
+                      value={newRefForm.year}
+                      onChange={(e) => setNewRefForm({ ...newRefForm, year: e.target.value })}
                       placeholder="年份 (如: 1987)"
                       className="bg-slate-900 border border-slate-700 text-slate-200 rounded-xl px-3 py-2 outline-none focus:border-cyan-500"
                     />

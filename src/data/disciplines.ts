@@ -1,4 +1,4 @@
-import { MathDiscipline } from '@/types/math';
+import type { MathDiscipline } from '../types/math.ts';
 
 export const disciplines: MathDiscipline[] = [
   {

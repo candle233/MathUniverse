@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import { LanguageProvider } from '@/context/LanguageContext';
 
 export const metadata: Metadata = {
   title: 'MathUniverse - 全学科数学开源协作与形式化验证平台',
@@ -16,9 +17,11 @@ export default function RootLayout({
   return (
     <html lang="zh-CN" className="dark">
       <body className="bg-[#090d16] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-cyan-500/30 selection:text-cyan-200">
-        <Navbar />
-        <main className="flex-1 w-full">{children}</main>
-        <Footer />
+        <LanguageProvider>
+          <Navbar />
+          <main className="flex-1 w-full">{children}</main>
+          <Footer />
+        </LanguageProvider>
       </body>
     </html>
   );

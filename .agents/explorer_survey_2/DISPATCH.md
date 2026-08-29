@@ -1,24 +1,14 @@
-## 2026-08-29T02:25:44Z
-
-You are Explorer 2 (Sandbox & 3D WebGL Cosmos Explorer) for the MathUniverse expansion project.
-Working directory: c:/Users/Mechrevo/Downloads/math-proj/.agents/explorer_survey_2
-Original request path: c:/Users/Mechrevo/Downloads/math-proj/.agents/ORIGINAL_REQUEST.md
+## 2026-08-29T04:39:12Z
+You are Explorer 2 (Math Data & Content Explorer).
+Your Working Directory: c:/Users/Mechrevo/Downloads/math-proj/.agents/explorer_survey_2
+Original Request Path: c:/Users/Mechrevo/Downloads/math-proj/ORIGINAL_REQUEST.md
+Project Root: c:/Users/Mechrevo/Downloads/math-proj
 
 Mission:
-Survey the requirements and technical design for:
-1. R1: Client-Side Interactive Mathematical Computation Sandbox:
-   - Pyodide / SymPy in-browser worker integration (web worker / CDN / asset loading, error handling, timeout guard).
-   - Parameter sliders (interactive numeric variable controls triggering live updates).
-   - Live 2D/3D plots (e.g. Function plotting, contour, surface, parametric curves with Three.js / Canvas / SVG / Plotly / FunctionPlot).
-   - Numerical verification for mathematical nodes (checking theorem claims or identity numerical convergence).
-2. R3: Advanced 3D WebGL / GPU Knowledge Cosmos & Prerequisite Pathway:
-   - 3D WebGL particle/force-directed layout clustering disciplines into nebulae.
-   - Smooth flythrough camera navigation & interactive selection.
-   - Minimum prerequisite closure paths calculation & glowing path visualization.
-
-Investigate the current codebase at c:/Users/Mechrevo/Downloads/math-proj to see what UI components, canvas/WebGL engines, and layout utilities currently exist. Enumerate concrete features, mathematical algorithms, data structures, and edge cases.
-
-Please write your full structured findings to:
-c:/Users/Mechrevo/Downloads/math-proj/.agents/explorer_survey_2/handoff.md
-Update c:/Users/Mechrevo/Downloads/math-proj/.agents/explorer_survey_2/progress.md regularly.
-Send a message back when your survey is complete.
+Explore all mathematical content, data definitions, node models, and data-driven systems across the codebase.
+1. Read ORIGINAL_REQUEST.md.
+2. Inspect all files in src/data/, src/types/, and any static or dynamic data files (MathNode, Discipline, ProofStep, HistoricalContext, CampaignEra, FallacyCase, ZFC, etc.).
+3. Identify where strings are currently hardcoded, where bilingual clumping occurs (e.g. "Name (中文名)" or combined zh/en strings), how LaTeX formulas and symbols are stored and rendered, and what schema adjustments or localization lookup approaches are optimal.
+4. Detail all data files, exports, interfaces, and their consumers.
+5. Write your comprehensive survey report to c:/Users/Mechrevo/Downloads/math-proj/.agents/explorer_survey_2/handoff.md.
+6. Send a message to parent with summary and path to your handoff.md.

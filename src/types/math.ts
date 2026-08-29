@@ -145,7 +145,11 @@ export interface MathNode {
   mscCode: string;
   statementLatex: string;
   statementPlainZh: string;
+  statementPlainEn?: string;
   intuitionMd: string;
+  intuitionEn?: string;
+  historicalContextZh?: string;
+  historicalContextEn?: string;
   verification: VerificationStatus;
   reputationScore: number;
   viewCount: number;
