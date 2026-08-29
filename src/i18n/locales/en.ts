@@ -4,6 +4,7 @@ export const en: TranslationDict = {
   nav: {
     brand: 'MathUniverse',
     brandSubtitle: 'Unified Mathematics Open-Source Knowledge Base & Formal Verification Platform',
+    menu: 'Menu',
     graph: 'Cosmos Graph',
     lean: 'Lean 4 Lab',
     community: 'Peer Review',

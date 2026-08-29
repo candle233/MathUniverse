@@ -4,6 +4,7 @@ export interface TranslationDict {
   nav: {
     brand: string;
     brandSubtitle: string;
+    menu: string;
     graph: string;
     lean: string;
     community: string;
