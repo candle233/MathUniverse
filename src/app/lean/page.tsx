@@ -34,12 +34,12 @@ export default function LeanPage() {
         </div>
 
         {/* Quick Theorem Selector */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 min-w-0 flex-wrap">
           <span className="text-xs text-slate-400">加载形式化定理:</span>
           <select
             value={selectedNodeId}
             onChange={(e) => setSelectedNodeId(e.target.value)}
-            className="bg-slate-900 border border-slate-700 text-emerald-300 text-xs rounded-xl px-3 py-2 outline-none font-medium cursor-pointer"
+            className="bg-slate-900 border border-slate-700 text-emerald-300 text-xs rounded-xl px-3 py-2 outline-none font-medium cursor-pointer min-w-0 max-w-full"
           >
             {formalizableNodes.map((n) => (
               <option key={n.id} value={n.id}>
