@@ -102,7 +102,7 @@ export default function Navbar() {
         </div>
 
         {/* Navigation Links */}
-        <nav className="flex items-center gap-1 shrink-0">
+        <nav className="flex items-center gap-1 shrink-0" aria-label={t('nav.primaryNav')}>
           <Link
             href="/graph"
             onClick={closeMenu}
@@ -229,7 +229,7 @@ export default function Navbar() {
       {/* Mobile / Tablet Dropdown Menu (below xl) — overlays page content */}
       {menuOpen && (
         <div className="xl:hidden absolute top-full inset-x-0 z-40 bg-slate-950/95 backdrop-blur-xl border-b border-slate-800 shadow-2xl shadow-black/40">
-          <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col gap-1">
+          <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col gap-1" aria-label={t('nav.menu')}>
             <Link
               href="/graph"
               onClick={closeMenu}

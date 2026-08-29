@@ -635,7 +635,7 @@ export default function KnowledgeStarChart({ selectedNodeId }: { selectedNodeId?
 
         {/* Selected Node Details Floating Drawer */}
         {selectedNode && (
-          <div className="absolute top-4 right-4 w-84 p-4 rounded-2xl glass-panel-glow border border-cyan-500/40 text-left shadow-2xl animate-in fade-in slide-in-from-right-4 duration-200 z-20 pointer-events-auto">
+          <div className="absolute top-4 right-4 w-80 max-w-[calc(100%-2rem)] p-4 rounded-2xl glass-panel-glow border border-cyan-500/40 text-left shadow-2xl animate-in fade-in slide-in-from-right-4 duration-200 z-20 pointer-events-auto">
             <div className="flex items-center justify-between mb-2">
               <span
                 className={`text-xs px-2.5 py-0.5 rounded-full border font-medium ${

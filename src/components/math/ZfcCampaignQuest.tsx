@@ -563,7 +563,7 @@ export default function ZfcCampaignQuest() {
                             <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">{entity.descriptionZh}</p>
                           </div>
 
-                          <div className="px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-xs font-mono font-bold text-amber-300 shrink-0">
+                          <div className="px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-xs font-mono font-bold text-amber-300 min-w-0 max-w-full overflow-x-auto">
                             <InlineLaTeX formula={entity.setNotation} />
                           </div>
                         </div>

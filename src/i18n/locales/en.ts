@@ -5,6 +5,7 @@ export const en: TranslationDict = {
     brand: 'MathUniverse',
     brandSubtitle: 'Unified Mathematics Open-Source Knowledge Base & Formal Verification Platform',
     menu: 'Menu',
+    primaryNav: 'Primary navigation',
     graph: 'Cosmos Graph',
     lean: 'Lean 4 Lab',
     community: 'Peer Review',

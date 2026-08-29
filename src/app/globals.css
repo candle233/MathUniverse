@@ -85,3 +85,9 @@ body {
     linear-gradient(to right, rgba(51, 65, 85, 0.15) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(51, 65, 85, 0.15) 1px, transparent 1px);
 }
+
+/* Responsive guard: never let the page scroll horizontally; `clip` (unlike
+   `hidden`) does not create a scroll container, so position:sticky keeps working. */
+body {
+  overflow-x: clip;
+}

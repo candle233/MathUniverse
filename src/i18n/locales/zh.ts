@@ -5,6 +5,7 @@ export const zh: TranslationDict = {
     brand: 'MathUniverse',
     brandSubtitle: '全学科数学开源知识库与形式化平台',
     menu: '菜单',
+    primaryNav: '主导航',
     graph: '知识星空',
     lean: 'Lean 4 实验室',
     community: '同行评审',

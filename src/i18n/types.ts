@@ -5,6 +5,7 @@ export interface TranslationDict {
     brand: string;
     brandSubtitle: string;
     menu: string;
+    primaryNav: string;
     graph: string;
     lean: string;
     community: string;
