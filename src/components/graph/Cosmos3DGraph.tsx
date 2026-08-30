@@ -34,6 +34,10 @@ import {
   Move,
   Zap,
   Maximize2,
+  Minimize2,
+  ChevronUp,
+  ChevronDown,
+  X,
   ZoomIn,
   ZoomOut,
   Crosshair,
@@ -80,6 +84,19 @@ export default function Cosmos3DGraph() {
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [activeDiscipline, setActiveDiscipline] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'flow' | 'hasse' | 'full'>('flow');
+
+  // HUD panel collapse state.
+  // Hydration-safe: initial render is EXPANDED on both server and client alike;
+  // the mobile default (collapsed on viewports < 640px) is applied post-mount.
+  const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false);
+  const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false);
+
+  // Fullscreen state: `isFullscreen` drives the toggle icon/label and is kept in
+  // sync with the native Fullscreen API via a `fullscreenchange` listener (so
+  // the Esc key updates the icon too). `isCssFullscreen` marks the active
+  // CSS-immersive fallback for browsers without the Fullscreen API (iOS Safari).
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isCssFullscreen, setIsCssFullscreen] = useState(false);
 
   // Camera & Interaction state
   const [isRotating, setIsRotating] = useState(true);
@@ -253,6 +270,30 @@ export default function Cosmos3DGraph() {
       observer.disconnect();
       window.removeEventListener('resize', updateSize);
     };
+  }, []);
+
+  // Mobile default: collapse both HUD panels on viewports < 640px so the star
+  // field stays visible. Runs post-mount only (never reads `window` in render),
+  // keeping server and first client render identical.
+  useEffect(() => {
+    if (window.innerWidth < 640) {
+      setIsLeftPanelCollapsed(true);
+      setIsRightPanelCollapsed(true);
+    }
+  }, []);
+
+  // Keep fullscreen state in sync with the document so exiting through the
+  // browser (Esc key, browser UI) also updates the toggle icon.
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const nativeActive = Boolean(document.fullscreenElement);
+      setIsFullscreen(nativeActive);
+      if (!nativeActive) {
+        setIsCssFullscreen(false);
+      }
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
   // Main 3D Canvas Perspective Render Loop
@@ -723,6 +764,50 @@ export default function Cosmos3DGraph() {
     return initialMathNodes.find((n) => n.id === selectedTargetId) || initialMathNodes[0];
   }, [selectedTargetId]);
 
+  // Auto-expand the node drawer whenever a NEW node is selected (canvas click,
+  // dropdown or fly-to) so details are never silently hidden behind a collapsed
+  // panel. Selecting the same node again does not force it open.
+  const prevSelectedTargetIdRef = useRef(selectedTargetId);
+  useEffect(() => {
+    if (selectedTargetId !== prevSelectedTargetIdRef.current) {
+      prevSelectedTargetIdRef.current = selectedTargetId;
+      setIsRightPanelCollapsed(false);
+    }
+  }, [selectedTargetId]);
+
+  // Toggle the chart viewport between native fullscreen and a CSS-immersive
+  // fallback (browsers without the Fullscreen API, e.g. iOS Safari).
+  const toggleFullscreen = useCallback(() => {
+    if (isFullscreen) {
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
+      }
+      setIsCssFullscreen(false);
+      setIsFullscreen(false);
+      return;
+    }
+
+    const container = containerRef.current;
+    if (document.fullscreenEnabled && typeof container?.requestFullscreen === 'function') {
+      try {
+        const request = container.requestFullscreen();
+        if (request && typeof request.catch === 'function') {
+          request.catch(() => {
+            // Native request rejected -> fall back to CSS immersive mode.
+            setIsCssFullscreen(true);
+            setIsFullscreen(true);
+          });
+        }
+        // On success the `fullscreenchange` listener syncs React state.
+        return;
+      } catch {
+        // fall through to the CSS immersive fallback below
+      }
+    }
+    setIsCssFullscreen(true);
+    setIsFullscreen(true);
+  }, [isFullscreen]);
+
   return (
     <div className="rounded-3xl border border-slate-800 bg-slate-950 overflow-hidden shadow-2xl space-y-4 p-6">
       {/* Top Header & Cosmic Discipline Nebula Jump Controls */}
@@ -844,7 +929,9 @@ export default function Cosmos3DGraph() {
       {/* Main 3D Cosmos Viewport with HUD Overlays */}
       <div
         ref={containerRef}
-        className="relative w-full h-[580px] bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden cursor-grab active:cursor-grabbing"
+        className={`relative w-full h-[580px] bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden cursor-grab active:cursor-grabbing ${
+          isCssFullscreen ? 'fixed inset-0 z-[60] h-auto rounded-none' : ''
+        }`}
       >
         <canvas
           ref={canvasRef}
@@ -859,16 +946,28 @@ export default function Cosmos3DGraph() {
           className="w-full h-full block"
         />
 
-        {/* Top-Left Learning Metric HUD Panel */}
-        {closureResult && (
-          <div className="absolute top-4 left-4 p-4 rounded-2xl glass-panel-glow border border-cyan-500/40 space-y-3 max-w-sm text-xs pointer-events-auto backdrop-blur-md shadow-2xl">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-              <span className="font-bold text-slate-100 flex items-center gap-1.5">
-                <Compass className="w-4 h-4 text-cyan-400" />
-                <span>{isZh ? '极小前置推导闭包 (Prereq Closure)' : 'Minimal Prerequisite Closure'}</span>
+        {/* Top-Left Learning Metric HUD Panel (collapsible; compact pill when collapsed) */}
+        {closureResult && !isLeftPanelCollapsed && (
+          <div className={`absolute ${isCssFullscreen ? 'top-16' : 'top-4'} left-4 p-4 rounded-2xl glass-panel-glow border border-cyan-500/40 space-y-3 max-w-sm text-xs pointer-events-auto backdrop-blur-md shadow-2xl`}>
+            <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-800">
+              <span className="font-bold text-slate-100 flex items-center gap-1.5 min-w-0">
+                <Compass className="w-4 h-4 shrink-0 text-cyan-400" />
+                <span className="truncate">{isZh ? '极小前置推导闭包 (Prereq Closure)' : 'Minimal Prerequisite Closure'}</span>
               </span>
-              <span className="text-amber-400 font-mono font-bold text-sm">
-                {closureResult.readinessPercentage}% {t('graph.readinessPercentage')}
+              <span className="flex items-center gap-1 shrink-0">
+                <span className="text-amber-400 font-mono font-bold text-sm">
+                  {closureResult.readinessPercentage}% {t('graph.readinessPercentage')}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsLeftPanelCollapsed(true)}
+                  aria-expanded={true}
+                  aria-label={isZh ? '收起面板' : 'Collapse panel'}
+                  title={isZh ? '收起面板' : 'Collapse panel'}
+                  className="p-1 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/80 transition-colors cursor-pointer shrink-0"
+                >
+                  <ChevronUp className="w-4 h-4" />
+                </button>
               </span>
             </div>
 
@@ -931,18 +1030,47 @@ export default function Cosmos3DGraph() {
           </div>
         )}
 
-        {/* Top-Right Node Inspector Floating Card */}
-        {selectedNode && (
-          <div className="absolute top-4 right-4 w-80 p-4 rounded-2xl glass-panel-glow border border-cyan-500/40 text-left shadow-2xl backdrop-blur-md pointer-events-auto space-y-2.5">
-            <div className="flex items-center justify-between">
+        {/* Collapsed Learning Path pill (re-expands the closure panel) */}
+        {closureResult && isLeftPanelCollapsed && (
+          <button
+            type="button"
+            onClick={() => setIsLeftPanelCollapsed(false)}
+            className={`absolute ${isCssFullscreen ? 'top-16' : 'top-4'} left-4 flex items-center gap-1.5 px-3 py-2 rounded-full glass-panel-glow border border-cyan-500/40 text-xs font-semibold text-cyan-100 pointer-events-auto backdrop-blur-md shadow-2xl cursor-pointer hover:border-cyan-400/60 transition-colors`}
+            aria-expanded={false}
+            aria-label={isZh ? '展开面板' : 'Expand panel'}
+            title={isZh ? '展开面板' : 'Expand panel'}
+          >
+            <Compass className="w-3.5 h-3.5 shrink-0 text-cyan-400" />
+            <span>{isZh ? '学习路径' : 'Learning Path'}</span>
+            <span className="text-amber-400 font-mono font-bold">{closureResult.readinessPercentage}%</span>
+            <ChevronDown className="w-3.5 h-3.5 shrink-0 text-slate-400" />
+          </button>
+        )}
+
+        {/* Top-Right Node Inspector Floating Card (collapsible; compact pill when collapsed) */}
+        {selectedNode && !isRightPanelCollapsed && (
+          <div className={`absolute ${isCssFullscreen ? 'top-16' : 'top-4'} right-4 w-80 p-4 rounded-2xl glass-panel-glow border border-cyan-500/40 text-left shadow-2xl backdrop-blur-md pointer-events-auto space-y-2.5`}>
+            <div className="flex items-center justify-between gap-1">
               <span
-                className={`text-[10px] px-2.5 py-0.5 rounded-full border font-semibold ${
+                className={`text-[10px] px-2.5 py-0.5 rounded-full border font-semibold shrink-0 ${
                   getNodeTypeMeta(selectedNode.nodeType, locale).color
                 }`}
               >
                 {getNodeTypeMeta(selectedNode.nodeType, locale).label}
               </span>
-              <span className="text-[11px] text-slate-400 font-mono">MSC {selectedNode.mscCode}</span>
+              <span className="flex items-center gap-1 shrink-0">
+                <span className="text-[11px] text-slate-400 font-mono">MSC {selectedNode.mscCode}</span>
+                <button
+                  type="button"
+                  onClick={() => setIsRightPanelCollapsed(true)}
+                  aria-expanded={true}
+                  aria-label={isZh ? '收起面板' : 'Collapse panel'}
+                  title={isZh ? '收起面板' : 'Collapse panel'}
+                  className="p-1 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/80 transition-colors cursor-pointer shrink-0"
+                >
+                  <ChevronUp className="w-4 h-4" />
+                </button>
+              </span>
             </div>
 
             <h4 className="font-bold text-slate-100 text-sm">{getNodeTitle(selectedNode, locale)}</h4>
@@ -986,6 +1114,23 @@ export default function Cosmos3DGraph() {
           </div>
         )}
 
+        {/* Collapsed Node Details pill (re-expands the node drawer) */}
+        {selectedNode && isRightPanelCollapsed && (
+          <button
+            type="button"
+            onClick={() => setIsRightPanelCollapsed(false)}
+            className={`absolute ${isCssFullscreen ? 'top-16' : 'top-4'} right-4 max-w-[calc(100%-2rem)] flex items-center gap-1.5 px-3 py-2 rounded-full glass-panel-glow border border-cyan-500/40 text-xs font-semibold text-cyan-100 pointer-events-auto backdrop-blur-md shadow-2xl cursor-pointer hover:border-cyan-400/60 transition-colors`}
+            aria-expanded={false}
+            aria-label={isZh ? '展开面板' : 'Expand panel'}
+            title={isZh ? '展开面板' : 'Expand panel'}
+          >
+            <Eye className="w-3.5 h-3.5 shrink-0 text-cyan-400" />
+            <span className="shrink-0">{isZh ? '节点详情' : 'Node Details'}</span>
+            <span className="truncate max-w-[7rem] text-slate-300 font-mono">{getNodeTitle(selectedNode, locale)}</span>
+            <ChevronDown className="w-3.5 h-3.5 shrink-0 text-slate-400" />
+          </button>
+        )}
+
         {/* Bottom Left Utility Buttons */}
         <div className="absolute bottom-4 left-4 flex items-center gap-2 pointer-events-auto">
           <button
@@ -1010,6 +1155,23 @@ export default function Cosmos3DGraph() {
           >
             <Sparkles className="w-3.5 h-3.5" />
             <span>{showDust ? t('graph.nebulaDustOn') : t('graph.nebulaDustOff')}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={toggleFullscreen}
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors cursor-pointer ${
+              isFullscreen
+                ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
+                : 'bg-slate-900 text-slate-400 border-slate-700'
+            }`}
+            aria-label={isFullscreen ? (isZh ? '退出全屏' : 'Exit Fullscreen') : (isZh ? '全屏' : 'Fullscreen')}
+            title={isFullscreen ? (isZh ? '退出全屏' : 'Exit Fullscreen') : (isZh ? '全屏' : 'Fullscreen')}
+          >
+            {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+            <span className="hidden md:inline">
+              {isFullscreen ? (isZh ? '退出全屏' : 'Exit Fullscreen') : (isZh ? '全屏' : 'Fullscreen')}
+            </span>
           </button>
 
           <div className="flex items-center bg-slate-900 p-0.5 rounded-xl border border-slate-700">
@@ -1039,6 +1201,19 @@ export default function Cosmos3DGraph() {
           <Move className="w-3.5 h-3.5 text-cyan-400" />
           <span>{t('graph.controlsHint')}</span>
         </div>
+
+        {/* CSS-fallback fullscreen exit button (native mode exits via Esc / browser UI) */}
+        {isCssFullscreen && (
+          <button
+            type="button"
+            onClick={toggleFullscreen}
+            className="absolute top-4 right-4 z-30 p-2 rounded-full bg-slate-900/90 border border-slate-600 text-slate-300 hover:text-slate-100 hover:bg-slate-800 shadow-2xl transition-colors cursor-pointer pointer-events-auto"
+            aria-label={isZh ? '退出全屏' : 'Exit Fullscreen'}
+            title={isZh ? '退出全屏' : 'Exit Fullscreen'}
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
       {/* Interactive Step-by-Step Learning Trajectory Checklist */}
