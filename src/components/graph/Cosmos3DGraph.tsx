@@ -572,6 +572,18 @@ export default function Cosmos3DGraph() {
       // 6. Draw 3D Star Nodes
       const bottleneckSet = new Set((closureResult?.criticalBottlenecks || []).map((b) => b.node.id));
 
+      // Draw a node label clamped inside the canvas with an 8px margin: when the
+      // text would overflow the right edge, flip it to the LEFT of the node so
+      // title/milestone labels never clip on any canvas width.
+      const drawClampedNodeLabel = (text: string, nodeSx: number, nodeR: number, y: number) => {
+        const textWidth = ctx.measureText(text).width;
+        let labelX = nodeSx + nodeR + 5;
+        if (labelX + textWidth > canvas.width - 8) {
+          labelX = Math.max(8, nodeSx - nodeR - textWidth - 6);
+        }
+        ctx.fillText(text, labelX, y);
+      };
+
       projectedNodes.forEach(({ cn, proj }) => {
         const { node, starMagnitude, nebulaColor } = cn;
         const isTarget = node.id === selectedTargetId;
@@ -663,13 +675,13 @@ export default function Cosmos3DGraph() {
             : '#cbd5e1';
 
           const displayTitle = getNodeTitle(node, locale);
-          ctx.fillText(displayTitle, proj.sx + nodeRadius + 5, proj.sy + 3);
+          drawClampedNodeLabel(displayTitle, proj.sx, nodeRadius, proj.sy + 3);
 
           // Bottleneck badge badge text
           if (isBottleneck) {
             ctx.font = 'bold 9px sans-serif';
             ctx.fillStyle = '#ef4444';
-            ctx.fillText(isZh ? '⚡ 关键拓扑枢纽' : '⚡ Key Milestone', proj.sx + nodeRadius + 5, proj.sy + 15);
+            drawClampedNodeLabel(isZh ? '⚡ 关键拓扑枢纽' : '⚡ Key Milestone', proj.sx, nodeRadius, proj.sy + 15);
           }
         }
       });
@@ -1024,7 +1036,7 @@ export default function Cosmos3DGraph() {
                   aria-expanded={true}
                   aria-label={isZh ? '收起面板' : 'Collapse panel'}
                   title={isZh ? '收起面板' : 'Collapse panel'}
-                  className="p-1 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/80 transition-colors cursor-pointer shrink-0"
+                  className="p-1 min-h-[32px] rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/80 transition-colors cursor-pointer shrink-0"
                 >
                   <ChevronUp className="w-4 h-4" />
                 </button>
@@ -1095,7 +1107,7 @@ export default function Cosmos3DGraph() {
           <button
             type="button"
             onClick={() => setIsLeftPanelCollapsed(false)}
-            className={`absolute ${isCssFullscreen ? 'top-16' : 'top-4'} left-4 flex items-center gap-1.5 px-3 py-2 rounded-full glass-panel-glow border border-cyan-500/40 text-xs font-semibold text-cyan-100 pointer-events-auto backdrop-blur-md shadow-2xl cursor-pointer hover:border-cyan-400/60 transition-colors`}
+            className={`absolute ${isCssFullscreen ? 'top-16' : 'top-4'} left-4 flex items-center gap-1.5 px-3 py-2 min-h-[32px] rounded-full glass-panel-glow border border-cyan-500/40 text-xs font-semibold text-cyan-100 pointer-events-auto backdrop-blur-md shadow-2xl cursor-pointer hover:border-cyan-400/60 transition-colors`}
             aria-expanded={false}
             aria-label={isZh ? '展开面板' : 'Expand panel'}
             title={isZh ? '展开面板' : 'Expand panel'}
@@ -1125,7 +1137,7 @@ export default function Cosmos3DGraph() {
                   aria-expanded={true}
                   aria-label={isZh ? '收起面板' : 'Collapse panel'}
                   title={isZh ? '收起面板' : 'Collapse panel'}
-                  className="p-1 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/80 transition-colors cursor-pointer shrink-0"
+                  className="p-1 min-h-[32px] rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/80 transition-colors cursor-pointer shrink-0"
                 >
                   <ChevronUp className="w-4 h-4" />
                 </button>
@@ -1178,7 +1190,7 @@ export default function Cosmos3DGraph() {
           <button
             type="button"
             onClick={() => setIsRightPanelCollapsed(false)}
-            className={`absolute ${isCssFullscreen ? 'top-16' : 'top-4'} right-4 max-w-[calc(100%-2rem)] flex items-center gap-1.5 px-3 py-2 rounded-full glass-panel-glow border border-cyan-500/40 text-xs font-semibold text-cyan-100 pointer-events-auto backdrop-blur-md shadow-2xl cursor-pointer hover:border-cyan-400/60 transition-colors`}
+            className={`absolute ${isCssFullscreen ? 'top-16' : 'top-4'} right-4 max-w-[calc(100%-2rem)] flex items-center gap-1.5 px-3 py-2 min-h-[32px] rounded-full glass-panel-glow border border-cyan-500/40 text-xs font-semibold text-cyan-100 pointer-events-auto backdrop-blur-md shadow-2xl cursor-pointer hover:border-cyan-400/60 transition-colors`}
             aria-expanded={false}
             aria-label={isZh ? '展开面板' : 'Expand panel'}
             title={isZh ? '展开面板' : 'Expand panel'}
