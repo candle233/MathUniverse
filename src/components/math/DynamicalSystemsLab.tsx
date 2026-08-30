@@ -109,8 +109,12 @@ interface TrajectoryPoint {
 export default function DynamicalSystemsLab() {
   const { isZh } = useLanguage();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const [selectedModelId, setSelectedModelId] = useState<string>('lotka-volterra');
   const [isRunning, setIsRunning] = useState(true);
+
+  // Canvas dimensions state
+  const [canvasDimensions, setCanvasDimensions] = useState({ width: 840, height: 460 });
 
   const model = dynamicalModels.find((m) => m.id === selectedModelId) || dynamicalModels[0];
   const [params, setParams] = useState(model.defaultParams);
@@ -140,6 +144,32 @@ export default function DynamicalSystemsLab() {
       ];
     }
   }, [model.id]);
+
+  // Automatically update canvas size on container resize
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const updateSize = () => {
+      const rect = container.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        setCanvasDimensions({
+          width: Math.floor(rect.width),
+          height: Math.floor(rect.height),
+        });
+      }
+    };
+
+    updateSize();
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(container);
+    window.addEventListener('resize', updateSize);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', updateSize);
+    };
+  }, []);
 
   // Coordinate transformation helpers
   const toScreenX = (x: number, width: number) => {
@@ -298,8 +328,12 @@ export default function DynamicalSystemsLab() {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    const sx = e.clientX - rect.left;
-    const sy = e.clientY - rect.top;
+
+    // Convert CSS-space pointer coords into bitmap space so they match the rendered coordinates
+    const scaleX = canvas.width / (rect.width || 1);
+    const scaleY = canvas.height / (rect.height || 1);
+    const sx = (e.clientX - rect.left) * scaleX;
+    const sy = (e.clientY - rect.top) * scaleY;
 
     const { x, y } = toMathCoords(sx, sy, canvas.width, canvas.height);
     trajectoriesRef.current.push([{ x, y }]);
@@ -365,11 +399,14 @@ export default function DynamicalSystemsLab() {
       </div>
 
       {/* Canvas Viewport */}
-      <div className="relative w-full h-[460px] bg-slate-950 rounded-2xl border border-slate-800 math-grid-pattern overflow-hidden cursor-crosshair">
+      <div
+        ref={containerRef}
+        className="relative w-full h-[460px] bg-slate-950 rounded-2xl border border-slate-800 math-grid-pattern overflow-hidden cursor-crosshair"
+      >
         <canvas
           ref={canvasRef}
-          width={840}
-          height={460}
+          width={canvasDimensions.width}
+          height={canvasDimensions.height}
           onClick={handleCanvasClick}
           className="w-full h-full block"
         />

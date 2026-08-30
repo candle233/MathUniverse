@@ -275,6 +275,7 @@ export const surfaceDefinitions: SurfaceDefinition[] = [
 export default function ThreeMathSurface({ surface = 'mobius' }: { surface?: string }) {
   const { isZh } = useLanguage();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const [selectedId, setSelectedId] = useState<string>(surface);
   const [isRotating, setIsRotating] = useState(true);
   const isRotatingRef = useRef(true);
@@ -284,6 +285,10 @@ export default function ThreeMathSurface({ surface = 'mobius' }: { surface?: str
 
   const [wireframe, setWireframe] = useState(false);
   const [paramA, setParamA] = useState(1.5);
+
+  // Canvas dimensions state
+  const [canvasDimensions, setCanvasDimensions] = useState({ width: 800, height: 460 });
+
   const rotationRef = useRef({ x: 0.5, y: 0.6 });
   const isDraggingRef = useRef(false);
   const lastMouseRef = useRef({ x: 0, y: 0 });
@@ -294,6 +299,32 @@ export default function ThreeMathSurface({ surface = 'mobius' }: { surface?: str
   const meshData = useMemo(() => {
     return currentSurface.generateMesh(36, 18, paramA);
   }, [currentSurface, paramA]);
+
+  // Automatically update canvas size on container resize
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const updateSize = () => {
+      const rect = container.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        setCanvasDimensions({
+          width: Math.floor(rect.width),
+          height: Math.floor(rect.height),
+        });
+      }
+    };
+
+    updateSize();
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(container);
+    window.addEventListener('resize', updateSize);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', updateSize);
+    };
+  }, []);
 
   // Animation & Rendering Loop
   useEffect(() => {
@@ -492,11 +523,14 @@ export default function ThreeMathSurface({ surface = 'mobius' }: { surface?: str
       </div>
 
       {/* 3D Canvas Viewport */}
-      <div className="relative w-full h-[460px] bg-slate-950 rounded-2xl border border-slate-800 math-grid-pattern overflow-hidden cursor-grab active:cursor-grabbing">
+      <div
+        ref={containerRef}
+        className="relative w-full h-[460px] bg-slate-950 rounded-2xl border border-slate-800 math-grid-pattern overflow-hidden cursor-grab active:cursor-grabbing"
+      >
         <canvas
           ref={canvasRef}
-          width={800}
-          height={460}
+          width={canvasDimensions.width}
+          height={canvasDimensions.height}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}

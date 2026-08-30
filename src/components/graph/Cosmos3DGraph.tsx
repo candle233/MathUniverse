@@ -96,6 +96,9 @@ export default function Cosmos3DGraph() {
   const isPanningRef = useRef(false);
   const lastMouseRef = useRef({ x: 0, y: 0, time: 0 });
 
+  // Canvas dimensions state
+  const [canvasDimensions, setCanvasDimensions] = useState({ width: 1000, height: 580 });
+
   // Camera flythrough animation target
   const flyAnimationRef = useRef<{
     active: boolean;
@@ -225,6 +228,32 @@ export default function Cosmos3DGraph() {
       prev.includes(nodeId) ? prev.filter((id) => id !== nodeId) : [...prev, nodeId]
     );
   };
+
+  // Automatically update canvas size on container resize
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const updateSize = () => {
+      const rect = container.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        setCanvasDimensions({
+          width: Math.floor(rect.width),
+          height: Math.floor(rect.height),
+        });
+      }
+    };
+
+    updateSize();
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(container);
+    window.addEventListener('resize', updateSize);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', updateSize);
+    };
+  }, []);
 
   // Main 3D Canvas Perspective Render Loop
   useEffect(() => {
@@ -584,8 +613,12 @@ export default function Cosmos3DGraph() {
     const canvas = canvasRef.current;
     if (!canvas) return null;
     const rect = canvas.getBoundingClientRect();
-    const mouseX = clientX - rect.left;
-    const mouseY = clientY - rect.top;
+
+    // Convert CSS-space pointer coords into bitmap space so they match the projection coordinates
+    const scaleX = canvas.width / (rect.width || 1);
+    const scaleY = canvas.height / (rect.height || 1);
+    const mouseX = (clientX - rect.left) * scaleX;
+    const mouseY = (clientY - rect.top) * scaleY;
 
     const cx = canvas.width / 2 + panOffsetRef.current.x;
     const cy = canvas.height / 2 + panOffsetRef.current.y;
@@ -815,8 +848,8 @@ export default function Cosmos3DGraph() {
       >
         <canvas
           ref={canvasRef}
-          width={1000}
-          height={580}
+          width={canvasDimensions.width}
+          height={canvasDimensions.height}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
