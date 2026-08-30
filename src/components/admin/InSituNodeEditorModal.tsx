@@ -5,6 +5,8 @@ import { MathNode, NodeType, VerificationStatus } from '@/types/math';
 import { disciplines } from '@/data/disciplines';
 import { checkCircularDependency } from '@/lib/dagEngine';
 import { updateSingleMathNode, loadActiveMathNodes } from '@/lib/customPageEngine';
+import { getNodeTitle, getDisciplineName } from '@/lib/i18nHelper';
+import { useLanguage } from '@/context/LanguageContext';
 import LaTeXRenderer, { InlineLaTeX } from '@/components/math/LaTeXRenderer';
 import {
   X,
@@ -27,7 +29,7 @@ interface InSituNodeEditorModalProps {
   onSaveSuccess?: (updatedNode: MathNode) => void;
 }
 
-const LATEX_SYMBOLS = [
+const LATEX_SYMBOLS: Array<{ label: string; labelEn?: string; code: string }> = [
   { label: '∀', code: '\\forall ' },
   { label: '∃', code: '\\exists ' },
   { label: '∈', code: '\\in ' },
@@ -52,7 +54,7 @@ const LATEX_SYMBOLS = [
   { label: 'ℤ', code: '\\mathbb{Z} ' },
   { label: 'ε', code: '\\varepsilon ' },
   { label: 'δ', code: '\\delta ' },
-  { label: '矩阵', code: '\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix} ' },
+  { label: '矩阵', labelEn: 'Matrix', code: '\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix} ' },
 ];
 
 export default function InSituNodeEditorModal({
@@ -65,6 +67,7 @@ export default function InSituNodeEditorModal({
   const [allNodes, setAllNodes] = useState<MathNode[]>(() => loadActiveMathNodes());
   const [activeTab, setActiveTab] = useState<'statement' | 'intuition' | 'lean' | 'dependencies'>('statement');
   const [saveToast, setSaveToast] = useState<string | null>(null);
+  const { isZh, locale } = useLanguage();
 
   if (!isOpen) return null;
 
@@ -89,7 +92,9 @@ export default function InSituNodeEditorModal({
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (cycleStatus.hasCycle) {
-      alert('无法保存：检测到前置依赖环路，请调整依赖关系。');
+      alert(isZh
+        ? '无法保存：检测到前置依赖环路，请调整依赖关系。'
+        : 'Cannot save: a circular dependency was detected among the prerequisites. Please adjust the dependencies.');
       return;
     }
 
@@ -98,7 +103,7 @@ export default function InSituNodeEditorModal({
       lastModified: new Date().toISOString().split('T')[0],
     });
 
-    setSaveToast('✅ 命题修改已成功保存至本地知识库！');
+    setSaveToast(isZh ? '✅ 命题修改已成功保存至本地知识库！' : '✅ Changes saved to the local knowledge base!');
     if (onSaveSuccess) {
       onSaveSuccess(formData);
     }
@@ -129,12 +134,12 @@ export default function InSituNodeEditorModal({
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xs px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-bold border border-amber-500/40">
-                  ⚡ 在线编辑命题
+                  {isZh ? '⚡ 在线编辑命题' : '⚡ Inline Proposition Editor'}
                 </span>
                 <span className="text-xs text-slate-400 font-mono">{formData.id}</span>
               </div>
               <h2 className="text-base sm:text-lg font-bold text-slate-100 mt-0.5">
-                {formData.titleZh} ({formData.titleEn})
+                {isZh ? `${formData.titleZh} (${formData.titleEn})` : (formData.titleEn || formData.titleZh)}
               </h2>
             </div>
           </div>
@@ -166,7 +171,7 @@ export default function InSituNodeEditorModal({
             }`}
           >
             <BookOpen className="w-3.5 h-3.5" />
-            <span>公式与命题陈述</span>
+            <span>{isZh ? '公式与命题陈述' : 'Statement & Formula'}</span>
           </button>
 
           <button
@@ -178,7 +183,7 @@ export default function InSituNodeEditorModal({
             }`}
           >
             <HelpCircle className="w-3.5 h-3.5" />
-            <span>直觉解释与历史背景</span>
+            <span>{isZh ? '直觉解释与历史背景' : 'Intuition & History'}</span>
           </button>
 
           <button
@@ -190,7 +195,7 @@ export default function InSituNodeEditorModal({
             }`}
           >
             <Code2 className="w-3.5 h-3.5" />
-            <span>Lean 4 形式化代码</span>
+            <span>{isZh ? 'Lean 4 形式化代码' : 'Lean 4 Code'}</span>
           </button>
 
           <button
@@ -202,7 +207,7 @@ export default function InSituNodeEditorModal({
             }`}
           >
             <Layers className="w-3.5 h-3.5" />
-            <span>前置依赖勾选 ({formData.dependencies.length})</span>
+            <span>{isZh ? `前置依赖勾选 (${formData.dependencies.length})` : `Prerequisites (${formData.dependencies.length})`}</span>
           </button>
         </div>
 
@@ -211,7 +216,7 @@ export default function InSituNodeEditorModal({
           {/* Basic metadata */}
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             <div className="space-y-1">
-              <label className="text-slate-300 font-bold">中文名称 *</label>
+              <label className="text-slate-300 font-bold">{isZh ? '中文名称 *' : 'Chinese Title *'}</label>
               <input
                 type="text"
                 required
@@ -222,7 +227,7 @@ export default function InSituNodeEditorModal({
             </div>
 
             <div className="space-y-1">
-              <label className="text-slate-300 font-bold">英文名称 *</label>
+              <label className="text-slate-300 font-bold">{isZh ? '英文名称 *' : 'English Title *'}</label>
               <input
                 type="text"
                 required
@@ -233,7 +238,7 @@ export default function InSituNodeEditorModal({
             </div>
 
             <div className="space-y-1">
-              <label className="text-slate-300 font-bold">学科分类</label>
+              <label className="text-slate-300 font-bold">{isZh ? '学科分类' : 'Discipline'}</label>
               <select
                 value={formData.disciplineId}
                 onChange={(e) => setFormData({ ...formData, disciplineId: e.target.value })}
@@ -241,25 +246,25 @@ export default function InSituNodeEditorModal({
               >
                 {disciplines.map((d) => (
                   <option key={d.id} value={d.id}>
-                    {d.nameZh} ({d.mscCode})
+                    {getDisciplineName(d, locale)} ({d.mscCode})
                   </option>
                 ))}
               </select>
             </div>
 
             <div className="space-y-1">
-              <label className="text-slate-300 font-bold">命题类型</label>
+              <label className="text-slate-300 font-bold">{isZh ? '命题类型' : 'Node Type'}</label>
               <select
                 value={formData.nodeType}
                 onChange={(e) => setFormData({ ...formData, nodeType: e.target.value as NodeType })}
                 className="w-full bg-slate-950 border border-slate-700 text-slate-200 rounded-xl px-3 py-2 outline-none"
               >
-                <option value="AXIOM">公理 (Axiom)</option>
-                <option value="DEFINITION">定义 (Definition)</option>
-                <option value="THEOREM">定理 (Theorem)</option>
-                <option value="LEMMA">引理 (Lemma)</option>
-                <option value="COROLLARY">推论 (Corollary)</option>
-                <option value="CONJECTURE">猜想 (Conjecture)</option>
+                <option value="AXIOM">{isZh ? '公理 (Axiom)' : 'Axiom'}</option>
+                <option value="DEFINITION">{isZh ? '定义 (Definition)' : 'Definition'}</option>
+                <option value="THEOREM">{isZh ? '定理 (Theorem)' : 'Theorem'}</option>
+                <option value="LEMMA">{isZh ? '引理 (Lemma)' : 'Lemma'}</option>
+                <option value="COROLLARY">{isZh ? '推论 (Corollary)' : 'Corollary'}</option>
+                <option value="CONJECTURE">{isZh ? '猜想 (Conjecture)' : 'Conjecture'}</option>
               </select>
             </div>
           </div>
@@ -271,7 +276,7 @@ export default function InSituNodeEditorModal({
               <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
                 <div className="text-[11px] text-cyan-300 font-bold flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5" />
-                  <span>快捷数学符号面板 (点击直接插入 LaTeX 公式)：</span>
+                  <span>{isZh ? '快捷数学符号面板 (点击直接插入 LaTeX 公式)：' : 'Quick LaTeX symbol palette (click to insert):'}</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {LATEX_SYMBOLS.map((s, i) => (
@@ -282,14 +287,14 @@ export default function InSituNodeEditorModal({
                       className="px-2 py-1 rounded-lg bg-slate-900 hover:bg-cyan-500 hover:text-slate-950 border border-slate-700 text-slate-300 text-xs font-mono transition-colors cursor-pointer"
                       title={s.code}
                     >
-                      {s.label}
+                      {isZh ? s.label : (s.labelEn || s.label)}
                     </button>
                   ))}
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="text-slate-300 font-bold">LaTeX 形式化公式 (Statement LaTeX) *</label>
+                <label className="text-slate-300 font-bold">{isZh ? 'LaTeX 形式化公式 (Statement LaTeX) *' : 'Statement LaTeX *'}</label>
                 <textarea
                   rows={3}
                   required
@@ -301,7 +306,7 @@ export default function InSituNodeEditorModal({
 
               {/* Live Preview Box */}
               <div className="p-4 rounded-xl bg-slate-950 border border-cyan-500/30 space-y-1">
-                <div className="text-[11px] text-cyan-400 font-bold">实时渲染预览：</div>
+                <div className="text-[11px] text-cyan-400 font-bold">{isZh ? '实时渲染预览：' : 'Live preview:'}</div>
                 <div className="text-sm text-slate-100 py-1">
                   <InlineLaTeX formula={formData.statementLatex} displayMode={true} />
                 </div>
@@ -309,7 +314,7 @@ export default function InSituNodeEditorModal({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-slate-300 font-bold">中文自然语言阐述 (Plain Statement Zh)</label>
+                  <label className="text-slate-300 font-bold">{isZh ? '中文自然语言阐述 (Plain Statement Zh)' : 'Plain Statement (Zh)'}</label>
                   <textarea
                     rows={3}
                     value={formData.statementPlainZh}
@@ -318,7 +323,7 @@ export default function InSituNodeEditorModal({
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-slate-300 font-bold">英文自然语言阐述 (Plain Statement En)</label>
+                  <label className="text-slate-300 font-bold">{isZh ? '英文自然语言阐述 (Plain Statement En)' : 'Plain Statement (En)'}</label>
                   <textarea
                     rows={3}
                     value={formData.statementPlainEn || ''}
@@ -334,7 +339,7 @@ export default function InSituNodeEditorModal({
           {activeTab === 'intuition' && (
             <div className="space-y-4">
               <div className="space-y-1">
-                <label className="text-slate-300 font-bold">直觉性图解与几何意义 (Markdown + LaTeX)</label>
+                <label className="text-slate-300 font-bold">{isZh ? '直觉性图解与几何意义 (Markdown + LaTeX)' : 'Intuition & geometric meaning (Markdown + LaTeX)'}</label>
                 <textarea
                   rows={4}
                   value={formData.intuitionMd}
@@ -345,7 +350,7 @@ export default function InSituNodeEditorModal({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-slate-300 font-bold">历史背景与发展渊源 (中文)</label>
+                  <label className="text-slate-300 font-bold">{isZh ? '历史背景与发展渊源 (中文)' : 'Historical context (Zh)'}</label>
                   <textarea
                     rows={3}
                     value={formData.historicalContextZh || ''}
@@ -370,7 +375,7 @@ export default function InSituNodeEditorModal({
           {activeTab === 'lean' && (
             <div className="space-y-4">
               <div className="space-y-1">
-                <label className="text-emerald-400 font-bold">Lean 4 形式化定理与策略证明源码</label>
+                <label className="text-emerald-400 font-bold">{isZh ? 'Lean 4 形式化定理与策略证明源码' : 'Lean 4 theorem & tactic proof source'}</label>
                 <textarea
                   rows={8}
                   value={formData.leanFormalization?.leanCode || ''}
@@ -400,15 +405,15 @@ export default function InSituNodeEditorModal({
             <div className="space-y-4">
               <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
                 <span className="text-xs text-slate-300 font-bold">
-                  勾选此前置命题（自动进行 DAG 环依赖拦截）：
+                  {isZh ? '勾选此前置命题（自动进行 DAG 环依赖拦截）：' : 'Select prerequisite propositions (DAG cycle interception is automatic):'}
                 </span>
                 {cycleStatus.hasCycle ? (
                   <span className="text-rose-400 font-bold flex items-center gap-1">
-                    <AlertCircle className="w-4 h-4" /> 环依赖告警！
+                    <AlertCircle className="w-4 h-4" /> {isZh ? '环依赖告警！' : 'Cycle detected!'}
                   </span>
                 ) : (
                   <span className="text-emerald-400 font-bold flex items-center gap-1">
-                    <CheckCircle className="w-4 h-4" /> 拓扑无环
+                    <CheckCircle className="w-4 h-4" /> {isZh ? '拓扑无环' : 'Acyclic'}
                   </span>
                 )}
               </div>
@@ -430,7 +435,7 @@ export default function InSituNodeEditorModal({
                         }`}
                       >
                         <div>
-                          <div className="text-xs">{cand.titleZh}</div>
+                          <div className="text-xs">{getNodeTitle(cand, locale)}</div>
                           <div className="text-[10px] text-slate-500 font-mono">{cand.id}</div>
                         </div>
                         <span className="text-xs">{isSelected ? '✓' : '+'}</span>
@@ -448,7 +453,7 @@ export default function InSituNodeEditorModal({
               onClick={onClose}
               className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition-colors cursor-pointer"
             >
-              取消
+              {isZh ? '取消' : 'Cancel'}
             </button>
 
             <button
@@ -456,7 +461,7 @@ export default function InSituNodeEditorModal({
               className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-xs shadow-lg shadow-cyan-500/25 transition-all cursor-pointer flex items-center gap-2"
             >
               <Save className="w-4 h-4" />
-              <span>保存命题修改 (Save Changes)</span>
+              <span>{isZh ? '保存命题修改 (Save Changes)' : 'Save Changes'}</span>
             </button>
           </div>
         </form>
