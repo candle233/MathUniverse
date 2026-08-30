@@ -113,6 +113,13 @@ export default function Cosmos3DGraph() {
   const isPanningRef = useRef(false);
   const lastMouseRef = useRef({ x: 0, y: 0, time: 0 });
 
+  // Width-aware initial framing: at the default zoom the galaxy spans ≈530px, so on
+  // narrow canvases it overflows both edges. `fitScaleRef` scales the whole cosmos
+  // (nodes, nebulae, dust) at projection time; it is recomputed on canvas resize only
+  // until the user pans/zooms/drags (`userNavigatedRef`), and re-fitted by resetCamera.
+  const fitScaleRef = useRef(1);
+  const userNavigatedRef = useRef(false);
+
   // Canvas dimensions state
   const [canvasDimensions, setCanvasDimensions] = useState({ width: 1000, height: 580 });
 
@@ -212,6 +219,7 @@ export default function Cosmos3DGraph() {
   const jumpToNebula = (nebulaId: string) => {
     const nebula = COSMIC_NEBULAE[nebulaId];
     if (!nebula) return;
+    userNavigatedRef.current = true;
     setActiveDiscipline(nebulaId);
 
     // Calculate rotation angle to look at nebula centroid
@@ -226,6 +234,7 @@ export default function Cosmos3DGraph() {
     const nodePos = cosmos3DMap.get(nodeId);
     if (!nodePos) return;
 
+    userNavigatedRef.current = true;
     setSelectedTargetId(nodeId);
     const angleY = Math.atan2(-nodePos.x, nodePos.z);
     const angleX = -Math.atan2(nodePos.y, Math.hypot(nodePos.x, nodePos.z)) * 0.6;
@@ -235,6 +244,10 @@ export default function Cosmos3DGraph() {
   // Reset Camera View
   const resetCamera = () => {
     triggerCameraFlyTo({ x: 0.35, y: 0.45 }, 1.15, { x: 0, y: 0 });
+    // Returning to the overview also re-fits the galaxy to the current canvas
+    // width and re-enables width-aware refitting on subsequent resizes.
+    userNavigatedRef.current = false;
+    fitScaleRef.current = Math.min(1, canvasDimensions.width / 1100);
     setIsRotating(true);
     setActiveDiscipline('all');
   };
@@ -271,6 +284,13 @@ export default function Cosmos3DGraph() {
       window.removeEventListener('resize', updateSize);
     };
   }, []);
+
+  // Re-fit the galaxy to the measured canvas width on resize, but only while the
+  // user has not manually navigated the camera (their view is then respected).
+  useEffect(() => {
+    if (userNavigatedRef.current) return;
+    fitScaleRef.current = Math.min(1, canvasDimensions.width / 1100);
+  }, [canvasDimensions.width]);
 
   // Mobile default: collapse both HUD panels on viewports < 640px so the star
   // field stays visible. Runs post-mount only (never reads `window` in render),
@@ -362,6 +382,9 @@ export default function Cosmos3DGraph() {
       const fov = 480;
       const rotation = rotationRef.current;
       const zoom = zoomRef.current;
+      const fit = fitScaleRef.current;
+      // Compact canvases (< 480px) only draw labels for highlighted/milestone nodes.
+      const isCompactCanvas = canvas.width < 480;
       const cosX = Math.cos(rotation.x);
       const sinX = Math.sin(rotation.x);
       const cosY = Math.cos(rotation.y);
@@ -369,6 +392,11 @@ export default function Cosmos3DGraph() {
 
       // 3D Perspective Projection Function
       const project3D = (x: number, y: number, z: number) => {
+        // Width-aware initial framing: shrink the cosmos spread on narrow canvases.
+        x *= fit;
+        y *= fit;
+        z *= fit;
+
         // Yaw (Y rotation)
         const x1 = x * cosY + z * sinY;
         const y1 = y;
@@ -618,7 +646,11 @@ export default function Cosmos3DGraph() {
         }
 
         // Node Title Labels
-        if (isTarget || isPrereq || isBottleneck || isHovered || proj.scale > 1.05) {
+        if (
+          isCompactCanvas
+            ? isTarget || isBottleneck || isHovered
+            : isTarget || isPrereq || isBottleneck || isHovered || proj.scale > 1.05
+        ) {
           ctx.font = `${isTarget ? 'bold 12px' : isBottleneck ? 'bold 11px' : '10px'} sans-serif`;
           ctx.fillStyle = isTarget
             ? '#fbbf24'
@@ -681,6 +713,8 @@ export default function Cosmos3DGraph() {
     const fov = 480;
     const rotation = rotationRef.current;
     const zoom = zoomRef.current;
+    // Mirror the render-loop fit factor so hit detection matches the projection.
+    const fit = fitScaleRef.current;
 
     const cosX = Math.cos(rotation.x);
     const sinX = Math.sin(rotation.x);
@@ -691,9 +725,12 @@ export default function Cosmos3DGraph() {
     let minDistance = Infinity;
 
     cosmos3DList.forEach((cn) => {
-      const x1 = cn.x * cosY + cn.z * sinY;
-      const y1 = cn.y;
-      const z1 = -cn.x * sinY + cn.z * cosY;
+      const wx = cn.x * fit;
+      const wy = cn.y * fit;
+      const wz = cn.z * fit;
+      const x1 = wx * cosY + wz * sinY;
+      const y1 = wy;
+      const z1 = -wx * sinY + wz * cosY;
 
       const x2 = x1;
       const y2 = y1 * cosX - z1 * sinX;
@@ -733,9 +770,11 @@ export default function Cosmos3DGraph() {
     const dy = e.clientY - lastMouseRef.current.y;
 
     if (isDraggingRef.current) {
+      userNavigatedRef.current = true;
       rotationRef.current.x += dy * 0.006;
       rotationRef.current.y += dx * 0.006;
     } else if (isPanningRef.current) {
+      userNavigatedRef.current = true;
       panOffsetRef.current.x += dx;
       panOffsetRef.current.y += dy;
     } else {
@@ -771,6 +810,7 @@ export default function Cosmos3DGraph() {
 
   const handleWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
     e.preventDefault();
+    userNavigatedRef.current = true;
     const zoomFactor = e.deltaY < 0 ? 1.12 : 0.88;
     zoomRef.current = Math.min(3.8, Math.max(0.35, zoomRef.current * zoomFactor));
   };
@@ -1195,18 +1235,20 @@ export default function Cosmos3DGraph() {
           <div className="flex items-center bg-slate-900 p-0.5 rounded-xl border border-slate-700">
             <button
               onClick={() => {
+                userNavigatedRef.current = true;
                 zoomRef.current = Math.min(3.8, zoomRef.current * 1.2);
               }}
-              className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-300 transition-colors cursor-pointer"
+              className="p-2 min-h-[36px] min-w-[36px] hover:bg-slate-800 rounded-lg text-slate-300 transition-colors cursor-pointer"
               title={t('graph.zoomIn')}
             >
               <ZoomIn className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() => {
+                userNavigatedRef.current = true;
                 zoomRef.current = Math.max(0.35, zoomRef.current * 0.8);
               }}
-              className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-300 transition-colors cursor-pointer"
+              className="p-2 min-h-[36px] min-w-[36px] hover:bg-slate-800 rounded-lg text-slate-300 transition-colors cursor-pointer"
               title={t('graph.zoomOut')}
             >
               <ZoomOut className="w-3.5 h-3.5" />

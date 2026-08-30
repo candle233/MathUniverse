@@ -525,11 +525,12 @@ export default function KnowledgeStarChart({ selectedNodeId }: { selectedNodeId?
           </div>
         </div>
 
-        {/* Discipline Filter Buttons */}
-        <div className="flex items-center gap-1.5 flex-wrap">
+        {/* Discipline Filter Buttons — single horizontal scroll row on mobile
+            (mirrors the 3D view's Nebula Cruise row), wrapped from sm up */}
+        <div className="flex items-center gap-1.5 flex-nowrap overflow-x-auto pb-1 sm:flex-wrap">
           <button
             onClick={() => setSelectedDiscipline('all')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+            className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer whitespace-nowrap ${
               selectedDiscipline === 'all'
                 ? 'bg-cyan-500 text-slate-950 font-bold'
                 : 'bg-slate-800 text-slate-400 hover:text-slate-200'
@@ -541,7 +542,7 @@ export default function KnowledgeStarChart({ selectedNodeId }: { selectedNodeId?
             <button
               key={d.id}
               onClick={() => setSelectedDiscipline(d.id)}
-              className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+              className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer whitespace-nowrap ${
                 selectedDiscipline === d.id
                   ? 'bg-cyan-500 text-slate-950 font-bold'
                   : 'bg-slate-800 text-slate-400 hover:text-slate-200'
@@ -578,14 +579,14 @@ export default function KnowledgeStarChart({ selectedNodeId }: { selectedNodeId?
           <div className="flex items-center gap-1 bg-slate-800/80 p-1 rounded-lg border border-slate-700">
             <button
               onClick={() => setZoom((z) => Math.min(3.5, z * 1.2))}
-              className="p-1.5 hover:bg-slate-700 rounded text-slate-300 transition-colors cursor-pointer"
+              className="p-2 min-h-[36px] min-w-[36px] hover:bg-slate-700 rounded text-slate-300 transition-colors cursor-pointer"
               title={t('graph.zoomIn')}
             >
               <ZoomIn className="w-4 h-4" />
             </button>
             <button
               onClick={() => setZoom((z) => Math.max(0.25, z * 0.8))}
-              className="p-1.5 hover:bg-slate-700 rounded text-slate-300 transition-colors cursor-pointer"
+              className="p-2 min-h-[36px] min-w-[36px] hover:bg-slate-700 rounded text-slate-300 transition-colors cursor-pointer"
               title={t('graph.zoomOut')}
             >
               <ZoomOut className="w-4 h-4" />
@@ -595,7 +596,7 @@ export default function KnowledgeStarChart({ selectedNodeId }: { selectedNodeId?
                 setZoom(1);
                 setOffset({ x: 0, y: 0 });
               }}
-              className="p-1.5 hover:bg-slate-700 rounded text-slate-300 transition-colors cursor-pointer"
+              className="p-2 min-h-[36px] min-w-[36px] hover:bg-slate-700 rounded text-slate-300 transition-colors cursor-pointer"
               title={isZh ? '重置视图' : 'Reset View'}
             >
               <RefreshCw className="w-4 h-4" />
