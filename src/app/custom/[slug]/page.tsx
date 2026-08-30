@@ -27,9 +27,11 @@ import {
   FolderPlus,
 } from 'lucide-react';
 import AdminFloatingToolbar from '@/components/admin/AdminFloatingToolbar';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function CustomDynamicPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = use(params);
+  const { locale, isZh } = useLanguage();
   const [pages, setPages] = useState<CustomPageConfig[]>([]);
   const [isClient, setIsClient] = useState(false);
 
@@ -52,9 +54,11 @@ export default function CustomDynamicPage({ params }: { params: Promise<{ slug: 
         <div className="w-16 h-16 rounded-3xl bg-rose-500/20 border border-rose-500/40 text-rose-400 flex items-center justify-center mx-auto text-2xl font-bold">
           404
         </div>
-        <h1 className="text-2xl font-bold text-slate-100">未找到该自定义管理界面</h1>
+        <h1 className="text-2xl font-bold text-slate-100">{isZh ? '未找到该自定义管理界面' : 'Custom page not found'}</h1>
         <p className="text-slate-400 text-sm max-w-md mx-auto">
-          该页面可能已被管理员删除，或输入的链接地址有误。您可以通过管理员控制台重新创建。
+          {isZh
+            ? '该页面可能已被管理员删除，或输入的链接地址有误。您可以通过管理员控制台重新创建。'
+            : 'This page may have been removed by an admin, or the URL is wrong. You can recreate it from the admin console.'}
         </p>
         <div className="pt-4 flex items-center justify-center gap-4">
           <Link
@@ -62,14 +66,14 @@ export default function CustomDynamicPage({ params }: { params: Promise<{ slug: 
             className="px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs shadow-lg shadow-cyan-500/20 transition-all cursor-pointer flex items-center gap-2"
           >
             <Settings className="w-4 h-4" />
-            <span>进入管理员控制台</span>
+            <span>{isZh ? '进入管理员控制台' : 'Open Admin Console'}</span>
           </Link>
           <Link
             href="/"
             className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 text-xs font-semibold transition-all cursor-pointer flex items-center gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>返回首页</span>
+            <span>{isZh ? '返回首页' : 'Back to Home'}</span>
           </Link>
         </div>
       </div>
@@ -80,7 +84,7 @@ export default function CustomDynamicPage({ params }: { params: Promise<{ slug: 
     return (
       <div className="max-w-7xl mx-auto py-20 px-4 text-center space-y-4">
         <div className="w-8 h-8 rounded-full border-2 border-cyan-400 border-t-transparent animate-spin mx-auto" />
-        <p className="text-xs text-slate-400 font-mono">正在加载自定义模块装配界面...</p>
+        <p className="text-xs text-slate-400 font-mono">{isZh ? '正在加载自定义模块装配界面...' : 'Loading custom page...'}</p>
       </div>
     );
   }
@@ -93,7 +97,7 @@ export default function CustomDynamicPage({ params }: { params: Promise<{ slug: 
           <Link
             href="/admin"
             className="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
-            title="返回管理员控制台"
+            title={isZh ? '返回管理员控制台' : 'Back to Admin Console'}
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
@@ -103,13 +107,15 @@ export default function CustomDynamicPage({ params }: { params: Promise<{ slug: 
                 /custom/{pageConfig.slug}
               </span>
               <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400">
-                类别: {pageConfig.category}
+                {isZh ? '类别' : 'Category'}: {pageConfig.category}
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-100 tracking-tight mt-1">
-              {pageConfig.titleZh}
+              {locale === 'en' ? pageConfig.titleEn || pageConfig.titleZh : pageConfig.titleZh}
             </h1>
-            <p className="text-xs text-slate-400 font-mono">{pageConfig.titleEn}</p>
+            {locale === 'zh' && (
+              <p className="text-xs text-slate-400 font-mono">{pageConfig.titleEn}</p>
+            )}
           </div>
         </div>
 
@@ -119,7 +125,7 @@ export default function CustomDynamicPage({ params }: { params: Promise<{ slug: 
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 font-bold text-xs shadow-md transition-all cursor-pointer"
           >
             <Settings className="w-3.5 h-3.5" />
-            <span>在控制台中编辑此界面</span>
+            <span>{isZh ? '在控制台中编辑此界面' : 'Edit in Admin Console'}</span>
           </Link>
         </div>
       </div>
@@ -129,7 +135,7 @@ export default function CustomDynamicPage({ params }: { params: Promise<{ slug: 
         <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 text-slate-300 text-xs leading-relaxed flex items-start gap-3">
           <Sparkles className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <p className="font-semibold text-slate-200">界面配置概要：</p>
+            <p className="font-semibold text-slate-200">{isZh ? '界面配置概要：' : 'Configuration summary:'}</p>
             <p className="text-slate-400">{pageConfig.description}</p>
           </div>
         </div>

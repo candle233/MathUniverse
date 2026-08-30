@@ -184,8 +184,8 @@ export default function Navbar() {
           <button
             onClick={toggleLocale}
             className="flex items-center gap-1.5 px-1.5 py-1 sm:px-2 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs font-mono font-bold transition-all cursor-pointer shadow-sm shrink-0"
-            title={locale === 'zh' ? 'Switch to English' : '切换为中文'}
-            aria-label={locale === 'zh' ? 'Switch to English' : '切换为中文'}
+            title={locale === 'zh' ? '切换为英文' : 'Switch to Chinese'}
+            aria-label={locale === 'zh' ? '切换为英文' : 'Switch to Chinese'}
           >
             <Globe className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
             <span className="sr-only">{locale === 'zh' ? '中 / EN' : 'EN / 中'}</span>
@@ -200,7 +200,7 @@ export default function Navbar() {
                   ? 'bg-amber-500/20 border border-amber-500/50 text-amber-300 shadow-md shadow-amber-500/20'
                   : 'bg-slate-800/60 border border-slate-700 text-slate-400 hover:text-slate-200'
               }`}
-              title="Toggle Admin / Visitor Mode"
+              title={locale === 'zh' ? '切换管理员 / 访客模式' : 'Toggle Admin / Visitor Mode'}
               aria-label={isAdmin ? t('nav.adminMode') : t('nav.visitorMode')}
             >
               <span className="flex items-center" aria-hidden="true">
@@ -310,7 +310,7 @@ export default function Navbar() {
             <button
               onClick={toggleLocale}
               className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-mono font-bold text-cyan-300 hover:bg-slate-900 transition-colors cursor-pointer"
-              title={locale === 'zh' ? 'Switch to English' : '切换为中文'}
+              title={locale === 'zh' ? '切换为英文' : 'Switch to Chinese'}
             >
               <Globe className="w-4 h-4 text-cyan-400 shrink-0" />
               <span>{locale === 'zh' ? '中 / EN' : 'EN / 中'}</span>
@@ -324,7 +324,7 @@ export default function Navbar() {
                   ? 'bg-amber-500/20 border border-amber-500/50 text-amber-300 shadow-md shadow-amber-500/20'
                   : 'bg-slate-800/60 border border-slate-700 text-slate-400 hover:text-slate-200'
               }`}
-              title="Toggle Admin / Visitor Mode"
+              title={locale === 'zh' ? '切换管理员 / 访客模式' : 'Toggle Admin / Visitor Mode'}
             >
               {isAdmin ? (
                 <ShieldCheck className="w-4 h-4 shrink-0" />

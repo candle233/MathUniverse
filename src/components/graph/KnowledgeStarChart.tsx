@@ -5,6 +5,8 @@ import { MathNode } from '@/types/math';
 import { initialMathNodes } from '@/data/seedData';
 import { disciplines } from '@/data/disciplines';
 import { getNodeTypeMeta, getVerificationMeta } from '@/lib/utils';
+import { getNodeTitle, getDisciplineName } from '@/lib/i18nHelper';
+import { useLanguage } from '@/context/LanguageContext';
 import { InlineLaTeX } from '@/components/math/LaTeXRenderer';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -22,6 +24,7 @@ interface StarNode {
 
 export default function KnowledgeStarChart({ selectedNodeId }: { selectedNodeId?: string }) {
   const router = useRouter();
+  const { locale, isZh, t } = useLanguage();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -339,8 +342,8 @@ export default function KnowledgeStarChart({ selectedNodeId }: { selectedNodeId?
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
 
-          const labelAbbr =
-            star.node.nodeType === 'AXIOM'
+          const labelAbbr = isZh
+            ? star.node.nodeType === 'AXIOM'
               ? '公理'
               : star.node.nodeType === 'THEOREM'
               ? '定理'
@@ -348,13 +351,22 @@ export default function KnowledgeStarChart({ selectedNodeId }: { selectedNodeId?
               ? '引理'
               : star.node.nodeType === 'DEFINITION'
               ? '定义'
-              : '猜想';
+              : '猜想'
+            : star.node.nodeType === 'AXIOM'
+            ? 'Axiom'
+            : star.node.nodeType === 'THEOREM'
+            ? 'Thm'
+            : star.node.nodeType === 'LEMMA'
+            ? 'Lem'
+            : star.node.nodeType === 'DEFINITION'
+            ? 'Def'
+            : 'Conj';
           ctx.fillText(labelAbbr, star.x, star.y);
 
           // Title text underneath
           ctx.fillStyle = isSelected ? '#38bdf8' : isHovered ? '#f1f5f9' : '#94a3b8';
           ctx.font = `${isSelected ? 'bold ' : ''}11px sans-serif`;
-          ctx.fillText(star.node.titleZh, star.x, star.y + star.radius + 14);
+          ctx.fillText(getNodeTitle(star.node, locale), star.x, star.y + star.radius + 14);
         }
       });
 
@@ -365,7 +377,7 @@ export default function KnowledgeStarChart({ selectedNodeId }: { selectedNodeId?
     render();
 
     return () => cancelAnimationFrame(animId);
-  }, [offset, zoom, selectedNode, hoveredNode, highlightedSet, selectedDiscipline, cullingEnabled]);
+  }, [offset, zoom, selectedNode, hoveredNode, highlightedSet, selectedDiscipline, cullingEnabled, isZh, locale]);
 
   const mouseDownPosRef = useRef({ x: 0, y: 0, time: 0 });
 
@@ -502,14 +514,14 @@ export default function KnowledgeStarChart({ selectedNodeId }: { selectedNodeId?
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="font-bold text-slate-100 text-sm">全学科数学知识星空图谱 (Knowledge Cosmos DAG)</h3>
+              <h3 className="font-bold text-slate-100 text-sm">{isZh ? '全学科数学知识星空图谱 (Knowledge Cosmos DAG)' : 'Knowledge Cosmos DAG (All-Discipline Math)'}</h3>
               {/* Live Streaming Culling Indicator */}
               <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-950/60 border border-emerald-500/40 text-emerald-300">
                 <Zap className="w-3 h-3 text-emerald-400" />
-                <span>视口流式加载: {renderedCount} / {initialMathNodes.length} 星宿</span>
+                <span>{isZh ? `视口流式加载: ${renderedCount} / ${initialMathNodes.length} 星宿` : `Viewport streaming: ${renderedCount} / ${initialMathNodes.length} stars`}</span>
               </span>
             </div>
-            <p className="text-[11px] text-slate-400">支持拖拽星宿节点、平移画布与滚轮缩放，点击追踪严格前置推导</p>
+            <p className="text-[11px] text-slate-400">{isZh ? '支持拖拽星宿节点、平移画布与滚轮缩放，点击追踪严格前置推导' : 'Drag stars, pan the canvas, and scroll to zoom — click a node to trace its prerequisites'}</p>
           </div>
         </div>
 
@@ -523,7 +535,7 @@ export default function KnowledgeStarChart({ selectedNodeId }: { selectedNodeId?
                 : 'bg-slate-800 text-slate-400 hover:text-slate-200'
             }`}
           >
-            全部学科
+            {t('graph.allDisciplines')}
           </button>
           {disciplines.map((d) => (
             <button
@@ -535,7 +547,7 @@ export default function KnowledgeStarChart({ selectedNodeId }: { selectedNodeId?
                   : 'bg-slate-800 text-slate-400 hover:text-slate-200'
               }`}
             >
-              {d.nameZh}
+              {getDisciplineName(d, locale)}
             </button>
           ))}
         </div>
@@ -549,24 +561,32 @@ export default function KnowledgeStarChart({ selectedNodeId }: { selectedNodeId?
                 ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
                 : 'bg-slate-800 text-slate-400 border-slate-700'
             }`}
-            title={cullingEnabled ? '已开启视口动态流式加载 (极速流畅)' : '已开启全量加载模式'}
+            title={
+              cullingEnabled
+                ? isZh
+                  ? '已开启视口动态流式加载 (极速流畅)'
+                  : 'Viewport streaming enabled (fast & smooth)'
+                : isZh
+                ? '已开启全量加载模式'
+                : 'Full-load mode enabled (all stars rendered)'
+            }
           >
             <Cpu className="w-3.5 h-3.5" />
-            <span className="hidden md:inline">{cullingEnabled ? '视口流式加载' : '全景模式'}</span>
+            <span className="hidden md:inline">{cullingEnabled ? t('graph.streamLoading') : t('graph.fullMode')}</span>
           </button>
 
           <div className="flex items-center gap-1 bg-slate-800/80 p-1 rounded-lg border border-slate-700">
             <button
               onClick={() => setZoom((z) => Math.min(3.5, z * 1.2))}
               className="p-1.5 hover:bg-slate-700 rounded text-slate-300 transition-colors cursor-pointer"
-              title="放大"
+              title={t('graph.zoomIn')}
             >
               <ZoomIn className="w-4 h-4" />
             </button>
             <button
               onClick={() => setZoom((z) => Math.max(0.25, z * 0.8))}
               className="p-1.5 hover:bg-slate-700 rounded text-slate-300 transition-colors cursor-pointer"
-              title="缩小"
+              title={t('graph.zoomOut')}
             >
               <ZoomOut className="w-4 h-4" />
             </button>
@@ -576,7 +596,7 @@ export default function KnowledgeStarChart({ selectedNodeId }: { selectedNodeId?
                 setOffset({ x: 0, y: 0 });
               }}
               className="p-1.5 hover:bg-slate-700 rounded text-slate-300 transition-colors cursor-pointer"
-              title="重置视图"
+              title={isZh ? '重置视图' : 'Reset View'}
             >
               <RefreshCw className="w-4 h-4" />
             </button>
@@ -617,19 +637,19 @@ export default function KnowledgeStarChart({ selectedNodeId }: { selectedNodeId?
         <div className="absolute top-4 left-4 p-3 rounded-xl glass-panel text-xs text-slate-300 space-y-1.5 pointer-events-none">
           <div className="font-semibold text-slate-200 text-[11px] mb-1 flex items-center gap-1">
             <Move className="w-3 h-3 text-cyan-400" />
-            <span>拖拽平移 / 动态加载</span>
+            <span>{isZh ? '拖拽平移 / 动态加载' : 'Drag to Pan / Dynamic Loading'}</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-cyan-400 inline-block"></span>
-            <span>当前选中节点 (双击直达页面)</span>
+            <span>{isZh ? '当前选中节点 (双击直达页面)' : 'Selected node (double-click to open page)'}</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-purple-400 inline-block"></span>
-            <span>前置依赖祖先 (Prerequisites)</span>
+            <span>{isZh ? '前置依赖祖先 (Prerequisites)' : 'Prerequisite ancestors (upstream)'}</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-emerald-400 inline-block"></span>
-            <span>下游推论后继 (Dependents)</span>
+            <span>{isZh ? '下游推论后继 (Dependents)' : 'Downstream dependents (successors)'}</span>
           </div>
         </div>
 
@@ -639,16 +659,18 @@ export default function KnowledgeStarChart({ selectedNodeId }: { selectedNodeId?
             <div className="flex items-center justify-between mb-2">
               <span
                 className={`text-xs px-2.5 py-0.5 rounded-full border font-medium ${
-                  getNodeTypeMeta(selectedNode.nodeType).color
+                  getNodeTypeMeta(selectedNode.nodeType, locale).color
                 }`}
               >
-                {getNodeTypeMeta(selectedNode.nodeType).label}
+                {getNodeTypeMeta(selectedNode.nodeType, locale).label}
               </span>
               <span className="text-[11px] text-slate-400 font-mono">MSC {selectedNode.mscCode}</span>
             </div>
 
-            <h4 className="font-bold text-slate-100 text-base mb-1">{selectedNode.titleZh}</h4>
-            <p className="text-xs text-slate-400 font-mono mb-3">{selectedNode.titleEn}</p>
+            <h4 className="font-bold text-slate-100 text-base mb-1">{getNodeTitle(selectedNode, locale)}</h4>
+            {locale === 'zh' && (
+              <p className="text-xs text-slate-400 font-mono mb-3">{selectedNode.titleEn}</p>
+            )}
 
             <div className="p-3 bg-slate-900/90 rounded-xl border border-slate-800 text-xs text-cyan-200 font-mono mb-3 overflow-x-auto">
               <InlineLaTeX formula={selectedNode.statementLatex} />
@@ -658,20 +680,32 @@ export default function KnowledgeStarChart({ selectedNodeId }: { selectedNodeId?
             <div className="flex items-center justify-between text-xs text-slate-300 mb-4 pb-3 border-b border-slate-800">
               <span className="flex items-center gap-1 text-emerald-400 font-medium">
                 <ShieldCheck className="w-4 h-4" />
-                {getVerificationMeta(selectedNode.verification).short}
+                {getVerificationMeta(selectedNode.verification, locale).short}
               </span>
-              <span className="text-slate-400">{selectedNode.proofs.length} 份证明</span>
+              <span className="text-slate-400">
+                {isZh
+                  ? `${selectedNode.proofs.length} 份证明`
+                  : `${selectedNode.proofs.length} ${selectedNode.proofs.length === 1 ? 'proof' : 'proofs'}`}
+              </span>
             </div>
 
             {/* Prerequisites & Dependents counts */}
             <div className="grid grid-cols-2 gap-2 text-xs mb-4">
               <div className="p-2 rounded-lg bg-slate-900/60 border border-slate-800">
-                <span className="text-slate-400 block text-[11px]">前置依赖</span>
-                <span className="font-bold text-purple-300">{selectedNode.dependencies.length} 个定理</span>
+                <span className="text-slate-400 block text-[11px]">{isZh ? '前置依赖' : 'Prerequisites'}</span>
+                <span className="font-bold text-purple-300">
+                  {isZh
+                    ? `${selectedNode.dependencies.length} 个定理`
+                    : `${selectedNode.dependencies.length} ${selectedNode.dependencies.length === 1 ? 'theorem' : 'theorems'}`}
+                </span>
               </div>
               <div className="p-2 rounded-lg bg-slate-900/60 border border-slate-800">
-                <span className="text-slate-400 block text-[11px]">下游应用</span>
-                <span className="font-bold text-emerald-300">{selectedNode.dependents.length} 个推论</span>
+                <span className="text-slate-400 block text-[11px]">{isZh ? '下游应用' : 'Applications'}</span>
+                <span className="font-bold text-emerald-300">
+                  {isZh
+                    ? `${selectedNode.dependents.length} 个推论`
+                    : `${selectedNode.dependents.length} ${selectedNode.dependents.length === 1 ? 'corollary' : 'corollaries'}`}
+                </span>
               </div>
             </div>
 
@@ -680,7 +714,7 @@ export default function KnowledgeStarChart({ selectedNodeId }: { selectedNodeId?
               href={`/node/${selectedNode.slug}`}
               className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs shadow-lg shadow-cyan-500/20 transition-colors cursor-pointer"
             >
-              <span>查看严谨形式化证明</span>
+              <span>{isZh ? '查看严谨形式化证明' : 'View Rigorous Formal Proofs'}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>

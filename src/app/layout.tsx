@@ -5,8 +5,9 @@ import Footer from '@/components/layout/Footer';
 import { LanguageProvider } from '@/context/LanguageContext';
 
 export const metadata: Metadata = {
-  title: 'MathUniverse - 全学科数学开源协作与形式化验证平台',
-  description: '囊括人类所有数学公理、定义、定理的结构化知识库，基于 DAG 拓扑图谱与 Lean 4 形式化验证。',
+  title: 'MathUniverse · 全学科数学开源知识库 | Unified Mathematics Knowledge Base & Formal Verification',
+  description:
+    '囊括人类所有数学公理、定义、定理的结构化知识库，基于 DAG 拓扑图谱与 Lean 4 形式化验证。A structured knowledge base of all mathematical axioms, definitions, and theorems, built on a DAG knowledge graph with Lean 4 formal verification.',
 };
 
 export default function RootLayout({
