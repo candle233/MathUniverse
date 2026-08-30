@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { InlineLaTeX } from '@/components/math/LaTeXRenderer';
+import { useLanguage } from '@/context/LanguageContext';
 import {
   Code2,
   Copy,
@@ -25,9 +26,38 @@ export interface TikzTemplate {
   nameEn: string;
   category: '范畴论与同调代数' | '几何与复分析' | '拓扑与代数结构' | '证明论与形式逻辑';
   description: string;
+  descriptionEn: string;
   previewLatex: string;
   tikzCode: string;
 }
+
+// English labels for the zh category keys used as filter values.
+const TIKZ_CATEGORY_EN: Record<TikzTemplate['category'], string> = {
+  '范畴论与同调代数': 'Category Theory & Homological Algebra',
+  '几何与复分析': 'Geometry & Complex Analysis',
+  '拓扑与代数结构': 'Topology & Algebraic Structures',
+  '证明论与形式逻辑': 'Proof Theory & Formal Logic',
+};
+
+// English equivalents for the zh `%` comment lines embedded in the template code.
+const TIKZ_COMMENT_EN: Array<[string, string]> = [
+  ['% 态射交换正方形图表 (Commutative Square)', '% Commutative square diagram (tikz-cd)'],
+  ['% 原生 TikZ 绘制模式:', '% Native TikZ drawing mode:'],
+  ['% 短正合列态射图表 (Short Exact Sequence)', '% Short exact sequence diagram (tikz-cd)'],
+  ['% 群第一同构定理典范分解 (First Isomorphism Theorem)', '% Canonical factorization of the First Isomorphism Theorem'],
+  ['% 同调代数蛇引理 (Snake Lemma) 交换图与连接同态', '% Snake Lemma (homological algebra) diagram with connecting homomorphism'],
+  ['% 斯托克斯定理 de Rham 复形与积分算子交换图', '% Stokes theorem & de Rham complex diagram with integration maps'],
+  ['% 复平面欧拉旋转单位圆 (Complex Phasor)', '% Complex plane unit circle with Euler phasor'],
+  ['% 坐标轴', '% Coordinate axes'],
+  ['% 单位圆', '% Unit circle'],
+  ['% 相位向量 e^{i theta}', '% Phasor e^{i theta}'],
+  ['% 原点与角度弧', '% Origin and angle arc'],
+  ['% 导数割线趋近切线极限图', '% Secant approaching the tangent line (derivative limit)'],
+  ['% 曲线 f(x)', '% Curve f(x)'],
+  ['% 点 P 与点 Q', '% Points P and Q'],
+  ['% 根岑自然演绎证明树 (bussproofs)', '% Gentzen natural deduction proof tree (bussproofs)'],
+  ['% 纤维丛局部平凡化态射图', '% Fiber bundle local trivialization diagram'],
+];
 
 export const tikzTemplates: TikzTemplate[] = [
   {
@@ -36,6 +66,7 @@ export const tikzTemplates: TikzTemplate[] = [
     nameEn: 'Commutative Square in Category Theory',
     category: '范畴论与同调代数',
     description: '范畴论中最基本的态射可换正方形图表：g ∘ f = k ∘ h。',
+    descriptionEn: 'The most fundamental commutative square of morphisms in category theory: g ∘ f = k ∘ h.',
     previewLatex:
       '\\begin{matrix} A & \\xrightarrow{f} & B \\\\ \\downarrow{h} & & \\downarrow{g} \\\\ C & \\xrightarrow{k} & D \\end{matrix}',
     tikzCode: `% 态射交换正方形图表 (Commutative Square)
@@ -63,6 +94,8 @@ C \\arrow[r, "k"'] & D
     category: '范畴论与同调代数',
     description:
       '同调代数与群论核心：0 → A → B → C → 0，其中 f 为单同态，g 为满同态，im(f) = ker(g)。',
+    descriptionEn:
+      'A core of homological algebra and group theory: 0 → A → B → C → 0 with f monic, g epic, and im(f) = ker(g).',
     previewLatex:
       '0 \\longrightarrow A \\xrightarrow{\\iota} B \\xrightarrow{\\pi} C \\longrightarrow 0',
     tikzCode: `% 短正合列态射图表 (Short Exact Sequence)
@@ -77,6 +110,8 @@ C \\arrow[r, "k"'] & D
     category: '拓扑与代数结构',
     description:
       '同态映射 φ: G → H 经由商群 G/ker(φ) 与同态像 im(φ) 的唯一典范分解。',
+    descriptionEn:
+      'The canonical factorization of a homomorphism φ: G → H through the quotient group G/ker(φ) and the image im(φ).',
     previewLatex:
       '\\begin{matrix} G & \\xrightarrow{\\phi} & H \\\\ \\downarrow{\\pi} & \\nearrow{\\tilde{\\phi}} & \\\\ G/\\ker\\phi & & \\end{matrix}',
     tikzCode: `% 群第一同构定理典范分解 (First Isomorphism Theorem)
@@ -92,6 +127,8 @@ G / \\ker(\\phi) \\arrow[ur, "\\tilde{\\phi}"', hook] &
     category: '范畴论与同调代数',
     description:
       '同调代数中最著名的蛇引理，构造连接核与余核的正合列：ker a → ker b → ker c → coker a → coker b → coker c。',
+    descriptionEn:
+      'The most famous lemma of homological algebra — an exact sequence connecting kernels and cokernels: ker a → ker b → ker c → coker a → coker b → coker c.',
     previewLatex:
       '\\ker a \\to \\ker b \\to \\ker c \\xrightarrow{\\delta} \\mathrm{coker}\\, a \\to \\mathrm{coker}\\, b \\to \\mathrm{coker}\\, c',
     tikzCode: `% 同调代数蛇引理 (Snake Lemma) 交换图与连接同态
@@ -109,6 +146,8 @@ G / \\ker(\\phi) \\arrow[ur, "\\tilde{\\phi}"', hook] &
     category: '几何与复分析',
     description:
       '微分形式外微分算子 d 与几何流形边界算子 ∂ 之间的内积伴随对偶性：⟨∂M, ω⟩ = ⟨M, dω⟩。',
+    descriptionEn:
+      'The adjoint duality between the exterior derivative d on differential forms and the boundary operator ∂ on manifolds: ⟨∂M, ω⟩ = ⟨M, dω⟩.',
     previewLatex:
       '\\int_{\\partial M} \\omega = \\int_M d\\omega \\quad \\iff \\quad \\langle \\partial M, \\omega \\rangle = \\langle M, d\\omega \\rangle',
     tikzCode: `% 斯托克斯定理 de Rham 复形与积分算子交换图
@@ -124,6 +163,8 @@ G / \\ker(\\phi) \\arrow[ur, "\\tilde{\\phi}"', hook] &
     category: '几何与复分析',
     description:
       '复平面上 e^{iθ} = cos θ + i sin θ 的几何投影与单位圆直角三角形。',
+    descriptionEn:
+      'Geometric projection of e^{iθ} = cos θ + i sin θ on the complex plane with the unit-circle right triangle.',
     previewLatex:
       'e^{i\\theta} = \\cos\\theta + i\\sin\\theta, \\quad |e^{i\\theta}| = 1',
     tikzCode: `% 复平面欧拉旋转单位圆 (Complex Phasor)
@@ -149,6 +190,8 @@ G / \\ker(\\phi) \\arrow[ur, "\\tilde{\\phi}"', hook] &
     category: '几何与复分析',
     description:
       '当 Δx → 0 时，割线 PQ 旋转趋近于点 P 处的切线，体现导数的几何本质。',
+    descriptionEn:
+      'As Δx → 0, the secant PQ rotates toward the tangent at point P — the geometric essence of the derivative.',
     previewLatex:
       'f\'(x) = \\lim_{\\Delta x \\to 0} \\frac{f(x+\\Delta x) - f(x)}{\\Delta x}',
     tikzCode: `% 导数割线趋近切线极限图
@@ -172,6 +215,8 @@ G / \\ker(\\phi) \\arrow[ur, "\\tilde{\\phi}"', hook] &
     category: '证明论与形式逻辑',
     description:
       '利用 bussproofs 宏包排版的一阶逻辑自然演绎证明树，体现相继式公理演算与分离规则。',
+    descriptionEn:
+      'A first-order natural deduction proof tree typeset with the bussproofs package, showing sequent calculus and the elimination rule.',
     previewLatex:
       '\\frac{\\Gamma \\vdash A \\quad \\Gamma \\vdash A \\implies B}{\\Gamma \\vdash B} \\quad (\\to\\text{-Elim})',
     tikzCode: `% 根岑自然演绎证明树 (bussproofs)
@@ -192,6 +237,8 @@ G / \\ker(\\phi) \\arrow[ur, "\\tilde{\\phi}"', hook] &
     category: '拓扑与代数结构',
     description:
       '微分拓扑中主纤维丛与局部平凡化同胚：π⁻¹(U) ≅ U × F。',
+    descriptionEn:
+      'A principal fiber bundle with its local trivialization homeomorphism in differential topology: π⁻¹(U) ≅ U × F.',
     previewLatex:
       'F \\hookrightarrow E \\xrightarrow{\\pi} B, \\quad \\phi_U: \\pi^{-1}(U) \\xrightarrow{\\cong} U \\times F',
     tikzCode: `% 纤维丛局部平凡化态射图
@@ -203,9 +250,15 @@ U &
 ];
 
 export default function TikzStudio() {
+  const { isZh } = useLanguage();
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>(tikzTemplates[0].id);
   const [copiedCode, setCopiedCode] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>('ALL');
+
+  const categoryLabel = (cat: string): string => {
+    if (cat === 'ALL') return isZh ? '全部模板' : 'All Templates';
+    return isZh ? cat : TIKZ_CATEGORY_EN[cat as TikzTemplate['category']] ?? cat;
+  };
 
   const categories = useMemo(() => {
     return ['ALL', '范畴论与同调代数', '几何与复分析', '拓扑与代数结构', '证明论与形式逻辑'];
@@ -220,8 +273,18 @@ export default function TikzStudio() {
     return tikzTemplates.find((t) => t.id === selectedTemplateId) || filteredTemplates[0] || tikzTemplates[0];
   }, [selectedTemplateId, filteredTemplates]);
 
+  // In EN mode, swap the zh `%` comment lines inside the template code for English.
+  const localizedTikzCode = useMemo(() => {
+    if (isZh) return currentTemplate.tikzCode;
+    let out = currentTemplate.tikzCode;
+    for (const [zhComment, enComment] of TIKZ_COMMENT_EN) {
+      out = out.split(zhComment).join(enComment);
+    }
+    return out;
+  }, [currentTemplate, isZh]);
+
   const handleCopy = () => {
-    navigator.clipboard.writeText(currentTemplate.tikzCode);
+    navigator.clipboard.writeText(localizedTikzCode);
     setCopiedCode(true);
     setTimeout(() => setCopiedCode(false), 1500);
   };
@@ -234,7 +297,7 @@ export default function TikzStudio() {
 \\usepackage{bussproofs}
 
 \\begin{document}
-${currentTemplate.tikzCode}
+${localizedTikzCode}
 \\end{document}
 `;
 
@@ -258,14 +321,16 @@ ${currentTemplate.tikzCode}
           <div>
             <div className="flex items-center gap-2">
               <h3 className="font-bold text-slate-100 text-base">
-                TikZ-cd 交换图与矢量图谱工坊
+                {isZh ? 'TikZ-cd 交换图与矢量图谱工坊' : 'TikZ-cd Commutative Diagram & Vector Studio'}
               </h3>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30 font-mono">
                 TikZ Vector Studio
               </span>
             </div>
             <p className="text-xs text-slate-400">
-              提供标准 LaTeX TikZ、TikZ-cd 态射交换图与 bussproofs 自然演绎证明树模板，支持独立 `.tex` 编译与一键复制
+              {isZh
+                ? '提供标准 LaTeX TikZ、TikZ-cd 态射交换图与 bussproofs 自然演绎证明树模板，支持独立 `.tex` 编译与一键复制'
+                : 'Standard LaTeX TikZ, TikZ-cd commutative diagrams, and bussproofs natural-deduction proof tree templates — standalone `.tex` compilation and one-click copy'}
             </p>
           </div>
         </div>
@@ -278,12 +343,12 @@ ${currentTemplate.tikzCode}
             {copiedCode ? (
               <>
                 <Check className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="text-emerald-400">已复制 TikZ 源码</span>
+                <span className="text-emerald-400">{isZh ? '已复制 TikZ 源码' : 'TikZ code copied'}</span>
               </>
             ) : (
               <>
                 <Copy className="w-3.5 h-3.5 text-purple-400" />
-                <span>复制 TikZ 源码</span>
+                <span>{isZh ? '复制 TikZ 源码' : 'Copy TikZ Code'}</span>
               </>
             )}
           </button>
@@ -293,7 +358,7 @@ ${currentTemplate.tikzCode}
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-500/20 transition-all cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>导出独立 .tex</span>
+            <span>{isZh ? '导出独立 .tex' : 'Export Standalone .tex'}</span>
           </button>
         </div>
       </div>
@@ -310,7 +375,7 @@ ${currentTemplate.tikzCode}
                 : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
             }`}
           >
-            {cat === 'ALL' ? '全部模板' : cat}
+            {categoryLabel(cat)}
           </button>
         ))}
       </div>
@@ -327,9 +392,9 @@ ${currentTemplate.tikzCode}
                 : 'bg-slate-900/60 border-slate-800 hover:bg-slate-900 hover:border-slate-700'
             }`}
           >
-            <span className="text-[10px] text-purple-400 font-mono block mb-1">{item.category}</span>
-            <h4 className="text-xs font-bold text-slate-200 line-clamp-1">{item.nameZh}</h4>
-            <p className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">{item.nameEn}</p>
+            <span className="text-[10px] text-purple-400 font-mono block mb-1">{categoryLabel(item.category)}</span>
+            <h4 className="text-xs font-bold text-slate-200 line-clamp-1">{isZh ? item.nameZh : item.nameEn}</h4>
+            {isZh && <p className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">{item.nameEn}</p>}
           </button>
         ))}
       </div>
@@ -341,21 +406,21 @@ ${currentTemplate.tikzCode}
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
               <Eye className="w-3.5 h-3.5 text-cyan-400" />
-              <span>数学语义与公式预览 (Mathematical Preview)</span>
+              <span>{isZh ? '数学语义与公式预览 (Mathematical Preview)' : 'Mathematical Meaning & Formula Preview'}</span>
             </span>
             <span className="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 font-mono">
-              {currentTemplate.category}
+              {categoryLabel(currentTemplate.category)}
             </span>
           </div>
 
           <div className="p-3 rounded-lg bg-slate-950/80 border border-slate-800/80">
-            <h4 className="text-sm font-bold text-slate-100">{currentTemplate.nameZh}</h4>
-            <p className="text-xs text-purple-400 font-medium">{currentTemplate.nameEn}</p>
-            <p className="text-xs text-slate-300 mt-2 leading-relaxed">{currentTemplate.description}</p>
+            <h4 className="text-sm font-bold text-slate-100">{isZh ? currentTemplate.nameZh : currentTemplate.nameEn}</h4>
+            {isZh && <p className="text-xs text-purple-400 font-medium">{currentTemplate.nameEn}</p>}
+            <p className="text-xs text-slate-300 mt-2 leading-relaxed">{isZh ? currentTemplate.description : currentTemplate.descriptionEn}</p>
           </div>
 
           <div className="p-4 rounded-lg bg-slate-950 border border-purple-500/20 flex flex-col items-center justify-center min-h-[120px] text-center">
-            <span className="text-[10px] text-slate-500 block mb-2 font-mono">KaTeX / MathJax 公式渲染</span>
+            <span className="text-[10px] text-slate-500 block mb-2 font-mono">{isZh ? 'KaTeX / MathJax 公式渲染' : 'KaTeX / MathJax rendering'}</span>
             <div className="text-purple-200 font-serif text-sm">
               <InlineLaTeX formula={currentTemplate.previewLatex} />
             </div>
@@ -367,20 +432,24 @@ ${currentTemplate.tikzCode}
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
               <FileCode className="w-3.5 h-3.5 text-purple-400" />
-              <span>TikZ / TikZ-cd LaTeX 源码</span>
+              <span>{isZh ? 'TikZ / TikZ-cd LaTeX 源码' : 'TikZ / TikZ-cd LaTeX Source'}</span>
             </span>
             <span className="text-[10px] text-slate-500 font-mono">
-              {currentTemplate.tikzCode.split('\n').length} 行 · {currentTemplate.tikzCode.length} 字符
+              {isZh
+                ? `${localizedTikzCode.split('\n').length} 行 · ${localizedTikzCode.length} 字符`
+                : `${localizedTikzCode.split('\n').length} lines · ${localizedTikzCode.length} chars`}
             </span>
           </div>
 
           <pre className="w-full h-44 bg-slate-950 border border-slate-800 rounded-lg p-3 overflow-auto text-xs text-slate-300 font-mono leading-relaxed select-all">
-            {currentTemplate.tikzCode}
+            {localizedTikzCode}
           </pre>
 
           <div className="flex items-center justify-between pt-1">
             <span className="text-[10px] text-slate-500">
-              提示: 可将源码直接粘贴至 LaTeX 正文的 figure 或 equation 环境中
+              {isZh
+                ? '提示: 可将源码直接粘贴至 LaTeX 正文的 figure 或 equation 环境中'
+                : 'Tip: paste the source directly into a figure or equation environment in your LaTeX document'}
             </span>
           </div>
         </div>

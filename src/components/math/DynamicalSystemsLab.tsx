@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { InlineLaTeX } from '@/components/math/LaTeXRenderer';
+import { useLanguage } from '@/context/LanguageContext';
 import { Activity, Play, Pause, RotateCcw, Sliders, Sparkles, Compass, MousePointer } from 'lucide-react';
 
 export interface DynamicalSystemModel {
@@ -9,10 +10,13 @@ export interface DynamicalSystemModel {
   nameZh: string;
   nameEn: string;
   discipline: string;
+  disciplineEn: string;
   formulaLatex: string;
   description: string;
+  descriptionEn: string;
   defaultParams: { a: number; b: number; c: number; d: number };
   paramLabels: { a: string; b: string; c?: string; d?: string };
+  paramLabelsEn: { a: string; b: string; c?: string; d?: string };
   derivative: (x: number, y: number, params: { a: number; b: number; c: number; d: number }) => { dx: number; dy: number };
   xRange: [number, number];
   yRange: [number, number];
@@ -24,10 +28,13 @@ export const dynamicalModels: DynamicalSystemModel[] = [
     nameZh: 'Lotka-Volterra 捕食者-猎物模型',
     nameEn: 'Predator-Prey Dynamical System',
     discipline: '生物数学与非线性动力学',
+    disciplineEn: 'Biomathematics & Nonlinear Dynamics',
     formulaLatex: '\\dot{x} = \\alpha x - \\beta x y, \\quad \\dot{y} = \\delta x y - \\gamma y',
     description: '生态学经典捕食系统，相空间呈现由哈密顿量守恒决定的闭合周期性同心轨道。',
+    descriptionEn: 'Classic ecological predator-prey system; the phase space shows closed periodic concentric orbits governed by Hamiltonian conservation.',
     defaultParams: { a: 1.0, b: 0.5, c: 0.5, d: 1.0 },
     paramLabels: { a: 'α (猎物自然出生率)', b: 'β (猎物被捕食率)', c: 'δ (捕食者繁殖转化率)', d: 'γ (捕食者自然死亡率)' },
+    paramLabelsEn: { a: 'α (Prey natural birth rate)', b: 'β (Prey predation rate)', c: 'δ (Predator reproduction rate)', d: 'γ (Predator natural death rate)' },
     derivative: (x, y, p) => ({
       dx: p.a * x - p.b * x * y,
       dy: p.c * x * y - p.d * y,
@@ -40,10 +47,13 @@ export const dynamicalModels: DynamicalSystemModel[] = [
     nameZh: 'Van der Pol 自激振荡器 (极限环)',
     nameEn: 'Van der Pol Oscillator (Limit Cycle)',
     discipline: '非线性力学与电路理论',
+    disciplineEn: 'Nonlinear Mechanics & Circuit Theory',
     formulaLatex: '\\dot{x} = y, \\quad \\dot{y} = \\mu (1 - x^2) y - x',
     description: '具有非线性阻尼的二阶系统，无论初值在环内或环外，轨线最终都会收敛于孤立的稳定极限环。',
+    descriptionEn: 'A second-order system with nonlinear damping — trajectories starting inside or outside the ring always converge to the isolated stable limit cycle.',
     defaultParams: { a: 1.2, b: 1.0, c: 0, d: 0 },
     paramLabels: { a: 'μ (非线性阻尼强度)', b: 'ω (固有振动频率)' },
+    paramLabelsEn: { a: 'μ (Nonlinear damping strength)', b: 'ω (Natural oscillation frequency)' },
     derivative: (x, y, p) => ({
       dx: y,
       dy: p.a * (1 - x * x) * y - p.b * x,
@@ -56,10 +66,13 @@ export const dynamicalModels: DynamicalSystemModel[] = [
     nameZh: '大角度非线性单摆相平面',
     nameEn: 'Nonlinear Damped Pendulum',
     discipline: '经典力学与动力系统',
+    disciplineEn: 'Classical Mechanics & Dynamical Systems',
     formulaLatex: '\\dot{\\theta} = \\omega, \\quad \\dot{\\omega} = -\\frac{g}{L}\\sin\\theta - k\\omega',
     description: '考虑大角度正弦非线性恢复力与空气阻尼，相空间清晰展现中心点、鞍点与分界线 (Separatrix)。',
+    descriptionEn: 'With a large-angle sinusoidal restoring force and air damping, the phase space clearly reveals centers, saddle points, and the separatrix.',
     defaultParams: { a: 1.0, b: 0.25, c: 0, d: 0 },
     paramLabels: { a: 'g/L (摆长重力常数)', b: 'k (阻尼阻力系数)' },
+    paramLabelsEn: { a: 'g/L (Pendulum gravity constant)', b: 'k (Damping drag coefficient)' },
     derivative: (x, y, p) => ({
       dx: y,
       dy: -p.a * Math.sin(x) - p.b * y,
@@ -72,10 +85,13 @@ export const dynamicalModels: DynamicalSystemModel[] = [
     nameZh: 'Duffing 双稳态双势阱振子',
     nameEn: 'Duffing Bistable Oscillator',
     discipline: '非线性振动与混沌分岔',
+    disciplineEn: 'Nonlinear Vibration & Chaotic Bifurcation',
     formulaLatex: '\\dot{x} = y, \\quad \\dot{y} = x - x^3 - \\delta y',
     description: '双势阱系统 V(x) = -x²/2 + x⁴/4，拥有两个稳定的焦点和一个不稳定的原点鞍点。',
+    descriptionEn: 'Double-well system V(x) = -x²/2 + x⁴/4 with two stable foci and an unstable saddle point at the origin.',
     defaultParams: { a: 0.3, b: 1.0, c: 0, d: 0 },
     paramLabels: { a: 'δ (粘性阻尼系数)', b: 'α (三次硬化弹性模量)' },
+    paramLabelsEn: { a: 'δ (Viscous damping coefficient)', b: 'α (Cubic hardening modulus)' },
     derivative: (x, y, p) => ({
       dx: y,
       dy: p.b * x - x * x * x - p.a * y,
@@ -91,6 +107,7 @@ interface TrajectoryPoint {
 }
 
 export default function DynamicalSystemsLab() {
+  const { isZh } = useLanguage();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [selectedModelId, setSelectedModelId] = useState<string>('lotka-volterra');
   const [isRunning, setIsRunning] = useState(true);
@@ -302,10 +319,12 @@ export default function DynamicalSystemsLab() {
           </div>
           <div>
             <h3 className="font-bold text-slate-100 text-sm">
-              常微分方程与动力系统相平面实验室 (Phase Portrait & Dynamical Lab)
+              {isZh ? '常微分方程与动力系统相平面实验室 (Phase Portrait & Dynamical Lab)' : 'Phase Portrait & Dynamical Systems Lab'}
             </h3>
             <p className="text-xs text-slate-400">
-              基于 RK4 高阶龙格-库塔数值积分，实时渲染向量场、周期极限环、平衡点与混沌分岔
+              {isZh
+                ? '基于 RK4 高阶龙格-库塔数值积分，实时渲染向量场、周期极限环、平衡点与混沌分岔'
+                : 'Powered by RK4 (Runge-Kutta) numerical integration — live vector fields, limit cycles, equilibrium points, and chaotic bifurcation'}
             </p>
           </div>
         </div>
@@ -322,7 +341,7 @@ export default function DynamicalSystemsLab() {
                   : 'bg-slate-900 text-slate-400 hover:text-slate-200'
               }`}
             >
-              {m.nameZh.split(' ')[0]}
+              {isZh ? m.nameZh.split(' ')[0] : m.nameEn}
             </button>
           ))}
         </div>
@@ -332,12 +351,12 @@ export default function DynamicalSystemsLab() {
       <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
         <div className="space-y-1 max-w-xl">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-slate-200 text-sm">{model.nameZh}</span>
+            <span className="font-bold text-slate-200 text-sm">{isZh ? model.nameZh : model.nameEn}</span>
             <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-mono">
-              {model.discipline}
+              {isZh ? model.discipline : model.disciplineEn}
             </span>
           </div>
-          <p className="text-slate-400">{model.description}</p>
+          <p className="text-slate-400">{isZh ? model.description : model.descriptionEn}</p>
         </div>
 
         <div className="p-3 rounded-xl bg-slate-950 border border-cyan-500/30 text-cyan-200 font-mono text-xs overflow-x-auto">
@@ -358,7 +377,7 @@ export default function DynamicalSystemsLab() {
         {/* Interactive Click Hint */}
         <div className="absolute top-3 left-3 p-2 px-3 rounded-xl glass-panel text-[11px] text-slate-300 flex items-center gap-1.5 pointer-events-none">
           <MousePointer className="w-3.5 h-3.5 text-cyan-400" />
-          <span>点击相平面任意点即可释放新的动力流线粒子</span>
+          <span>{isZh ? '点击相平面任意点即可释放新的动力流线粒子' : 'Click anywhere on the phase plane to release a new flow-line particle'}</span>
         </div>
 
         {/* Controls Overlay */}
@@ -372,7 +391,7 @@ export default function DynamicalSystemsLab() {
             }`}
           >
             {isRunning ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-            <span>{isRunning ? '暂停模拟' : '继续积分'}</span>
+            <span>{isRunning ? (isZh ? '暂停模拟' : 'Pause Simulation') : (isZh ? '继续积分' : 'Resume Integration')}</span>
           </button>
 
           <button
@@ -380,7 +399,7 @@ export default function DynamicalSystemsLab() {
             className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 text-xs font-semibold transition-colors cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            <span>清空轨迹</span>
+            <span>{isZh ? '清空轨迹' : 'Clear Trajectories'}</span>
           </button>
         </div>
       </div>
@@ -389,7 +408,7 @@ export default function DynamicalSystemsLab() {
       <div className="p-4 bg-slate-900/60 rounded-xl border border-slate-800 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono">
         <div className="space-y-1.5">
           <div className="flex items-center justify-between text-slate-300">
-            <span>{model.paramLabels.a}:</span>
+            <span>{(isZh ? model.paramLabels : model.paramLabelsEn).a}:</span>
             <span className="text-cyan-400 font-bold">{params.a.toFixed(2)}</span>
           </div>
           <input
@@ -405,7 +424,7 @@ export default function DynamicalSystemsLab() {
 
         <div className="space-y-1.5">
           <div className="flex items-center justify-between text-slate-300">
-            <span>{model.paramLabels.b}:</span>
+            <span>{(isZh ? model.paramLabels : model.paramLabelsEn).b}:</span>
             <span className="text-purple-400 font-bold">{params.b.toFixed(2)}</span>
           </div>
           <input

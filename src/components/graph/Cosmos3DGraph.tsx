@@ -14,7 +14,7 @@ import {
   PrerequisiteClosureResult,
   BottleneckInfo,
 } from '@/lib/prerequisiteClosure';
-import { getNodeTypeMeta, getVerificationMeta } from '@/lib/utils';
+import { getNodeTypeMeta, getVerificationMeta, getBottleneckReasonEn, getBottleneckBadgeEn } from '@/lib/utils';
 import { InlineLaTeX } from '@/components/math/LaTeXRenderer';
 import { useLanguage } from '@/context/LanguageContext';
 import { getNodeTitle } from '@/lib/i18nHelper';
@@ -701,14 +701,16 @@ export default function Cosmos3DGraph() {
           <div>
             <div className="flex items-center gap-2">
               <h3 className="font-bold text-slate-100 text-base">
-                3D 数学宇宙知识星系 (3D Mathematical Knowledge Cosmos)
+                {isZh ? '3D 数学宇宙知识星系 (3D Mathematical Knowledge Cosmos)' : '3D Mathematical Knowledge Cosmos'}
               </h3>
               <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-300">
-                六大星云拓扑引力场
+                {isZh ? '六大星云拓扑引力场' : 'Six-Nebula Topological Gravity Field'}
               </span>
             </div>
             <p className="text-xs text-slate-400">
-              公理星核 ➔ 基础定义 ➔ 引理星座 ➔ 高阶定理螺旋外旋臂 · 3D库仑斥力与胡克引力拓扑聚类
+              {isZh
+                ? '公理星核 ➔ 基础定义 ➔ 引理星座 ➔ 高阶定理螺旋外旋臂 · 3D库仑斥力与胡克引力拓扑聚类'
+                : 'Axiom cores ➔ base definitions ➔ lemma constellations ➔ spiral arms of advanced theorems · 3D Coulomb repulsion & Hooke-gravity clustering'}
             </p>
           </div>
         </div>
@@ -718,7 +720,7 @@ export default function Cosmos3DGraph() {
           {/* Target Theorem Dropdown */}
           <div className="flex items-center gap-2 bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-700">
             <Crosshair className="w-3.5 h-3.5 text-amber-400" />
-            <span className="text-xs text-slate-400">目标定理:</span>
+            <span className="text-xs text-slate-400">{isZh ? '目标定理:' : 'Target theorem:'}</span>
             <select
               value={selectedTargetId}
               onChange={(e) => setSelectedTargetId(e.target.value)}
@@ -726,7 +728,7 @@ export default function Cosmos3DGraph() {
             >
               {initialMathNodes.map((n) => (
                 <option key={n.id} value={n.id} className="bg-slate-900 text-slate-200">
-                  {n.titleZh} ({n.titleEn})
+                  {isZh ? `${n.titleZh} (${n.titleEn})` : n.titleEn || n.titleZh}
                 </option>
               ))}
             </select>
@@ -741,9 +743,9 @@ export default function Cosmos3DGraph() {
                   ? 'bg-cyan-500 text-slate-950 font-bold shadow'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
-              title="只高亮前置依赖闭包流 (推荐)"
+              title={isZh ? '只高亮前置依赖闭包流 (推荐)' : 'Highlight only the prerequisite closure flow (recommended)'}
             >
-              闭包路径流
+              {t('graph.flowView')}
             </button>
             <button
               onClick={() => setViewMode('hasse')}
@@ -752,9 +754,9 @@ export default function Cosmos3DGraph() {
                   ? 'bg-cyan-500 text-slate-950 font-bold shadow'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
-              title="Hasse 极小必要推导骨架 (去除冗余传递边)"
+              title={isZh ? 'Hasse 极小必要推导骨架 (去除冗余传递边)' : 'Minimal Hasse derivation skeleton (redundant transitive edges removed)'}
             >
-              Hasse 骨架
+              {t('graph.hasseView')}
             </button>
             <button
               onClick={() => setViewMode('full')}
@@ -763,9 +765,9 @@ export default function Cosmos3DGraph() {
                   ? 'bg-cyan-500 text-slate-950 font-bold shadow'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
-              title="全量依赖连线"
+              title={isZh ? '全量依赖连线' : 'Full dependency edges'}
             >
-              全量连线
+              {t('graph.fullView')}
             </button>
           </div>
         </div>
@@ -774,7 +776,7 @@ export default function Cosmos3DGraph() {
       {/* Six Discipline Nebula Jump Bar */}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
         <span className="text-slate-400 text-[11px] font-semibold whitespace-nowrap mr-1 flex items-center gap-1">
-          <Navigation className="w-3.5 h-3.5 text-cyan-400" /> 星云巡航:
+          <Navigation className="w-3.5 h-3.5 text-cyan-400" /> {t('graph.nebulaeCruise')}:
         </span>
         <button
           onClick={resetCamera}
@@ -784,7 +786,7 @@ export default function Cosmos3DGraph() {
               : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:border-slate-700'
           }`}
         >
-          全宇宙全景
+          {t('graph.universeOverview')}
         </button>
         {Object.values(COSMIC_NEBULAE).map((nebula) => (
           <button
@@ -801,7 +803,7 @@ export default function Cosmos3DGraph() {
             }}
           >
             <span className="w-2 h-2 rounded-full" style={{ backgroundColor: nebula.color }} />
-            <span>{nebula.nameZh.split(' ')[0]}</span>
+            <span>{isZh ? nebula.nameZh.split(' ')[0] : nebula.nameEn}</span>
           </button>
         ))}
       </div>
@@ -830,10 +832,10 @@ export default function Cosmos3DGraph() {
             <div className="flex items-center justify-between pb-2 border-b border-slate-800">
               <span className="font-bold text-slate-100 flex items-center gap-1.5">
                 <Compass className="w-4 h-4 text-cyan-400" />
-                <span>极小前置推导闭包 (Prereq Closure)</span>
+                <span>{isZh ? '极小前置推导闭包 (Prereq Closure)' : 'Minimal Prerequisite Closure'}</span>
               </span>
               <span className="text-amber-400 font-mono font-bold text-sm">
-                {closureResult.readinessPercentage}% 就绪
+                {closureResult.readinessPercentage}% {t('graph.readinessPercentage')}
               </span>
             </div>
 
@@ -847,25 +849,25 @@ export default function Cosmos3DGraph() {
 
             <div className="grid grid-cols-2 gap-2 text-slate-300 font-mono">
               <div className="p-2 rounded-xl bg-slate-900/80 border border-slate-800">
-                <span className="text-slate-400 block text-[10px]">前置依赖总数</span>
+                <span className="text-slate-400 block text-[10px]">{t('graph.totalPrereqsCount')}</span>
                 <span className="text-cyan-300 font-bold text-sm">
-                  {closureResult.allPrerequisiteIds.length} 项星宿
+                  {closureResult.allPrerequisiteIds.length} {isZh ? '项星宿' : 'nodes'}
                 </span>
               </div>
               <div className="p-2 rounded-xl bg-slate-900/80 border border-slate-800">
-                <span className="text-slate-400 block text-[10px]">未掌握阶梯</span>
+                <span className="text-slate-400 block text-[10px]">{t('graph.unlearnedNodesCount')}</span>
                 <span className="text-amber-300 font-bold text-sm">
-                  {closureResult.unlearnedPrerequisiteNodes.length} 项节点
+                  {closureResult.unlearnedPrerequisiteNodes.length} {isZh ? '项节点' : 'nodes'}
                 </span>
               </div>
             </div>
 
             <div className="flex items-center justify-between px-2 text-slate-300">
               <span className="text-slate-400 flex items-center gap-1 text-[11px]">
-                <Clock className="w-3.5 h-3.5 text-emerald-400" /> 预估通关研习时长:
+                <Clock className="w-3.5 h-3.5 text-emerald-400" /> {t('graph.estStudyHours')}:
               </span>
               <span className="text-emerald-400 font-bold font-mono">
-                {closureResult.totalEstimatedHours} 小时
+                {closureResult.totalEstimatedHours} {t('graph.hours')}
               </span>
             </div>
 
@@ -874,7 +876,7 @@ export default function Cosmos3DGraph() {
               <div className="pt-2 border-t border-slate-800/80 space-y-1.5">
                 <span className="text-[11px] text-rose-400 font-bold flex items-center gap-1">
                   <Flame className="w-3.5 h-3.5" />
-                  关键拓扑枢纽定理 (Bottleneck Gates):
+                  {isZh ? '关键拓扑枢纽定理 (Bottleneck Gates):' : 'Critical Bottleneck Milestone Theorems:'}
                 </span>
                 <div className="space-y-1">
                   {closureResult.criticalBottlenecks.map(({ node, reason }) => (
@@ -882,11 +884,11 @@ export default function Cosmos3DGraph() {
                       key={node.id}
                       onClick={() => flyToNode(node.id)}
                       className="p-1.5 px-2.5 rounded-lg bg-rose-950/40 border border-rose-500/40 text-rose-200 text-[11px] flex items-center justify-between hover:bg-rose-900/50 cursor-pointer transition-colors"
-                      title={reason}
+                      title={isZh ? reason : getBottleneckReasonEn(reason)}
                     >
-                      <span className="font-semibold">{node.titleZh}</span>
+                      <span className="font-semibold">{getNodeTitle(node, locale)}</span>
                       <span className="text-[10px] text-rose-400 font-mono">
-                        {reason.split(' ')[0]}
+                        {isZh ? reason.split(' ')[0] : getBottleneckBadgeEn(reason)}
                       </span>
                     </div>
                   ))}
@@ -911,7 +913,9 @@ export default function Cosmos3DGraph() {
             </div>
 
             <h4 className="font-bold text-slate-100 text-sm">{getNodeTitle(selectedNode, locale)}</h4>
-            <p className="text-xs text-slate-400 font-mono">{locale === 'zh' ? selectedNode.titleEn : selectedNode.titleZh}</p>
+            {isZh && (
+              <p className="text-xs text-slate-400 font-mono">{selectedNode.titleEn}</p>
+            )}
 
             <div className="p-2.5 bg-slate-900/90 rounded-xl border border-slate-800 text-xs text-cyan-200 font-mono overflow-x-auto">
               <InlineLaTeX formula={selectedNode.statementLatex} />
@@ -960,7 +964,7 @@ export default function Cosmos3DGraph() {
             }`}
           >
             <RotateCw className={`w-3.5 h-3.5 ${isRotating ? 'animate-spin' : ''}`} />
-            <span>{isRotating ? '自转巡航' : '定格观察'}</span>
+            <span>{isRotating ? (isZh ? '自转巡航' : 'Orbit Cruise') : (isZh ? '定格观察' : 'Freeze View')}</span>
           </button>
 
           <button
@@ -972,7 +976,7 @@ export default function Cosmos3DGraph() {
             }`}
           >
             <Sparkles className="w-3.5 h-3.5" />
-            <span>{showDust ? '星云尘埃 开' : '星云尘埃 关'}</span>
+            <span>{showDust ? t('graph.nebulaDustOn') : t('graph.nebulaDustOff')}</span>
           </button>
 
           <div className="flex items-center bg-slate-900 p-0.5 rounded-xl border border-slate-700">
@@ -981,7 +985,7 @@ export default function Cosmos3DGraph() {
                 zoomRef.current = Math.min(3.8, zoomRef.current * 1.2);
               }}
               className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-300 transition-colors cursor-pointer"
-              title="放大"
+              title={t('graph.zoomIn')}
             >
               <ZoomIn className="w-3.5 h-3.5" />
             </button>
@@ -990,7 +994,7 @@ export default function Cosmos3DGraph() {
                 zoomRef.current = Math.max(0.35, zoomRef.current * 0.8);
               }}
               className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-300 transition-colors cursor-pointer"
-              title="缩小"
+              title={t('graph.zoomOut')}
             >
               <ZoomOut className="w-3.5 h-3.5" />
             </button>
@@ -1000,7 +1004,7 @@ export default function Cosmos3DGraph() {
         {/* Bottom Right Control Hint */}
         <div className="absolute bottom-4 right-4 p-2 px-3 rounded-xl glass-panel text-[11px] text-slate-400 flex items-center gap-2 pointer-events-none">
           <Move className="w-3.5 h-3.5 text-cyan-400" />
-          <span>左键旋转 · Shift/右键平移 · 滚轮缩放 · 双击直达定理</span>
+          <span>{t('graph.controlsHint')}</span>
         </div>
       </div>
 
@@ -1011,11 +1015,13 @@ export default function Cosmos3DGraph() {
             <span className="font-semibold text-slate-200 flex items-center gap-1.5">
               <BookOpen className="w-4 h-4 text-cyan-400" />
               <span>
-                通往《{closureResult.targetNode.titleZh}》的拓扑学习阶梯（勾选以动态消除已掌握前置）：
+                {isZh
+                  ? `通往《${closureResult.targetNode.titleZh}》的拓扑学习阶梯（勾选以动态消除已掌握前置）：`
+                  : `Topological learning path to "${getNodeTitle(closureResult.targetNode, locale)}" (tick steps to dynamically clear mastered prerequisites):`}
               </span>
             </span>
             <span className="text-slate-400 text-[11px]">
-              拓扑顺序排列 · 顺流而下
+              {isZh ? '拓扑顺序排列 · 顺流而下' : 'Sorted in topological order · flow downstream from axioms'}
             </span>
           </div>
 
@@ -1045,8 +1051,8 @@ export default function Cosmos3DGraph() {
                       isKnown ? 'text-emerald-400' : isTarget ? 'text-amber-400' : 'text-slate-600'
                     }`}
                   />
-                  <span>{n.titleZh}</span>
-                  {isBottleneck && <span className="text-[9px] px-1 py-0.2 rounded bg-rose-900/60 text-rose-300">枢纽</span>}
+                  <span>{getNodeTitle(n, locale)}</span>
+                  {isBottleneck && <span className="text-[9px] px-1 py-0.2 rounded bg-rose-900/60 text-rose-300">{isZh ? '枢纽' : 'Gate'}</span>}
                 </button>
               );
             })}

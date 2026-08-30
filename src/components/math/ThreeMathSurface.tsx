@@ -3,14 +3,17 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { Sparkles, RotateCw, Layers, Sliders, Box, Eye, Move } from 'lucide-react';
 import { InlineLaTeX } from '@/components/math/LaTeXRenderer';
+import { useLanguage } from '@/context/LanguageContext';
 
 export interface SurfaceDefinition {
   id: string;
   nameZh: string;
   nameEn: string;
   discipline: string;
+  disciplineEn: string;
   formulaLatex: string;
   description: string;
+  descriptionEn: string;
   generateMesh: (uSteps: number, vSteps: number, paramA: number) => {
     points: Array<{ x: number; y: number; z: number }>;
     faces: number[][];
@@ -24,8 +27,10 @@ export const surfaceDefinitions: SurfaceDefinition[] = [
     nameZh: '莫比乌斯带',
     nameEn: 'Möbius Strip',
     discipline: '微分拓扑学',
+    disciplineEn: 'Differential Topology',
     formulaLatex: 'x(u,v) = \\left(1 + \\frac{v}{2}\\cos\\frac{u}{2}\\right)\\cos u, \\quad z(u,v) = \\frac{v}{2}\\sin\\frac{u}{2}',
     description: '单侧不可定向流形 (Non-orientable manifold)，欧拉示性数 χ = 0。',
+    descriptionEn: 'One-sided non-orientable manifold with Euler characteristic χ = 0.',
     generateMesh: (uSteps, vSteps, paramA) => {
       const points: Array<{ x: number; y: number; z: number }> = [];
       const faces: number[][] = [];
@@ -53,8 +58,10 @@ export const surfaceDefinitions: SurfaceDefinition[] = [
     nameZh: '双曲抛物面 (马鞍面)',
     nameEn: 'Hyperbolic Paraboloid',
     discipline: '微分几何',
+    disciplineEn: 'Differential Geometry',
     formulaLatex: 'z = \\frac{x^2 - y^2}{2.5}',
     description: '高斯曲率 K < 0 的直纹曲面 (Ruled surface)，原点为极小极大的双曲鞍点。',
+    descriptionEn: 'A ruled surface with Gaussian curvature K < 0; the origin is a hyperbolic saddle point of minimax type.',
     generateMesh: (uSteps, vSteps, paramA) => {
       const points: Array<{ x: number; y: number; z: number }> = [];
       const faces: number[][] = [];
@@ -80,8 +87,10 @@ export const surfaceDefinitions: SurfaceDefinition[] = [
     nameZh: '环面 (Torus)',
     nameEn: '2-Torus (Genus 1)',
     discipline: '代数拓扑学',
+    disciplineEn: 'Algebraic Topology',
     formulaLatex: 'x = (R + r\\cos v)\\cos u, \\quad z = r\\sin v',
     description: '亏格 g = 1 的紧致无界二维流形，同胚于圆周直积 S¹ × S¹。',
+    descriptionEn: 'A compact genus-1 two-dimensional manifold, homeomorphic to the product of two circles S¹ × S¹.',
     generateMesh: (uSteps, vSteps, paramA) => {
       const points: Array<{ x: number; y: number; z: number }> = [];
       const faces: number[][] = [];
@@ -111,8 +120,10 @@ export const surfaceDefinitions: SurfaceDefinition[] = [
     nameZh: '黎曼球面 (S²)',
     nameEn: 'Riemann Sphere',
     discipline: '复分析',
+    disciplineEn: 'Complex Analysis',
     formulaLatex: '\\mathbb{S}^2 \\cong \\hat{\\mathbb{C}} = \\mathbb{C} \\cup \\{\\infty\\}',
     description: '复平面的单点紧化，黎曼面上全纯函数与亚纯函数的基本定义域。',
+    descriptionEn: 'The one-point compactification of the complex plane — the fundamental domain for holomorphic and meromorphic functions on the Riemann sphere.',
     generateMesh: (uSteps, vSteps, paramA) => {
       const points: Array<{ x: number; y: number; z: number }> = [];
       const faces: number[][] = [];
@@ -141,8 +152,10 @@ export const surfaceDefinitions: SurfaceDefinition[] = [
     nameZh: '猴鞍面 (Monkey Saddle)',
     nameEn: 'Monkey Saddle',
     discipline: '微分几何 / 奇点理论',
+    disciplineEn: 'Differential Geometry / Singularity Theory',
     formulaLatex: 'z = x^3 - 3xy^2 = \\mathrm{Re}(w^3)',
     description: '三阶退化马鞍面，拥有三个向下的凹槽（供猴子的两条腿和一条尾巴放置）。',
+    descriptionEn: 'A third-order degenerate saddle with three downward depressions (room for a monkey’s two legs and its tail).',
     generateMesh: (uSteps, vSteps, paramA) => {
       const points: Array<{ x: number; y: number; z: number }> = [];
       const faces: number[][] = [];
@@ -168,8 +181,10 @@ export const surfaceDefinitions: SurfaceDefinition[] = [
     nameZh: '悬链面 (Catenoid)',
     nameEn: 'Catenoid Minimal Surface',
     discipline: '极小曲面理论',
+    disciplineEn: 'Minimal Surface Theory',
     formulaLatex: 'x = c\\cosh(v/c)\\cos u, \\quad z = v',
     description: '欧拉于 1744 年发现的除平面外唯一的旋转极小曲面 (Mean curvature H = 0)。',
+    descriptionEn: 'Discovered by Euler in 1744 — the only surface of revolution besides the plane that is minimal (mean curvature H = 0).',
     generateMesh: (uSteps, vSteps, paramA) => {
       const points: Array<{ x: number; y: number; z: number }> = [];
       const faces: number[][] = [];
@@ -198,8 +213,10 @@ export const surfaceDefinitions: SurfaceDefinition[] = [
     nameZh: '螺旋面 (Helicoid)',
     nameEn: 'Helicoid Minimal Surface',
     discipline: '极小曲面理论',
+    disciplineEn: 'Minimal Surface Theory',
     formulaLatex: 'x = \\rho\\cos\\theta, \\quad z = c\\theta',
     description: '直纹极小曲面，通过等距连续变形与悬链面互为共轭极小曲面。',
+    descriptionEn: 'A ruled minimal surface, conjugate to the catenoid through an isometric continuous deformation.',
     generateMesh: (uSteps, vSteps, paramA) => {
       const points: Array<{ x: number; y: number; z: number }> = [];
       const faces: number[][] = [];
@@ -228,8 +245,10 @@ export const surfaceDefinitions: SurfaceDefinition[] = [
     nameZh: '洛伦兹吸引子',
     nameEn: 'Lorenz Strange Attractor',
     discipline: '动力系统 / 混沌理论',
+    disciplineEn: 'Dynamical Systems / Chaos Theory',
     formulaLatex: '\\dot{x} = \\sigma(y - x), \\quad \\dot{y} = x(\\rho - z) - y, \\quad \\dot{z} = xy - \\beta z',
     description: '非线性耗散动力系统混沌解，具有豪斯多夫分形维数 d ≈ 2.06。',
+    descriptionEn: 'Chaotic solution of a nonlinear dissipative dynamical system with Hausdorff fractal dimension d ≈ 2.06.',
     generateMesh: (uSteps, vSteps, paramA) => {
       const points: Array<{ x: number; y: number; z: number }> = [];
       let lx = 0.1,
@@ -254,6 +273,7 @@ export const surfaceDefinitions: SurfaceDefinition[] = [
 ];
 
 export default function ThreeMathSurface({ surface = 'mobius' }: { surface?: string }) {
+  const { isZh } = useLanguage();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [selectedId, setSelectedId] = useState<string>(surface);
   const [isRotating, setIsRotating] = useState(true);
@@ -425,10 +445,12 @@ export default function ThreeMathSurface({ surface = 'mobius' }: { surface?: str
           </div>
           <div>
             <h3 className="font-bold text-slate-100 text-sm">
-              3D 微分流形与经典极小曲面工作室 (3D Differential Manifolds Studio)
+              {isZh ? '3D 微分流形与经典极小曲面工作室 (3D Differential Manifolds Studio)' : '3D Differential Manifolds & Minimal Surfaces Studio'}
             </h3>
             <p className="text-xs text-slate-400">
-              交互式 360° 拖拽观察流形曲率、拓扑单侧性、极小曲面与混沌吸引子
+              {isZh
+                ? '交互式 360° 拖拽观察流形曲率、拓扑单侧性、极小曲面与混沌吸引子'
+                : 'Interactively drag through 360° to observe manifold curvature, one-sided topology, minimal surfaces, and chaotic attractors'}
             </p>
           </div>
         </div>
@@ -445,7 +467,7 @@ export default function ThreeMathSurface({ surface = 'mobius' }: { surface?: str
                   : 'bg-slate-900 text-slate-400 hover:text-slate-200'
               }`}
             >
-              {s.nameZh.split(' ')[0]}
+              {isZh ? s.nameZh.split(' ')[0] : s.nameEn}
             </button>
           ))}
         </div>
@@ -455,12 +477,12 @@ export default function ThreeMathSurface({ surface = 'mobius' }: { surface?: str
       <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-cyan-300 font-bold">{currentSurface.nameZh}</span>
+            <span className="text-cyan-300 font-bold">{isZh ? currentSurface.nameZh : currentSurface.nameEn}</span>
             <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
-              {currentSurface.discipline}
+              {isZh ? currentSurface.discipline : currentSurface.disciplineEn}
             </span>
           </div>
-          <p className="text-slate-400 mt-1">{currentSurface.description}</p>
+          <p className="text-slate-400 mt-1">{isZh ? currentSurface.description : currentSurface.descriptionEn}</p>
         </div>
 
         {/* LaTeX Parametric Equation */}
@@ -493,7 +515,7 @@ export default function ThreeMathSurface({ surface = 'mobius' }: { surface?: str
             }`}
           >
             <RotateCw className={`w-3.5 h-3.5 ${isRotating ? 'animate-spin' : ''}`} />
-            <span>{isRotating ? '自转开启' : '自转暂停'}</span>
+            <span>{isRotating ? (isZh ? '自转开启' : 'Auto-Rotate On') : (isZh ? '自转暂停' : 'Auto-Rotate Paused')}</span>
           </button>
 
           {!meshData.isCurve && (
@@ -506,7 +528,7 @@ export default function ThreeMathSurface({ surface = 'mobius' }: { surface?: str
               }`}
             >
               <Layers className="w-3.5 h-3.5" />
-              <span>{wireframe ? '线框骨架' : '实体着色'}</span>
+              <span>{wireframe ? (isZh ? '线框骨架' : 'Wireframe') : (isZh ? '实体着色' : 'Solid Shading')}</span>
             </button>
           )}
         </div>
@@ -514,14 +536,14 @@ export default function ThreeMathSurface({ surface = 'mobius' }: { surface?: str
         {/* Drag Hint */}
         <div className="absolute bottom-3 right-3 p-2 px-3 rounded-xl glass-panel text-[11px] text-slate-400 flex items-center gap-1.5 pointer-events-none">
           <Move className="w-3.5 h-3.5 text-cyan-400" />
-          <span>按住鼠标左键可 360° 自由旋转流形</span>
+          <span>{isZh ? '按住鼠标左键可 360° 自由旋转流形' : 'Hold the left mouse button to freely rotate the manifold through 360°'}</span>
         </div>
       </div>
 
       {/* Parameter Adjustment Slider */}
       <div className="p-4 bg-slate-900/60 rounded-xl border border-slate-800 flex items-center justify-between gap-4 text-xs font-mono">
         <span className="text-slate-300 flex items-center gap-1.5 font-semibold">
-          <Sliders className="w-4 h-4 text-cyan-400" /> 曲面形变与缩放参数 (Param Factor):
+          <Sliders className="w-4 h-4 text-cyan-400" /> {isZh ? '曲面形变与缩放参数 (Param Factor):' : 'Surface Deformation & Scale (Param Factor):'}
         </span>
         <div className="flex items-center gap-3 flex-1 max-w-sm">
           <input

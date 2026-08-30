@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useLanguage } from '@/context/LanguageContext';
 import KnowledgeStarChart from '@/components/graph/KnowledgeStarChart';
 import Cosmos3DGraph from '@/components/graph/Cosmos3DGraph';
 import LearningPathTree from '@/components/graph/LearningPathTree';
@@ -11,6 +12,7 @@ import DynamicalSystemsLab from '@/components/math/DynamicalSystemsLab';
 import { Network, GitFork, Sparkles, Box, GitMerge, Code2, Activity, Globe } from 'lucide-react';
 
 export default function GraphPage() {
+  const { isZh } = useLanguage();
   const [viewMode, setViewMode] = useState<'cosmos3d' | 'star' | 'manifold3d' | 'dynamical' | 'diagram' | 'tikz' | 'tree'>('cosmos3d');
 
   return (
@@ -23,11 +25,13 @@ export default function GraphPage() {
               <Network className="w-4 h-4" />
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-100">
-              知识星空图谱与拓扑路径 (Knowledge Cosmos & DAG)
+              {isZh ? '知识星空图谱与拓扑路径 (Knowledge Cosmos & DAG)' : 'Knowledge Cosmos Graph & Topological Pathways (DAG)'}
             </h1>
           </div>
           <p className="text-xs text-slate-400">
-            以有向无环图（DAG）为数学知识底座，杜绝循环论证，探索跨学科拓扑结构
+            {isZh
+              ? '以有向无环图（DAG）为数学知识底座，杜绝循环论证，探索跨学科拓扑结构'
+              : 'A Directed Acyclic Graph (DAG) foundation for mathematical knowledge — no circular reasoning — explore cross-disciplinary topological structure'}
           </p>
         </div>
 
@@ -42,7 +46,7 @@ export default function GraphPage() {
             }`}
           >
             <Globe className="w-3.5 h-3.5" />
-            <span>3D 知识星系</span>
+            <span>{isZh ? '3D 知识星系' : '3D Knowledge Galaxy'}</span>
           </button>
 
           <button
@@ -54,7 +58,7 @@ export default function GraphPage() {
             }`}
           >
             <Sparkles className="w-3.5 h-3.5" />
-            <span>2D 关系星宿图</span>
+            <span>{isZh ? '2D 关系星宿图' : '2D Relation Star Map'}</span>
           </button>
 
           <button
@@ -66,7 +70,7 @@ export default function GraphPage() {
             }`}
           >
             <Box className="w-3.5 h-3.5" />
-            <span>3D 微分流形</span>
+            <span>{isZh ? '3D 微分流形' : '3D Differential Manifolds'}</span>
           </button>
 
           <button
@@ -78,7 +82,7 @@ export default function GraphPage() {
             }`}
           >
             <Activity className="w-3.5 h-3.5" />
-            <span>动力系统相平面</span>
+            <span>{isZh ? '动力系统相平面' : 'Dynamical Systems Phase Plane'}</span>
           </button>
 
           <button
@@ -90,7 +94,7 @@ export default function GraphPage() {
             }`}
           >
             <GitMerge className="w-3.5 h-3.5" />
-            <span>TikZ 交互交换图</span>
+            <span>{isZh ? 'TikZ 交互交换图' : 'TikZ Interactive Diagrams'}</span>
           </button>
 
           <button
@@ -102,7 +106,7 @@ export default function GraphPage() {
             }`}
           >
             <Code2 className="w-3.5 h-3.5" />
-            <span>TikZ 矢量导出工坊</span>
+            <span>{isZh ? 'TikZ 矢量导出工坊' : 'TikZ Vector Export Studio'}</span>
           </button>
 
           <button
@@ -114,7 +118,7 @@ export default function GraphPage() {
             }`}
           >
             <GitFork className="w-3.5 h-3.5" />
-            <span>逆向技能闯关树</span>
+            <span>{isZh ? '逆向技能闯关树' : 'Reverse Skill Tree'}</span>
           </button>
         </div>
       </div>

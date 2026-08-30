@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { InlineLaTeX } from '@/components/math/LaTeXRenderer';
+import { useLanguage } from '@/context/LanguageContext';
 import { Network, Sparkles } from 'lucide-react';
 
 // Render LaTeX-style source as readable text for raw SVG labels. This is a small
@@ -54,19 +55,30 @@ function latexToReadable(src: string): string {
 export interface DiagramConfig {
   id: string;
   title: string;
+  titleEn: string;
   discipline: string;
   description: string;
+  descriptionEn: string;
   nodes: Array<{ id: string; label: string; x: number; y: number; type?: 'group' | 'space' | 'morphism' }>;
-  arrows: Array<{ from: string; to: string; label: string; style?: 'solid' | 'dashed' | 'hook' | 'twohead'; isEquality?: boolean }>;
+  arrows: Array<{ from: string; to: string; label: string; labelEn?: string; style?: 'solid' | 'dashed' | 'hook' | 'twohead'; isEquality?: boolean }>;
   commutativeRelation: string;
 }
+
+// English short tab labels (zh tabs derive from title's first token).
+const DIAGRAM_TAB_EN: Record<string, string> = {
+  'diag-first-iso': 'First Iso. Theorem',
+  'diag-short-exact': 'Short Exact Seq.',
+  'diag-snake-lemma': 'Snake Lemma',
+};
 
 export const presetDiagrams: DiagramConfig[] = [
   {
     id: 'diag-first-iso',
     title: '群的第一同构定理交换图 (First Isomorphism Commutative Diagram)',
+    titleEn: 'First Isomorphism Theorem Commutative Diagram',
     discipline: '近世代数 / 范畴论',
     description: '同态映射 phi 可严格正交分解为典范自然满同态 pi 与典范单同态 psi 的复合：phi = psi ∘ pi。',
+    descriptionEn: 'The homomorphism φ factors canonically into the natural epimorphism π followed by the canonical monomorphism φ̄: φ = φ̄ ∘ π.',
     nodes: [
       { id: 'G', label: 'G', x: 80, y: 70, type: 'group' },
       { id: 'im', label: '\\mathrm{im}(\\phi)', x: 320, y: 70, type: 'group' },
@@ -74,16 +86,18 @@ export const presetDiagrams: DiagramConfig[] = [
     ],
     arrows: [
       { from: 'G', to: 'im', label: '\\phi', style: 'solid' },
-      { from: 'G', to: 'G_ker', label: '\\pi \\text{ (自然投影)}', style: 'solid' },
-      { from: 'G_ker', to: 'im', label: '\\bar{\\phi} \\text{ (唯一同构)}', style: 'dashed' },
+      { from: 'G', to: 'G_ker', label: '\\pi \\text{ (自然投影)}', labelEn: '\\pi \\text{ (canonical projection)}', style: 'solid' },
+      { from: 'G_ker', to: 'im', label: '\\bar{\\phi} \\text{ (唯一同构)}', labelEn: '\\bar{\\phi} \\text{ (unique isomorphism)}', style: 'dashed' },
     ],
     commutativeRelation: '\\phi = \\bar{\\phi} \\circ \\pi',
   },
   {
     id: 'diag-short-exact',
     title: '群与模的短正合列 (Short Exact Sequence)',
+    titleEn: 'Short Exact Sequence of Groups & Modules',
     discipline: '同调代数 / 范畴论',
     description: '0 -> A -> B -> C -> 0 为短正合列，意味着 i 为单射 (ker i = 0)，p 为满射 (im p = C)，且 im i = ker p。',
+    descriptionEn: '0 -> A -> B -> C -> 0 is a short exact sequence: i is injective (ker i = 0), p is surjective (im p = C), and im i = ker p.',
     nodes: [
       { id: 'zero_l', label: '0', x: 40, y: 140 },
       { id: 'A', label: 'A', x: 120, y: 140, type: 'space' },
@@ -93,8 +107,8 @@ export const presetDiagrams: DiagramConfig[] = [
     ],
     arrows: [
       { from: 'zero_l', to: 'A', label: '', style: 'solid' },
-      { from: 'A', to: 'B', label: 'i \\text{ (单射)}', style: 'hook' },
-      { from: 'B', to: 'C', label: 'p \\text{ (满射)}', style: 'twohead' },
+      { from: 'A', to: 'B', label: 'i \\text{ (单射)}', labelEn: 'i \\text{ (injective)}', style: 'hook' },
+      { from: 'B', to: 'C', label: 'p \\text{ (满射)}', labelEn: 'p \\text{ (surjective)}', style: 'twohead' },
       { from: 'C', to: 'zero_r', label: '', style: 'solid' },
     ],
     commutativeRelation: '\\mathrm{im}(i) = \\ker(p) \\implies B/i(A) \\cong C',
@@ -102,8 +116,10 @@ export const presetDiagrams: DiagramConfig[] = [
   {
     id: 'diag-snake-lemma',
     title: '蛇引理 (The Snake Lemma Commutative Diagram)',
+    titleEn: 'Snake Lemma Commutative Diagram',
     discipline: '代数拓扑 / 同调代数',
     description: '连接同态 delta 将上层的核核序列与下层的余核余核序列自然串联，构造长正合序列。',
+    descriptionEn: 'The connecting homomorphism δ chains the kernel sequence on top to the cokernel sequence below, producing the long exact sequence.',
     nodes: [
       { id: 'kerA', label: '\\ker(a)', x: 80, y: 50 },
       { id: 'kerB', label: '\\ker(b)', x: 200, y: 50 },
@@ -130,13 +146,14 @@ export const presetDiagrams: DiagramConfig[] = [
       { from: 'C', to: 'C1', label: 'c', style: 'solid' },
       { from: 'cokerA', to: 'cokerB', label: '', style: 'solid' },
       { from: 'cokerB', to: 'cokerC', label: '', style: 'solid' },
-      { from: 'kerC', to: 'cokerA', label: '\\delta \\text{ (连接同态)}', style: 'dashed' },
+      { from: 'kerC', to: 'cokerA', label: '\\delta \\text{ (连接同态)}', labelEn: '\\delta \\text{ (connecting homomorphism)}', style: 'dashed' },
     ],
     commutativeRelation: '0 \\to \\ker a \\to \\ker b \\to \\ker c \\xrightarrow{\\delta} \\mathrm{coker}\\,a \\to \\mathrm{coker}\\,b \\to \\mathrm{coker}\\,c \\to 0',
   },
 ];
 
 export default function CommutativeDiagramViewer() {
+  const { isZh } = useLanguage();
   const [selectedDiagram, setSelectedDiagram] = useState<DiagramConfig>(presetDiagrams[0]);
 
   return (
@@ -149,10 +166,12 @@ export default function CommutativeDiagramViewer() {
           </div>
           <div>
             <h3 className="font-bold text-slate-100 text-sm">
-              TikZ-cd 交换图与范畴论可视化 (Interactive Commutative Diagrams)
+              {isZh ? 'TikZ-cd 交换图与范畴论可视化 (Interactive Commutative Diagrams)' : 'Interactive Commutative Diagrams (TikZ-cd)'}
             </h3>
             <p className="text-xs text-slate-400">
-              范畴论与代数拓扑的通用图形语言，验证态射复合与正合列交换性
+              {isZh
+                ? '范畴论与代数拓扑的通用图形语言，验证态射复合与正合列交换性'
+                : 'The universal graphical language of category theory and algebraic topology — verify morphism composition and exactness'}
             </p>
           </div>
         </div>
@@ -169,7 +188,7 @@ export default function CommutativeDiagramViewer() {
                   : 'bg-slate-900 text-slate-400 hover:text-slate-200'
               }`}
             >
-              {diag.title.split(' ')[0]}
+              {isZh ? diag.title.split(' ')[0] : DIAGRAM_TAB_EN[diag.id] || diag.titleEn}
             </button>
           ))}
         </div>
@@ -178,11 +197,11 @@ export default function CommutativeDiagramViewer() {
       {/* Description & Commutativity Identity */}
       <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
         <div>
-          <span className="text-purple-300 font-semibold">{selectedDiagram.title}</span>
-          <p className="text-slate-400 mt-0.5">{selectedDiagram.description}</p>
+          <span className="text-purple-300 font-semibold">{isZh ? selectedDiagram.title : selectedDiagram.titleEn}</span>
+          <p className="text-slate-400 mt-0.5">{isZh ? selectedDiagram.description : selectedDiagram.descriptionEn}</p>
         </div>
         <div className="p-2 px-3 rounded-lg bg-slate-950 border border-purple-500/30 text-cyan-300 font-mono text-xs">
-          <span className="text-slate-500 text-[10px] block">交换恒等式:</span>
+          <span className="text-slate-500 text-[10px] block">{isZh ? '交换恒等式:' : 'Commutativity identity:'}</span>
           <InlineLaTeX formula={selectedDiagram.commutativeRelation} />
         </div>
       </div>
@@ -248,7 +267,7 @@ export default function CommutativeDiagramViewer() {
                     markerEnd="url(#arrow-dashed)"
                   />
                   <text x={midX + 20} y={midY} fill="#c084fc" fontSize="10" fontFamily="sans-serif">
-                    δ (连接同态)
+                    {isZh ? 'δ (连接同态)' : 'δ (connecting homomorphism)'}
                   </text>
                 </g>
               );
@@ -278,7 +297,7 @@ export default function CommutativeDiagramViewer() {
                     textAnchor="middle"
                     fontFamily="sans-serif"
                   >
-                    {latexToReadable(arr.label)}
+                    {latexToReadable(isZh ? arr.label : arr.labelEn ?? arr.label)}
                   </text>
                 )}
               </g>
@@ -313,7 +332,7 @@ export default function CommutativeDiagramViewer() {
         {/* Floating Hint */}
         <div className="absolute bottom-3 right-3 p-2.5 rounded-xl glass-panel text-[11px] text-slate-400 flex items-center gap-1.5 pointer-events-none">
           <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-          <span>任意路径复合结果恒等 (Commutative Property Guaranteed)</span>
+          <span>{isZh ? '任意路径复合结果恒等 (Commutative Property Guaranteed)' : 'Every path composition agrees — commutativity guaranteed'}</span>
         </div>
       </div>
     </div>

@@ -63,6 +63,34 @@ export function getNodeTypeMeta(type: string, locale: Locale = 'zh') {
   }
 }
 
+// English equivalents for the zh bottleneck reason strings emitted by
+// computeMinimumPrerequisiteClosure (src/lib/prerequisiteClosure.ts).
+export function getBottleneckReasonEn(reason: string): string {
+  const count = reason.match(/\d+/)?.[0];
+  if (reason.startsWith('核心主干枢纽')) {
+    return count
+      ? `Core hub theorem (drives ${count} downstream theorems in this closure)`
+      : 'Core hub theorem';
+  }
+  if (reason.startsWith('关键分叉汇聚点')) {
+    return count
+      ? `Critical fork junction (supports ${count} direct corollaries)`
+      : 'Critical fork junction';
+  }
+  if (reason.startsWith('公理基石')) {
+    return 'Axiom bedrock (indispensable foundational logic source)';
+  }
+  return 'Foundational prerequisite definition';
+}
+
+// Short badge label matching the zh prefix shown by reason.split(' ')[0].
+export function getBottleneckBadgeEn(reason: string): string {
+  if (reason.startsWith('核心主干枢纽')) return 'Core Hub';
+  if (reason.startsWith('关键分叉汇聚点')) return 'Fork Junction';
+  if (reason.startsWith('公理基石')) return 'Axiom Bedrock';
+  return 'Base Prereq';
+}
+
 // Formats VerificationStatus
 export function getVerificationMeta(status: string, locale: Locale = 'zh') {
   const isEn = locale === 'en';
