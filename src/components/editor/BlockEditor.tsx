@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import LaTeXRenderer, { InlineLaTeX } from '@/components/math/LaTeXRenderer';
+import { useLanguage } from '@/context/LanguageContext';
 import { Plus, Trash2, MoveUp, MoveDown, Eye, Edit3, Sparkles } from 'lucide-react';
 
 export interface EditorBlock {
@@ -11,7 +12,18 @@ export interface EditorBlock {
   meta?: Record<string, any>;
 }
 
+// Locale-aware seed content for the starter blocks (swapped only while untouched).
+const SEED_INTUITION_ZH =
+  '构造柯西-施瓦茨不等式的几何直觉：在任意实内积空间中，向量投影长度永远不大于被投影向量本身的模长。';
+const SEED_INTUITION_EN =
+  'Geometric intuition for the Cauchy–Schwarz inequality: in any real inner product space, the length of a vector\'s projection never exceeds the norm of the vector being projected.';
+const SEED_TEXT_ZH =
+  '引入一元非负实二次函数 $P(t) = \\|u - t v\\|^2 \\ge 0$，展开后由判别式 $\\Delta \\le 0$ 可立得证明。参考前置基础概念：[[数列极限 (ε-N 定义)]]。';
+const SEED_TEXT_EN =
+  'Introduce the nonnegative quadratic $P(t) = \\|u - t v\\|^2 \\ge 0$; expanding it, the discriminant $\\Delta \\le 0$ yields the proof at once. See the prerequisite concept: [[Sequence Limit (ε-N Definition)]].';
+
 export default function BlockEditor({ onSave }: { onSave?: (blocks: EditorBlock[]) => void }) {
+  const { isZh } = useLanguage();
   // Persist blocks to localStorage so the editor's "Export" button can download them.
   const STORAGE_KEY = 'matheditor:blocks';
   const [blocks, setBlocks] = useState<EditorBlock[]>(() => {
@@ -19,7 +31,7 @@ export default function BlockEditor({ onSave }: { onSave?: (blocks: EditorBlock[
       {
         id: 'b-1',
       type: 'INTUITION',
-      content: '构造柯西-施瓦茨不等式的几何直觉：在任意实内积空间中，向量投影长度永远不大于被投影向量本身的模长。',
+      content: SEED_INTUITION_ZH,
     },
     {
       id: 'b-2',
@@ -29,7 +41,7 @@ export default function BlockEditor({ onSave }: { onSave?: (blocks: EditorBlock[
     {
       id: 'b-3',
       type: 'TEXT',
-      content: '引入一元非负实二次函数 $P(t) = \\|u - t v\\|^2 \\ge 0$，展开后由判别式 $\\Delta \\le 0$ 可立得证明。参考前置基础概念：[[数列极限 (ε-N 定义)]]。',
+      content: SEED_TEXT_ZH,
     },
     {
       id: 'b-4',
@@ -40,6 +52,22 @@ export default function BlockEditor({ onSave }: { onSave?: (blocks: EditorBlock[
       },
     ];
   });
+
+  // Sync untouched seed blocks with the active locale (initial context value is
+  // 'zh' on both renders, so swap once the stored locale becomes 'en').
+  useEffect(() => {
+    setBlocks((prev) =>
+      prev.map((b) => {
+        if (b.id === 'b-1' && (b.content === SEED_INTUITION_ZH || b.content === SEED_INTUITION_EN)) {
+          return { ...b, content: isZh ? SEED_INTUITION_ZH : SEED_INTUITION_EN };
+        }
+        if (b.id === 'b-3' && (b.content === SEED_TEXT_ZH || b.content === SEED_TEXT_EN)) {
+          return { ...b, content: isZh ? SEED_TEXT_ZH : SEED_TEXT_EN };
+        }
+        return b;
+      })
+    );
+  }, [isZh]);
 
   // Save blocks to localStorage whenever they change so the editor's "Export"
   // button can download the current draft.
@@ -66,8 +94,12 @@ export default function BlockEditor({ onSave }: { onSave?: (blocks: EditorBlock[
           : type === 'PYTHON'
           ? '# SymPy computation\nimport sympy as sp\nx = sp.Symbol("x")'
           : type === 'INTUITION'
-          ? '### 直觉动机\n用通俗生动的比喻解释这一数学事实。'
-          : '输入数学正文，支持 $x^2+y^2$ 以及 [[双向链接]]...',
+          ? isZh
+            ? '### 直觉动机\n用通俗生动的比喻解释这一数学事实。'
+            : '### Intuition & Motivation\nExplain this mathematical fact with a vivid, accessible analogy.'
+          : isZh
+          ? '输入数学正文，支持 $x^2+y^2$ 以及 [[双向链接]]...'
+          : 'Enter rich text with inline $x^2+y^2$ math and [[bidirectional links]]...',
     };
     setBlocks((prev) => [...prev, newBlock]);
   };
@@ -99,8 +131,8 @@ export default function BlockEditor({ onSave }: { onSave?: (blocks: EditorBlock[
             <Sparkles className="w-4 h-4" />
           </div>
           <div>
-            <h4 className="font-bold text-slate-100 text-sm">Notion 风格数学块级编辑器 (Block-level Editor)</h4>
-            <p className="text-[11px] text-slate-400">支持 LaTeX 公式、Lean 形式化代码、Python 交互沙盒无缝穿插</p>
+            <h4 className="font-bold text-slate-100 text-sm">{isZh ? 'Notion 风格数学块级编辑器 (Block-level Editor)' : 'Notion-Style Block-level Math Editor'}</h4>
+            <p className="text-[11px] text-slate-400">{isZh ? '支持 LaTeX 公式、Lean 形式化代码、Python 交互沙盒无缝穿插' : 'Seamlessly interleave LaTeX formulas, Lean formal code, and a Python sandbox'}</p>
           </div>
         </div>
 
@@ -115,7 +147,7 @@ export default function BlockEditor({ onSave }: { onSave?: (blocks: EditorBlock[
             }`}
           >
             {previewMode ? <Edit3 className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-            <span>{previewMode ? '返回编辑' : '实时预览'}</span>
+            <span>{previewMode ? (isZh ? '返回编辑' : 'Return to edit') : isZh ? '实时预览' : 'Live preview'}</span>
           </button>
         </div>
       </div>
@@ -189,7 +221,7 @@ export default function BlockEditor({ onSave }: { onSave?: (blocks: EditorBlock[
                     <textarea
                       value={block.content}
                       onChange={(e) => updateBlock(block.id, e.target.value)}
-                      placeholder="输入 LaTeX 公式..."
+                      placeholder={isZh ? '输入 LaTeX 公式...' : 'Enter a LaTeX formula...'}
                       className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 font-mono text-xs text-cyan-300 outline-none focus:border-cyan-500 resize-none h-20"
                     />
                     <div className="p-2 bg-slate-950 rounded border border-slate-800/60">
@@ -200,14 +232,14 @@ export default function BlockEditor({ onSave }: { onSave?: (blocks: EditorBlock[
                   <textarea
                     value={block.content}
                     onChange={(e) => updateBlock(block.id, e.target.value)}
-                    placeholder="输入 Lean 4 形式化代码..."
+                    placeholder={isZh ? '输入 Lean 4 形式化代码...' : 'Enter Lean 4 formalization code...'}
                     className="w-full bg-slate-950 border border-emerald-500/30 rounded-lg p-2.5 font-mono text-xs text-emerald-300 outline-none focus:border-emerald-500 resize-none h-24 whitespace-pre"
                   />
                 ) : (
                   <textarea
                     value={block.content}
                     onChange={(e) => updateBlock(block.id, e.target.value)}
-                    placeholder="输入内容，支持 $...$ 与 [[双向链接]]..."
+                    placeholder={isZh ? '输入内容，支持 $...$ 与 [[双向链接]]...' : 'Enter content with $...$ math and [[bidirectional links]]...'}
                     className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-200 outline-none focus:border-cyan-500 resize-none h-20"
                   />
                 )}
@@ -219,30 +251,30 @@ export default function BlockEditor({ onSave }: { onSave?: (blocks: EditorBlock[
         {/* Add Block Selector Toolbar */}
         {!previewMode && (
           <div className="pt-2 flex flex-wrap items-center gap-2">
-            <span className="text-xs text-slate-500 font-medium">插入新逻辑块:</span>
+            <span className="text-xs text-slate-500 font-medium">{isZh ? '插入新逻辑块:' : 'Insert new block:'}</span>
             <button
               onClick={() => addBlock('TEXT')}
               className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-medium cursor-pointer"
             >
-              <Plus className="w-3 h-3 text-cyan-400" /> 文本与内联公式
+              <Plus className="w-3 h-3 text-cyan-400" /> {isZh ? '文本与内联公式' : 'Text & inline math'}
             </button>
             <button
               onClick={() => addBlock('LATEX')}
               className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-medium cursor-pointer"
             >
-              <Plus className="w-3 h-3 text-purple-400" /> 独立 LaTeX 块
+              <Plus className="w-3 h-3 text-purple-400" /> {isZh ? '独立 LaTeX 块' : 'LaTeX block'}
             </button>
             <button
               onClick={() => addBlock('LEAN')}
               className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-medium cursor-pointer"
             >
-              <Plus className="w-3 h-3 text-emerald-400" /> Lean 4 验证块
+              <Plus className="w-3 h-3 text-emerald-400" /> {isZh ? 'Lean 4 验证块' : 'Lean 4 block'}
             </button>
             <button
               onClick={() => addBlock('INTUITION')}
               className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-medium cursor-pointer"
             >
-              <Plus className="w-3 h-3 text-amber-400" /> 直觉/动机块
+              <Plus className="w-3 h-3 text-amber-400" /> {isZh ? '直觉/动机块' : 'Intuition block'}
             </button>
           </div>
         )}

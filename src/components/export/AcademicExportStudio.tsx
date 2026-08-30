@@ -30,12 +30,15 @@ import {
   Info,
   Maximize2,
 } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
+import { getNodeTitle } from '@/lib/i18nHelper';
 
 interface AcademicExportStudioProps {
   initialNodeId?: string;
 }
 
 export default function AcademicExportStudio({ initialNodeId }: AcademicExportStudioProps) {
+  const { locale, isZh } = useLanguage();
   const [selectedNodeId, setSelectedNodeId] = useState<string>(initialNodeId || 'thm-stokes');
   const [format, setFormat] = useState<ExportFormat>('latex_paper');
   const [includePrereqs, setIncludePrereqs] = useState(true);
@@ -139,14 +142,16 @@ export default function AcademicExportStudio({ initialNodeId }: AcademicExportSt
           <div>
             <div className="flex items-center gap-2">
               <h3 className="font-bold text-slate-100 text-base">
-                出版级学术讲义与排版导出工坊
+                {isZh ? '出版级学术讲义与排版导出工坊' : 'Publication-Grade Academic Export Studio'}
               </h3>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30 font-mono">
                 v2.0 Academic Engine
               </span>
             </div>
             <p className="text-xs text-slate-400">
-              一键将目标定理及其拓扑 DAG 前置闭包编译打包为 AMS-LaTeX、Typst 0.11+、Beamer 幻灯片、Quarto Markdown 或 1-Click Overleaf 云端工程
+              {isZh
+                ? '一键将目标定理及其拓扑 DAG 前置闭包编译打包为 AMS-LaTeX、Typst 0.11+、Beamer 幻灯片、Quarto Markdown 或 1-Click Overleaf 云端工程'
+                : 'Compile a target theorem and its DAG prerequisite closure into AMS-LaTeX, Typst 0.11+, Beamer slides, Quarto Markdown, or a 1-click Overleaf cloud project'}
             </p>
           </div>
         </div>
@@ -155,11 +160,11 @@ export default function AcademicExportStudio({ initialNodeId }: AcademicExportSt
         <div className="flex items-center gap-2">
           <button
             onClick={handleOpenOverleaf}
-            title="在 Overleaf 云端一键打开并实时编译 PDF"
+            title={isZh ? '在 Overleaf 云端一键打开并实时编译 PDF' : 'Open and compile instantly in the Overleaf cloud'}
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-950/80 hover:bg-emerald-900/90 border border-emerald-500/40 text-emerald-300 text-xs font-bold transition-all shadow-md shadow-emerald-950/40 cursor-pointer"
           >
             <ExternalLink className="w-3.5 h-3.5" />
-            <span>Overleaf 一键云编译</span>
+            <span>{isZh ? 'Overleaf 一键云编译' : '1-Click Overleaf Cloud'}</span>
           </button>
 
           <button
@@ -167,7 +172,7 @@ export default function AcademicExportStudio({ initialNodeId }: AcademicExportSt
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 text-xs font-semibold transition-colors cursor-pointer"
           >
             {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-purple-400" />}
-            <span>{copied ? '已复制源码' : '复制全文'}</span>
+            <span>{copied ? (isZh ? '已复制源码' : 'Source copied') : isZh ? '复制全文' : 'Copy all'}</span>
           </button>
 
           <button
@@ -175,7 +180,7 @@ export default function AcademicExportStudio({ initialNodeId }: AcademicExportSt
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white text-xs font-bold shadow-lg shadow-purple-500/20 transition-all cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>下载 {exportResult.fileExtension.toUpperCase()} 文件</span>
+            <span>{isZh ? `下载 ${exportResult.fileExtension.toUpperCase()} 文件` : `Download ${exportResult.fileExtension.toUpperCase()} file`}</span>
           </button>
         </div>
       </div>
@@ -191,7 +196,7 @@ export default function AcademicExportStudio({ initialNodeId }: AcademicExportSt
           }`}
         >
           <FileCode className="w-3.5 h-3.5" />
-          <span>AMS-LaTeX 论文 (.tex)</span>
+          <span>{isZh ? 'AMS-LaTeX 论文 (.tex)' : 'AMS-LaTeX paper (.tex)'}</span>
         </button>
 
         <button
@@ -203,7 +208,7 @@ export default function AcademicExportStudio({ initialNodeId }: AcademicExportSt
           }`}
         >
           <Sparkles className="w-3.5 h-3.5" />
-          <span>现代 Typst 0.11+ (.typ)</span>
+          <span>{isZh ? '现代 Typst 0.11+ (.typ)' : 'Modern Typst 0.11+ (.typ)'}</span>
         </button>
 
         <button
@@ -215,7 +220,7 @@ export default function AcademicExportStudio({ initialNodeId }: AcademicExportSt
           }`}
         >
           <Layers className="w-3.5 h-3.5" />
-          <span>Beamer 演示幻灯片 (.tex)</span>
+          <span>{isZh ? 'Beamer 演示幻灯片 (.tex)' : 'Beamer slides (.tex)'}</span>
         </button>
 
         <button
@@ -239,7 +244,7 @@ export default function AcademicExportStudio({ initialNodeId }: AcademicExportSt
           }`}
         >
           <GitBranch className="w-3.5 h-3.5" />
-          <span>TikZ 拓扑图谱 (.tex)</span>
+          <span>{isZh ? 'TikZ 拓扑图谱 (.tex)' : 'TikZ diagram (.tex)'}</span>
         </button>
 
         <button
@@ -251,7 +256,7 @@ export default function AcademicExportStudio({ initialNodeId }: AcademicExportSt
           }`}
         >
           <Terminal className="w-3.5 h-3.5" />
-          <span>自然演绎证明树 (.tex)</span>
+          <span>{isZh ? '自然演绎证明树 (.tex)' : 'Natural deduction proof tree (.tex)'}</span>
         </button>
       </div>
 
@@ -262,15 +267,17 @@ export default function AcademicExportStudio({ initialNodeId }: AcademicExportSt
           <div className="flex items-center justify-between">
             <label className="text-slate-300 font-semibold flex items-center gap-1.5">
               <BookOpen className="w-3.5 h-3.5 text-purple-400" />
-              <span>目标导出定理 / 命题：</span>
+              <span>{isZh ? '目标导出定理 / 命题：' : 'Target theorem / proposition:'}</span>
             </label>
-            <span className="text-[10px] text-slate-500 font-mono">共 {initialMathNodes.length} 命题</span>
+            <span className="text-[10px] text-slate-500 font-mono">
+              {isZh ? `共 ${initialMathNodes.length} 命题` : `${initialMathNodes.length} propositions`}
+            </span>
           </div>
 
           <div className="space-y-1.5">
             <input
               type="text"
-              placeholder="搜索定理、MSC 编号或关键字..."
+              placeholder={isZh ? '搜索定理、MSC 编号或关键字...' : 'Search by theorem, MSC code, or keyword...'}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full bg-slate-950/80 border border-slate-700/80 text-slate-200 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-purple-500"
@@ -282,7 +289,7 @@ export default function AcademicExportStudio({ initialNodeId }: AcademicExportSt
             >
               {filteredNodes.map((n) => (
                 <option key={n.id} value={n.id}>
-                  [{n.nodeType}] {n.titleZh} ({n.titleEn}) · MSC {n.mscCode}
+                  {isZh ? `[${n.nodeType}] ${n.titleZh} (${n.titleEn}) · MSC ${n.mscCode}` : `[${n.nodeType}] ${n.titleEn} · MSC ${n.mscCode}`}
                 </option>
               ))}
             </select>
@@ -292,7 +299,7 @@ export default function AcademicExportStudio({ initialNodeId }: AcademicExportSt
           {targetNode && (
             <div className="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800/80 space-y-1">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-purple-300">{targetNode.titleZh}</span>
+                <span className="text-[11px] font-bold text-purple-300">{getNodeTitle(targetNode, locale)}</span>
                 <span className="px-1.5 py-0.5 rounded text-[9px] bg-slate-800 text-slate-400 font-mono">
                   {targetNode.nodeType}
                 </span>
@@ -306,24 +313,28 @@ export default function AcademicExportStudio({ initialNodeId }: AcademicExportSt
         <div className="md:col-span-4 space-y-2">
           <label className="text-slate-300 font-semibold flex items-center gap-1.5">
             <Sliders className="w-3.5 h-3.5 text-indigo-400" />
-            <span>文档与作者元数据：</span>
+            <span>{isZh ? '文档与作者元数据：' : 'Document & author metadata:'}</span>
           </label>
 
           <div className="space-y-2">
             <div>
-              <span className="text-[10px] text-slate-400 block mb-1">自定义文档主标题 (可选)：</span>
+              <span className="text-[10px] text-slate-400 block mb-1">{isZh ? '自定义文档主标题 (可选)：' : 'Custom document title (optional):'}</span>
               <input
                 type="text"
                 value={documentTitle}
                 onChange={(e) => setDocumentTitle(e.target.value)}
-                placeholder={`默认: ${targetNode?.titleZh} 结构化推导讲义`}
+                placeholder={
+                  isZh
+                    ? `默认: ${targetNode?.titleZh} 结构化推导讲义`
+                    : `Default: ${targetNode ? getNodeTitle(targetNode, locale) : ''} — Structured Derivation Notes`
+                }
                 className="w-full bg-slate-950 border border-slate-700/80 text-slate-200 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-purple-500"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <span className="text-[10px] text-slate-400 block mb-1">作者署名：</span>
+                <span className="text-[10px] text-slate-400 block mb-1">{isZh ? '作者署名：' : 'Author:'}</span>
                 <input
                   type="text"
                   value={authorName}
@@ -332,7 +343,7 @@ export default function AcademicExportStudio({ initialNodeId }: AcademicExportSt
                 />
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 block mb-1">研究机构 / 平台：</span>
+                <span className="text-[10px] text-slate-400 block mb-1">{isZh ? '研究机构 / 平台：' : 'Institution / network:'}</span>
                 <input
                   type="text"
                   value={institution}
@@ -349,14 +360,18 @@ export default function AcademicExportStudio({ initialNodeId }: AcademicExportSt
           <div className="flex items-center justify-between">
             <label className="text-slate-300 font-semibold flex items-center gap-1.5">
               <Cpu className="w-3.5 h-3.5 text-cyan-400" />
-              <span>编译模块开关配置：</span>
+              <span>{isZh ? '编译模块开关配置：' : 'Compile module toggles:'}</span>
             </label>
             <button
               onClick={() => setShowPrereqList(!showPrereqList)}
               className="text-[10px] text-cyan-400 hover:underline flex items-center gap-1 cursor-pointer"
             >
               <Eye className="w-3 h-3" />
-              <span>{showPrereqList ? '收起依赖链' : `查看前置链 (${orderedPrereqNodes.length})`}</span>
+              <span>
+                {showPrereqList
+                  ? isZh ? '收起依赖链' : 'Hide prerequisite chain'
+                  : isZh ? `查看前置链 (${orderedPrereqNodes.length})` : `View prerequisite chain (${orderedPrereqNodes.length})`}
+              </span>
             </button>
           </div>
 
@@ -369,10 +384,10 @@ export default function AcademicExportStudio({ initialNodeId }: AcademicExportSt
                   onChange={(e) => setIncludePrereqs(e.target.checked)}
                   className="accent-purple-500 rounded"
                 />
-                <span className="font-medium">递归 DAG 前置依赖闭包</span>
+                <span className="font-medium">{isZh ? '递归 DAG 前置依赖闭包' : 'Recursive DAG prerequisite closure'}</span>
               </div>
               <span className="px-1.5 py-0.2 rounded text-[10px] bg-purple-500/20 text-purple-300 font-mono">
-                {orderedPrereqNodes.length} 个节点
+                {orderedPrereqNodes.length} {isZh ? '个节点' : 'nodes'}
               </span>
             </label>
 
@@ -384,7 +399,7 @@ export default function AcademicExportStudio({ initialNodeId }: AcademicExportSt
                   onChange={(e) => setIncludeProofs(e.target.checked)}
                   className="accent-purple-500 rounded"
                 />
-                <span>严谨数学证明</span>
+                <span>{isZh ? '严谨数学证明' : 'Rigorous proofs'}</span>
               </label>
 
               <label className="flex items-center gap-1.5 p-1.5 rounded-lg bg-slate-950/70 border border-slate-800/80 text-slate-300 cursor-pointer hover:border-slate-700">
@@ -394,7 +409,7 @@ export default function AcademicExportStudio({ initialNodeId }: AcademicExportSt
                   onChange={(e) => setIncludeIntuition(e.target.checked)}
                   className="accent-purple-500 rounded"
                 />
-                <span>几何直觉动机</span>
+                <span>{isZh ? '几何直觉动机' : 'Geometric intuition'}</span>
               </label>
 
               <label className="flex items-center gap-1.5 p-1.5 rounded-lg bg-slate-950/70 border border-slate-800/80 text-slate-300 cursor-pointer hover:border-slate-700">
@@ -404,7 +419,7 @@ export default function AcademicExportStudio({ initialNodeId }: AcademicExportSt
                   onChange={(e) => setIncludeLean(e.target.checked)}
                   className="accent-purple-500 rounded"
                 />
-                <span>Lean 4 形式化</span>
+                <span>{isZh ? 'Lean 4 形式化' : 'Lean 4 formalization'}</span>
               </label>
 
               <label className="flex items-center gap-1.5 p-1.5 rounded-lg bg-slate-950/70 border border-slate-800/80 text-slate-300 cursor-pointer hover:border-slate-700">
@@ -414,7 +429,7 @@ export default function AcademicExportStudio({ initialNodeId }: AcademicExportSt
                   onChange={(e) => setIncludeTikz(e.target.checked)}
                   className="accent-purple-500 rounded"
                 />
-                <span>TikZ 拓扑/交换图</span>
+                <span>{isZh ? 'TikZ 拓扑/交换图' : 'TikZ diagrams'}</span>
               </label>
             </div>
           </div>
@@ -427,10 +442,10 @@ export default function AcademicExportStudio({ initialNodeId }: AcademicExportSt
           <div className="flex items-center justify-between">
             <h4 className="text-xs font-bold text-slate-200 flex items-center gap-2">
               <GitBranch className="w-4 h-4 text-purple-400" />
-              <span>拓扑偏序前置推导序列 (Topological Prerequisite Hierarchy)</span>
+              <span>{isZh ? '拓扑偏序前置推导序列 (Topological Prerequisite Hierarchy)' : 'Topological Prerequisite Hierarchy'}</span>
             </h4>
             <span className="text-[10px] text-slate-400">
-              从最基础公理/定义自底向上推导至目标定理
+              {isZh ? '从最基础公理/定义自底向上推导至目标定理' : 'Bottom-up derivation from base axioms/definitions to the target theorem'}
             </span>
           </div>
 
@@ -450,8 +465,8 @@ export default function AcademicExportStudio({ initialNodeId }: AcademicExportSt
                   <span className="px-1 py-0.2 rounded text-[9px] font-mono bg-slate-900 text-slate-400">
                     {n.nodeType}
                   </span>
-                  <span>{n.titleZh}</span>
-                  {isTarget && <span className="text-purple-400 font-bold">★ 目标</span>}
+                  <span>{getNodeTitle(n, locale)}</span>
+                  {isTarget && <span className="text-purple-400 font-bold">{isZh ? '★ 目标' : '★ Target'}</span>}
                 </div>
               );
             })}
@@ -468,11 +483,13 @@ export default function AcademicExportStudio({ initialNodeId }: AcademicExportSt
               <strong className="text-slate-100">{exportResult.suggestedFilename}</strong>
             </span>
             <span>·</span>
-            <span>{exportResult.lineCount} 行代码</span>
+            <span>{exportResult.lineCount} {isZh ? '行代码' : 'lines of code'}</span>
             <span>·</span>
             <span>{(exportResult.byteSize / 1024).toFixed(2)} KB</span>
             <span>·</span>
-            <span className="text-cyan-400 font-semibold">{exportResult.prerequisiteCount} 个关联命题</span>
+            <span className="text-cyan-400 font-semibold">
+              {exportResult.prerequisiteCount} {isZh ? '个关联命题' : 'related propositions'}
+            </span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -481,7 +498,7 @@ export default function AcademicExportStudio({ initialNodeId }: AcademicExportSt
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 text-xs font-semibold transition-colors cursor-pointer"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{copied ? '已复制' : '复制全文'}</span>
+              <span>{copied ? (isZh ? '已复制' : 'Copied') : isZh ? '复制全文' : 'Copy all'}</span>
             </button>
 
             <button
@@ -489,7 +506,7 @@ export default function AcademicExportStudio({ initialNodeId }: AcademicExportSt
               className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-md shadow-purple-500/20 transition-all cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
-              <span>下载源码</span>
+              <span>{isZh ? '下载源码' : 'Download source'}</span>
             </button>
           </div>
         </div>

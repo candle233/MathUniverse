@@ -5,6 +5,8 @@ import katex from 'katex';
 import { globalLatexMacros, getNodeTypeMeta, getVerificationMeta } from '@/lib/utils';
 import { initialMathNodes } from '@/data/seedData';
 import { MathNode } from '@/types/math';
+import { getNodeTitle } from '@/lib/i18nHelper';
+import { useLanguage } from '@/context/LanguageContext';
 import Link from 'next/link';
 import { Sparkles, ArrowRight, ShieldCheck } from 'lucide-react';
 
@@ -17,8 +19,9 @@ interface LaTeXRendererProps {
 
 // Micro-Card Hover Popup for [[Theorem Name]] or node references
 export function NodeHoverCard({ node }: { node: MathNode }) {
-  const typeMeta = getNodeTypeMeta(node.nodeType);
-  const verMeta = getVerificationMeta(node.verification);
+  const { locale, isZh } = useLanguage();
+  const typeMeta = getNodeTypeMeta(node.nodeType, locale);
+  const verMeta = getVerificationMeta(node.verification, locale);
 
   return (
     <div className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-80 p-4 rounded-xl glass-panel-glow bg-slate-900/95 border border-cyan-500/40 shadow-2xl text-left pointer-events-auto transition-all animate-in fade-in duration-200">
@@ -29,8 +32,8 @@ export function NodeHoverCard({ node }: { node: MathNode }) {
         <span className="text-[10px] text-slate-400 font-mono">MSC {node.mscCode}</span>
       </div>
 
-      <h4 className="font-bold text-slate-100 text-sm mb-1 line-clamp-1">{node.titleZh}</h4>
-      <p className="text-xs text-slate-400 font-mono mb-2 line-clamp-1">{node.titleEn}</p>
+      <h4 className="font-bold text-slate-100 text-sm mb-1 line-clamp-1">{isZh ? node.titleZh : node.titleEn}</h4>
+      <p className="text-xs text-slate-400 font-mono mb-2 line-clamp-1">{isZh ? node.titleEn : node.titleZh}</p>
 
       {/* Render Formula Snippet */}
       <div className="bg-slate-950/80 p-2 rounded-lg border border-slate-800 text-xs overflow-x-auto text-cyan-200 mb-2">
@@ -46,7 +49,7 @@ export function NodeHoverCard({ node }: { node: MathNode }) {
           href={`/node/${node.slug}`}
           className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-medium hover:underline text-xs"
         >
-          探索节点 <ArrowRight className="w-3 h-3" />
+          {isZh ? '探索节点' : 'Explore node'} <ArrowRight className="w-3 h-3" />
         </Link>
       </div>
       <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px border-4 border-transparent border-t-slate-900" />
@@ -84,6 +87,7 @@ function escapeHtml(str: string): string {
 
 // Interactive Bidirectional Link [[Node Name]] Component
 function MathWikiLink({ targetTitle }: { targetTitle: string }) {
+  const { locale } = useLanguage();
   const [isHovered, setIsHovered] = useState(false);
 
   const matchedNode = useMemo(() => {
@@ -112,7 +116,7 @@ function MathWikiLink({ targetTitle }: { targetTitle: string }) {
         className="inline-flex items-center gap-0.5 text-cyan-300 font-medium hover:text-cyan-200 bg-cyan-950/40 hover:bg-cyan-900/50 px-1.5 py-0.5 rounded border border-cyan-500/30 transition-colors mx-0.5"
       >
         <Sparkles className="w-3 h-3 text-cyan-400" />
-        {matchedNode.titleZh}
+        {getNodeTitle(matchedNode, locale)}
       </Link>
       {isHovered && <NodeHoverCard node={matchedNode} />}
     </span>
