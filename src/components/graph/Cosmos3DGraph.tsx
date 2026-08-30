@@ -111,6 +111,9 @@ export default function Cosmos3DGraph() {
   const panOffsetRef = useRef({ x: 0, y: 0 });
   const isDraggingRef = useRef(false);
   const isPanningRef = useRef(false);
+  // True while the pointer (or an active touch) is over the canvas; used to
+  // pause the ambient rotation so aimed-at nodes stop drifting under the cursor.
+  const isPointerOverCanvasRef = useRef(false);
   const lastMouseRef = useRef({ x: 0, y: 0, time: 0 });
 
   // Width-aware initial framing: at the default zoom the galaxy spans ≈530px, so on
@@ -369,10 +372,17 @@ export default function Cosmos3DGraph() {
             y: fly.startPan.y + (fly.targetPan.y - fly.startPan.y) * ease,
           };
         }
-      } else if (isRotatingRef.current && !isDraggingRef.current && !isPanningRef.current) {
-        // Slow ambient cosmic rotation
-        rotationRef.current.x += 0.0008;
-        rotationRef.current.y += 0.0022;
+      } else if (
+        isRotatingRef.current &&
+        !isDraggingRef.current &&
+        !isPanningRef.current &&
+        !isPointerOverCanvasRef.current
+      ) {
+        // Slow ambient cosmic rotation. Deliberately paused while the pointer
+        // hovers the canvas so the user can aim at nodes; leaving the canvas
+        // resumes the cruise, and Freeze View stops it entirely.
+        rotationRef.current.x += 0.0003;
+        rotationRef.current.y += 0.0008;
       }
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -813,6 +823,31 @@ export default function Cosmos3DGraph() {
     isPanningRef.current = false;
   };
 
+  // Pointer-over tracking: pauses the ambient rotation while the user aims at
+  // the canvas (see the render-loop guard) and resumes it on leave. Mouse-leave
+  // still runs the usual mouse-up cleanup.
+  const handleMouseEnter = () => {
+    isPointerOverCanvasRef.current = true;
+  };
+
+  const handleMouseLeave = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    isPointerOverCanvasRef.current = false;
+    handleMouseUp(e);
+  };
+
+  // Touch equivalent: pause the ambient rotation only while a finger is down.
+  const handleTouchStart = () => {
+    isPointerOverCanvasRef.current = true;
+  };
+
+  const handleTouchEnd = () => {
+    isPointerOverCanvasRef.current = false;
+  };
+
+  const handleTouchCancel = () => {
+    isPointerOverCanvasRef.current = false;
+  };
+
   const handleDoubleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const hit = findNodeUnderMouse(e.clientX, e.clientY);
     if (hit) {
@@ -1012,7 +1047,11 @@ export default function Cosmos3DGraph() {
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchCancel}
           onDoubleClick={handleDoubleClick}
           onWheel={handleWheel}
           className="w-full h-full block"
