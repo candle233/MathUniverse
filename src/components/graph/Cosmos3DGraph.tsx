@@ -824,15 +824,28 @@ export default function Cosmos3DGraph() {
   };
 
   // Pointer-over tracking: pauses the ambient rotation while the user aims at
-  // the canvas (see the render-loop guard) and resumes it on leave. Mouse-leave
-  // still runs the usual mouse-up cleanup.
-  const handleMouseEnter = () => {
-    isPointerOverCanvasRef.current = true;
+  // the canvas (see the render-loop guard) and resumes it on leave. Gated to
+  // `pointerType === 'mouse'` because on touch devices the browser synthesizes
+  // compat mouse events (mouseenter without a matching mouseleave), which would
+  // wedge the ref true and permanently stop the cruise after the first tap.
+  // Pointer leave still runs the mouse-up cleanup for ANY pointer type so an
+  // in-progress drag/pan is released when the pointer exits the canvas.
+  const handlePointerEnter = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (e.pointerType === 'mouse') {
+      isPointerOverCanvasRef.current = true;
+    }
   };
 
-  const handleMouseLeave = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    isPointerOverCanvasRef.current = false;
+  const handlePointerLeave = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (e.pointerType === 'mouse') {
+      isPointerOverCanvasRef.current = false;
+    }
     handleMouseUp(e);
+  };
+
+  // Safety net: a canceled pointer must never leave the hover ref stuck true.
+  const handlePointerCancel = () => {
+    isPointerOverCanvasRef.current = false;
   };
 
   // Touch equivalent: pause the ambient rotation only while a finger is down.
@@ -1047,8 +1060,9 @@ export default function Cosmos3DGraph() {
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
+          onPointerEnter={handlePointerEnter}
+          onPointerLeave={handlePointerLeave}
+          onPointerCancel={handlePointerCancel}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
           onTouchCancel={handleTouchCancel}
