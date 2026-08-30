@@ -929,9 +929,14 @@ export default function Cosmos3DGraph() {
       {/* Main 3D Cosmos Viewport with HUD Overlays */}
       <div
         ref={containerRef}
-        className={`relative w-full h-[580px] bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden cursor-grab active:cursor-grabbing ${
-          isCssFullscreen ? 'fixed inset-0 z-[60] h-auto rounded-none' : ''
-        }`}
+        className={`${
+          // Position class must be EXCLUSIVE per state: in Tailwind's compiled
+          // output `.relative` is emitted after `.fixed`, so keeping both would
+          // leave the container `relative` and make `inset-0` inert.
+          isCssFullscreen
+            ? 'fixed inset-0 z-[60] h-auto rounded-none'
+            : 'relative'
+        } w-full h-[580px] bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden cursor-grab active:cursor-grabbing`}
       >
         <canvas
           ref={canvasRef}
