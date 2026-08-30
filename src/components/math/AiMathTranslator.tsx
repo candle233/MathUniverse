@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { InlineLaTeX } from '@/components/math/LaTeXRenderer';
 import { useLanguage } from '@/context/LanguageContext';
 import { Bot, Sparkles, Copy, Check, ArrowRight, ShieldCheck, BookOpen, Layers, Terminal } from 'lucide-react';
@@ -120,6 +120,19 @@ export default function AiMathTranslator() {
   const [isTranslating, setIsTranslating] = useState(false);
   const [copiedLatex, setCopiedLatex] = useState(false);
   const [copiedLean, setCopiedLean] = useState(false);
+
+  // Re-seed the textarea when the locale changes (the useState initializer above
+  // runs before the stored locale is resolved). Only untouched preset text is
+  // replaced; content the user has typed or edited is preserved as-is.
+  useEffect(() => {
+    setInputText((current) => {
+      const matched = translationPresets.find(
+        (p) => p.naturalLanguage === current || p.naturalLanguageEn === current
+      );
+      if (!matched) return current;
+      return isZh ? matched.naturalLanguage : matched.naturalLanguageEn;
+    });
+  }, [isZh]);
 
   const handleSelectPreset = (preset: TranslationPreset) => {
     setActivePreset(preset);
