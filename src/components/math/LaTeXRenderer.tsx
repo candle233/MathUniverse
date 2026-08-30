@@ -33,7 +33,7 @@ export function NodeHoverCard({ node }: { node: MathNode }) {
       </div>
 
       <h4 className="font-bold text-slate-100 text-sm mb-1 line-clamp-1">{isZh ? node.titleZh : node.titleEn}</h4>
-      <p className="text-xs text-slate-400 font-mono mb-2 line-clamp-1">{isZh ? node.titleEn : node.titleZh}</p>
+      {isZh && <p className="text-xs text-slate-400 font-mono mb-2 line-clamp-1">{node.titleEn}</p>}
 
       {/* Render Formula Snippet */}
       <div className="bg-slate-950/80 p-2 rounded-lg border border-slate-800 text-xs overflow-x-auto text-cyan-200 mb-2">

@@ -108,7 +108,7 @@ theorem ${thmName} :
                   <div key={m.id} className="p-3 rounded-xl bg-slate-900 border border-cyan-500/30 flex items-center justify-between text-xs">
                     <div>
                       <span className="font-bold text-slate-200">{getNodeTitle(m, locale)}</span>
-                      <p className="text-[11px] text-slate-400 font-mono">MSC {m.mscCode} • {isZh ? m.titleEn : m.titleZh}</p>
+                      <p className="text-[11px] text-slate-400 font-mono">MSC {m.mscCode}{isZh ? ` • ${m.titleEn}` : ''}</p>
                     </div>
                     <button
                       onClick={() => handleCopy(`[[${isZh ? m.titleZh : m.titleEn}]]`, m.id)}

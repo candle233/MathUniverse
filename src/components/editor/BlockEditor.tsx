@@ -20,7 +20,7 @@ const SEED_INTUITION_EN =
 const SEED_TEXT_ZH =
   '引入一元非负实二次函数 $P(t) = \\|u - t v\\|^2 \\ge 0$，展开后由判别式 $\\Delta \\le 0$ 可立得证明。参考前置基础概念：[[数列极限 (ε-N 定义)]]。';
 const SEED_TEXT_EN =
-  'Introduce the nonnegative quadratic $P(t) = \\|u - t v\\|^2 \\ge 0$; expanding it, the discriminant $\\Delta \\le 0$ yields the proof at once. See the prerequisite concept: [[Sequence Limit (ε-N Definition)]].';
+  'Introduce the nonnegative quadratic $P(t) = \\|u - t v\\|^2 \\ge 0$; expanding it, the discriminant $\\Delta \\le 0$ yields the proof at once. See the prerequisite concept: [[Limit of a Sequence]].';
 
 export default function BlockEditor({ onSave }: { onSave?: (blocks: EditorBlock[]) => void }) {
   const { isZh } = useLanguage();
