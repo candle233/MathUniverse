@@ -123,7 +123,7 @@ export default function GlobalSearchModal() {
                   const meta = getNodeTypeMeta(node.nodeType, locale);
                   const isSelected = index === selectedIndex;
                   const primaryTitle = getNodeTitle(node, locale);
-                  const secondaryTitle = locale === 'zh' ? node.titleEn : node.titleZh;
+                  const secondaryTitle = locale === 'zh' ? node.titleEn : null;
 
                   return (
                     <div

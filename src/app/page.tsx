@@ -207,10 +207,10 @@ export default function HomePage() {
         {/* Theorem Card Grid with Decoupled Language Display */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredNodes.map((node) => {
-            const meta = getNodeTypeMeta(node.nodeType);
-            const verMeta = getVerificationMeta(node.verification);
+            const meta = getNodeTypeMeta(node.nodeType, locale);
+            const verMeta = getVerificationMeta(node.verification, locale);
             const displayTitle = getNodeTitle(node, locale);
-            const secondaryTitle = locale === 'zh' ? node.titleEn : node.titleZh;
+            const secondaryTitle = locale === 'zh' ? node.titleEn : null;
 
             return (
               <Link
@@ -230,7 +230,9 @@ export default function HomePage() {
                     <h3 className="text-base font-bold text-slate-100 group-hover:text-cyan-300 transition-colors">
                       {displayTitle}
                     </h3>
-                    <p className="text-xs text-slate-400 font-mono line-clamp-1">{secondaryTitle}</p>
+                    {secondaryTitle && (
+                      <p className="text-xs text-slate-400 font-mono line-clamp-1">{secondaryTitle}</p>
+                    )}
                   </div>
 
                   {/* Formula Box */}

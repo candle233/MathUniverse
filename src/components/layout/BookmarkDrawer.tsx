@@ -73,10 +73,11 @@ export default function BookmarkDrawer() {
 
     bookmarkedNodes.forEach((n, idx) => {
       const title = getNodeTitle(n, locale);
-      mdContent += `## ${idx + 1}. ${title} (${n.titleEn || n.titleZh})\n`;
+      const crossTitle = isZh ? n.titleEn || n.titleZh : null;
+      mdContent += `## ${idx + 1}. ${title}${crossTitle ? ` (${crossTitle})` : ''}\n`;
       mdContent += `- **${isZh ? '类型' : 'Type'}**: ${n.nodeType} (MSC ${n.mscCode})\n`;
       mdContent += `- **${isZh ? '公式' : 'Formula'}**: $${n.statementLatex}$\n`;
-      mdContent += `- **${isZh ? '释义' : 'Statement'}**: ${n.statementPlainZh}\n\n`;
+      mdContent += `- **${isZh ? '释义' : 'Statement'}**: ${(isZh || !n.statementPlainEn) ? n.statementPlainZh : n.statementPlainEn}\n\n`;
     });
 
     const blob = new Blob([mdContent], { type: 'text/markdown;charset=utf-8;' });
@@ -144,7 +145,7 @@ export default function BookmarkDrawer() {
                 bookmarkedNodes.map((node) => {
                   const meta = getNodeTypeMeta(node.nodeType, locale);
                   const title = getNodeTitle(node, locale);
-                  const secondaryTitle = locale === 'zh' ? node.titleEn : node.titleZh;
+                  const secondaryTitle = locale === 'zh' ? node.titleEn : null;
 
                   return (
                     <div

@@ -150,15 +150,15 @@ export default function NodeDetailClient({ node }: NodeDetailClientProps) {
     }, 2500);
   };
 
-  const typeMeta = getNodeTypeMeta(node.nodeType);
-  const verMeta = getVerificationMeta(node.verification);
+  const typeMeta = getNodeTypeMeta(node.nodeType, locale);
+  const verMeta = getVerificationMeta(node.verification, locale);
   const discipline = disciplines.find((d) => d.id === node.disciplineId);
 
   const prerequisiteNodes = initialMathNodes.filter((n) => node.dependencies.includes(n.id));
   const dependentNodes = initialMathNodes.filter((n) => node.dependents.includes(n.id));
 
   const displayTitle = getNodeTitle(node, locale);
-  const secondaryTitle = locale === 'zh' ? node.titleEn : node.titleZh;
+  const secondaryTitle = locale === 'zh' ? node.titleEn : null;
   const statementContent = getNodeStatement(node, locale);
 
   return (
