@@ -296,6 +296,21 @@ export default function Cosmos3DGraph() {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
+  // Flag the body while the chart is fullscreen (either native or CSS-fallback
+  // mode) so globals.css can hide the Next.js dev-tools indicator, which would
+  // otherwise overlap the on-canvas controls. `nextjs-portal` only exists in
+  // development, so production rendering is unaffected.
+  useEffect(() => {
+    if (isFullscreen) {
+      document.body.setAttribute('data-chart-fullscreen', '1');
+    } else {
+      document.body.removeAttribute('data-chart-fullscreen');
+    }
+    return () => {
+      document.body.removeAttribute('data-chart-fullscreen');
+    };
+  }, [isFullscreen]);
+
   // Main 3D Canvas Perspective Render Loop
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -953,7 +968,7 @@ export default function Cosmos3DGraph() {
 
         {/* Top-Left Learning Metric HUD Panel (collapsible; compact pill when collapsed) */}
         {closureResult && !isLeftPanelCollapsed && (
-          <div className={`absolute ${isCssFullscreen ? 'top-16' : 'top-4'} left-4 p-4 rounded-2xl glass-panel-glow border border-cyan-500/40 space-y-3 max-w-sm text-xs pointer-events-auto backdrop-blur-md shadow-2xl`}>
+          <div className={`absolute ${isCssFullscreen ? 'top-16' : 'top-4'} left-4 p-4 rounded-2xl glass-panel-glow border border-cyan-500/40 space-y-3 max-w-[calc(100%-11.5rem)] sm:max-w-sm text-xs pointer-events-auto backdrop-blur-md shadow-2xl`}>
             <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-800">
               <span className="font-bold text-slate-100 flex items-center gap-1.5 min-w-0">
                 <Compass className="w-4 h-4 shrink-0 text-cyan-400" />
@@ -1047,14 +1062,13 @@ export default function Cosmos3DGraph() {
           >
             <Compass className="w-3.5 h-3.5 shrink-0 text-cyan-400" />
             <span>{isZh ? '学习路径' : 'Learning Path'}</span>
-            <span className="text-amber-400 font-mono font-bold">{closureResult.readinessPercentage}%</span>
             <ChevronDown className="w-3.5 h-3.5 shrink-0 text-slate-400" />
           </button>
         )}
 
         {/* Top-Right Node Inspector Floating Card (collapsible; compact pill when collapsed) */}
         {selectedNode && !isRightPanelCollapsed && (
-          <div className={`absolute ${isCssFullscreen ? 'top-16' : 'top-4'} right-4 w-80 p-4 rounded-2xl glass-panel-glow border border-cyan-500/40 text-left shadow-2xl backdrop-blur-md pointer-events-auto space-y-2.5`}>
+          <div className={`absolute ${isCssFullscreen ? 'top-16' : 'top-4'} right-4 max-w-[calc(100%-11.5rem)] sm:w-80 p-4 rounded-2xl glass-panel-glow border border-cyan-500/40 text-left shadow-2xl backdrop-blur-md pointer-events-auto space-y-2.5`}>
             <div className="flex items-center justify-between gap-1">
               <span
                 className={`text-[10px] px-2.5 py-0.5 rounded-full border font-semibold shrink-0 ${
@@ -1131,7 +1145,6 @@ export default function Cosmos3DGraph() {
           >
             <Eye className="w-3.5 h-3.5 shrink-0 text-cyan-400" />
             <span className="shrink-0">{isZh ? '节点详情' : 'Node Details'}</span>
-            <span className="truncate max-w-[7rem] text-slate-300 font-mono">{getNodeTitle(selectedNode, locale)}</span>
             <ChevronDown className="w-3.5 h-3.5 shrink-0 text-slate-400" />
           </button>
         )}

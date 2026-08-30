@@ -91,3 +91,10 @@ body {
 body {
   overflow-x: clip;
 }
+
+/* Hide the Next.js dev-tools indicator while a chart is fullscreen (either
+   native or CSS-fallback mode; see Cosmos3DGraph's data-chart-fullscreen body
+   flag). `nextjs-portal` only exists in development, so production is unaffected. */
+body[data-chart-fullscreen] nextjs-portal {
+  display: none !important;
+}
