@@ -2,16 +2,19 @@
 
 import React, { useState } from 'react';
 import { Sparkles, Terminal, CheckCircle2, Play, RotateCcw, HelpCircle, Code2, ArrowRight } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface TacticScenario {
   id: string;
   name: string;
+  nameEn: string;
   statement: string;
   initialHypotheses: Array<{ name: string; type: string }>;
   initialTarget: string;
   steps: Array<{
     tactic: string;
     description: string;
+    descriptionEn: string;
     resultHypotheses: Array<{ name: string; type: string }>;
     resultTarget: string;
     isCompleted?: boolean;
@@ -22,6 +25,7 @@ export const tacticScenarios: TacticScenario[] = [
   {
     id: 'prop-and-intro',
     name: '命题逻辑：合取引入 (P → Q → P ∧ Q)',
+    nameEn: 'Propositional logic: conjunction intro (P → Q → P ∧ Q)',
     statement: 'theorem and_intro (P Q : Prop) : P → Q → P ∧ Q',
     initialHypotheses: [
       { name: 'P', type: 'Prop' },
@@ -32,6 +36,7 @@ export const tacticScenarios: TacticScenario[] = [
       {
         tactic: 'intro hP hQ',
         description: '将蕴含式的前件引入为局部假设 hP : P 与 hQ : Q',
+        descriptionEn: 'Introduces the antecedents of the implication as the local hypotheses hP : P and hQ : Q',
         resultHypotheses: [
           { name: 'P', type: 'Prop' },
           { name: 'Q', type: 'Prop' },
@@ -43,6 +48,7 @@ export const tacticScenarios: TacticScenario[] = [
       {
         tactic: 'exact ⟨hP, hQ⟩',
         description: '以合取构造子 ⟨hP, hQ⟩ 直接封闭目标项',
+        descriptionEn: 'Closes the goal term directly with the conjunction constructor ⟨hP, hQ⟩',
         resultHypotheses: [
           { name: 'hP', type: 'P' },
           { name: 'hQ', type: 'Q' },
@@ -55,6 +61,7 @@ export const tacticScenarios: TacticScenario[] = [
   {
     id: 'prop-or-comm',
     name: '析取对称性：(P ∨ Q → Q ∨ P)',
+    nameEn: 'Disjunction symmetry (P ∨ Q → Q ∨ P)',
     statement: 'theorem or_comm (P Q : Prop) : P ∨ Q → Q ∨ P',
     initialHypotheses: [
       { name: 'P', type: 'Prop' },
@@ -65,6 +72,7 @@ export const tacticScenarios: TacticScenario[] = [
       {
         tactic: 'intro h',
         description: '引入析取假设 h : P ∨ Q',
+        descriptionEn: 'Introduces the disjunction hypothesis h : P ∨ Q',
         resultHypotheses: [
           { name: 'h', type: 'P ∨ Q' },
         ],
@@ -73,6 +81,7 @@ export const tacticScenarios: TacticScenario[] = [
       {
         tactic: 'rcases h with hP | hQ',
         description: '对析取命题进行分情况讨论 (Case Analysis)',
+        descriptionEn: 'Splits the disjunction into cases (case analysis)',
         resultHypotheses: [
           { name: 'case 1 (hP)', type: 'hP : P ⊢ Q ∨ P' },
           { name: 'case 2 (hQ)', type: 'hQ : Q ⊢ Q ∨ P' },
@@ -82,6 +91,7 @@ export const tacticScenarios: TacticScenario[] = [
       {
         tactic: 'exact Or.inr hP',
         description: '完成全部子目标验证',
+        descriptionEn: 'Discharges the remaining subgoal',
         resultHypotheses: [],
         resultTarget: 'Goals accomplished! 🎉',
         isCompleted: true,
@@ -91,6 +101,7 @@ export const tacticScenarios: TacticScenario[] = [
   {
     id: 'nat-add-zero',
     name: '皮亚诺算术：零元恒等式 (n + 0 = n)',
+    nameEn: 'Peano arithmetic: additive identity (n + 0 = n)',
     statement: 'theorem nat_add_zero (n : ℕ) : n + 0 = n',
     initialHypotheses: [
       { name: 'n', type: 'ℕ' },
@@ -100,6 +111,7 @@ export const tacticScenarios: TacticScenario[] = [
       {
         tactic: 'rfl',
         description: '依加法定义，n + 0 规约为定义等价 (Definitional Equality)，通过反射律直接关闭证明',
+        descriptionEn: 'By the definition of addition, n + 0 reduces by definitional equality, so reflexivity closes the proof directly',
         resultHypotheses: [
           { name: 'n', type: 'ℕ' },
         ],
@@ -111,6 +123,7 @@ export const tacticScenarios: TacticScenario[] = [
 ];
 
 export default function LeanTacticSimulator() {
+  const { isZh } = useLanguage();
   const [selectedScenarioIdx, setSelectedScenarioIdx] = useState(0);
   const [currentStepIdx, setCurrentStepIdx] = useState(-1);
 
@@ -149,10 +162,14 @@ export default function LeanTacticSimulator() {
           </div>
           <div>
             <h3 className="font-bold text-slate-100 text-sm">
-              证明策略状态机模拟器 (Demo · 模拟 Lean 4 状态机)
+              {isZh
+                ? '证明策略状态机模拟器 (Demo · 模拟 Lean 4 状态机)'
+                : 'Proof Tactic State Machine Simulator (Demo · simulated Lean 4)'}
             </h3>
             <p className="text-xs text-slate-400">
-              交互式演示每一步策略（intro / rw / rcases / exact）如何实时转换上下文假设与目标
+              {isZh
+                ? '交互式演示每一步策略（intro / rw / rcases / exact）如何实时转换上下文假设与目标'
+                : 'Interactive demo of how each tactic (intro / rw / rcases / exact) transforms the context hypotheses and goal in real time'}
             </p>
           </div>
         </div>
@@ -172,7 +189,7 @@ export default function LeanTacticSimulator() {
                   : 'bg-slate-900 text-slate-400 hover:text-slate-200'
               }`}
             >
-              {sc.name.split('：')[0]}
+              {(isZh ? sc.name : sc.nameEn).split(isZh ? '：' : ':')[0]}
             </button>
           ))}
         </div>
@@ -188,12 +205,12 @@ export default function LeanTacticSimulator() {
         {/* Left: Tactic Step Execution */}
         <div className="md:col-span-6 space-y-4">
           <div className="flex items-center justify-between text-xs font-semibold text-slate-300">
-            <span>策略执行链条 (Tactics Sequence):</span>
+            <span>{isZh ? '策略执行链条 (Tactics Sequence):' : 'Tactic sequence:'}</span>
             <button
               onClick={handleReset}
               className="text-[11px] text-slate-500 hover:text-slate-300 flex items-center gap-1 cursor-pointer"
             >
-              <RotateCcw className="w-3 h-3" /> 重置证明
+              <RotateCcw className="w-3 h-3" /> {isZh ? '重置证明' : 'Reset proof'}
             </button>
           </div>
 
@@ -219,7 +236,7 @@ export default function LeanTacticSimulator() {
                     </span>
                     {isExecuted && <CheckCircle2 className="w-3.5 h-3.5 text-teal-400" />}
                   </div>
-                  <p className="text-[11px] text-slate-400 font-sans">{step.description}</p>
+                  <p className="text-[11px] text-slate-400 font-sans">{isZh ? step.description : step.descriptionEn}</p>
                 </div>
               );
             })}
@@ -231,7 +248,7 @@ export default function LeanTacticSimulator() {
               className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-slate-950 font-bold text-xs shadow-lg shadow-teal-500/20 transition-all cursor-pointer"
             >
               <Play className="w-3.5 h-3.5" />
-              <span>执行下一步策略 ({scenario.steps[currentStepIdx + 1]?.tactic})</span>
+              <span>{isZh ? '执行下一步策略' : 'Run next tactic'} ({scenario.steps[currentStepIdx + 1]?.tactic})</span>
             </button>
           )}
         </div>
@@ -240,7 +257,7 @@ export default function LeanTacticSimulator() {
         <div className="md:col-span-6 space-y-4">
           <div className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
             <Code2 className="w-4 h-4 text-emerald-400" />
-            <span>演示：模拟的证明状态（非真实 LSP）</span>
+            <span>{isZh ? '演示：模拟的证明状态（非真实 LSP）' : 'Demo: simulated proof state (not a real LSP)'}</span>
           </div>
 
           <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 font-mono text-xs space-y-4 shadow-inner min-h-[220px]">
@@ -260,7 +277,7 @@ export default function LeanTacticSimulator() {
                   ))}
                 </div>
               ) : (
-                <span className="text-slate-600 text-[11px]">无上下文假设</span>
+                <span className="text-slate-600 text-[11px]">{isZh ? '无上下文假设' : 'No context hypotheses'}</span>
               )}
             </div>
 

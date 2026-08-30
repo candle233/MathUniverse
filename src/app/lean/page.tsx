@@ -7,9 +7,12 @@ import MathlibFinder from '@/components/lean/MathlibFinder';
 import LeanTacticSimulator from '@/components/lean/LeanTacticSimulator';
 import LeanTacticsDeck from '@/components/lean/LeanTacticsDeck';
 import AiMathTranslator from '@/components/math/AiMathTranslator';
+import { useLanguage } from '@/context/LanguageContext';
+import { getNodeTitle } from '@/lib/i18nHelper';
 import { ShieldCheck, BookOpen, Sparkles, Cpu, CheckCircle2 } from 'lucide-react';
 
 export default function LeanPage() {
+  const { locale, isZh } = useLanguage();
   const formalizableNodes = initialMathNodes.filter((n) => n.leanFormalization);
   const [selectedNodeId, setSelectedNodeId] = useState(formalizableNodes[0]?.id || 'thm-cauchy-schwarz');
 
@@ -25,17 +28,19 @@ export default function LeanPage() {
               <ShieldCheck className="w-4 h-4" />
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-100">
-              Lean 4 Web 零算力形式化验证实验室
+              {isZh ? 'Lean 4 Web 零算力形式化验证实验室' : 'Lean 4 Web: Zero-Compute Formal Verification Lab'}
             </h1>
           </div>
           <p className="text-xs text-slate-400">
-            基于 WebAssembly (WASM) 技术，在用户浏览器中直接运行 Lean 4 编译器与证明状态 LSP
+            {isZh
+              ? '基于 WebAssembly (WASM) 技术，在用户浏览器中直接运行 Lean 4 编译器与证明状态 LSP'
+              : 'Runs the Lean 4 compiler and proof-state LSP directly in your browser via WebAssembly (WASM)'}
           </p>
         </div>
 
         {/* Quick Theorem Selector */}
         <div className="flex items-center gap-2 min-w-0 flex-wrap">
-          <span className="text-xs text-slate-400">加载形式化定理:</span>
+          <span className="text-xs text-slate-400">{isZh ? '加载形式化定理:' : 'Load a formalized theorem:'}</span>
           <select
             value={selectedNodeId}
             onChange={(e) => setSelectedNodeId(e.target.value)}
@@ -43,7 +48,7 @@ export default function LeanPage() {
           >
             {formalizableNodes.map((n) => (
               <option key={n.id} value={n.id}>
-                {n.titleZh} ({n.leanFormalization?.theoremName})
+                {getNodeTitle(n, locale)} ({n.leanFormalization?.theoremName})
               </option>
             ))}
           </select>
