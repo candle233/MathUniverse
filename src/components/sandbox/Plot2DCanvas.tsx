@@ -2,6 +2,7 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import { PlotDataPayload } from '../../types/sandbox.ts';
+import { useLanguage } from '@/context/LanguageContext';
 import { ZoomIn, ZoomOut, RotateCcw, Crosshair } from 'lucide-react';
 
 interface Plot2DCanvasProps {
@@ -17,6 +18,7 @@ export default function Plot2DCanvas({
   height = 360,
   className = '',
 }: Plot2DCanvasProps) {
+  const { isZh } = useLanguage();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [zoom, setZoom] = useState<number>(1.0);
   const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -51,7 +53,7 @@ export default function Plot2DCanvas({
       ctx.fillStyle = '#475569';
       ctx.font = '12px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText('等待计算绘图数据...', w / 2, h / 2);
+      ctx.fillText(isZh ? '等待计算绘图数据...' : 'Waiting for plot data...', w / 2, h / 2);
       return;
     }
 
@@ -238,8 +240,8 @@ export default function Plot2DCanvas({
     ctx.fillStyle = '#f1f5f9';
     ctx.font = 'bold 11px monospace';
     ctx.textAlign = 'left';
-    ctx.fillText(payload.title || '2D 函数与动力系统交互图 (2D Function & Phase Canvas)', pad, pad - 12);
-  }, [payload, zoom, pan, width, height]);
+    ctx.fillText(payload.title || (isZh ? '2D 函数与动力系统交互图 (2D Function & Phase Canvas)' : '2D Function & Phase Canvas'), pad, pad - 12);
+  }, [payload, zoom, pan, width, height, isZh]);
 
   // Mouse Handlers for Pan & Hover
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -298,21 +300,21 @@ export default function Plot2DCanvas({
         <button
           onClick={() => setZoom((z) => Math.min(5, z * 1.25))}
           className="p-1 rounded hover:bg-slate-800 text-slate-300 hover:text-cyan-300 transition-colors"
-          title="放大"
+          title={isZh ? '放大' : 'Zoom in'}
         >
           <ZoomIn className="w-3.5 h-3.5" />
         </button>
         <button
           onClick={() => setZoom((z) => Math.max(0.2, z / 1.25))}
           className="p-1 rounded hover:bg-slate-800 text-slate-300 hover:text-cyan-300 transition-colors"
-          title="缩小"
+          title={isZh ? '缩小' : 'Zoom out'}
         >
           <ZoomOut className="w-3.5 h-3.5" />
         </button>
         <button
           onClick={resetView}
           className="p-1 rounded hover:bg-slate-800 text-slate-300 hover:text-cyan-300 transition-colors"
-          title="重置视角"
+          title={isZh ? '重置视角' : 'Reset view'}
         >
           <RotateCcw className="w-3.5 h-3.5" />
         </button>

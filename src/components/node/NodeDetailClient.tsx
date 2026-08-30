@@ -509,14 +509,15 @@ export default function NodeDetailClient({ node }: NodeDetailClientProps) {
               <div className="p-6 rounded-2xl border border-slate-800 bg-slate-950 space-y-4">
                 <div className="flex items-center gap-2 text-sm font-bold text-amber-400">
                   <Quote className="w-4 h-4" />
-                  <span>参考来源说明 (References Note)</span>
+                  <span>{isZh ? '参考来源说明 (References Note)' : 'References note'}</span>
                 </div>
                 <p className="text-xs text-slate-400">
-                  本节点是演示条目。一键导出的 BibTeX/AMS/APA 引用此前指向不存在的期刊与域名，
-                  已被移除。请引用原始来源（如论文、教材、Mathlib 官方证明）而非此演示节点。
+                  {isZh
+                    ? '本节点是演示条目。一键导出的 BibTeX/AMS/APA 引用此前指向不存在的期刊与域名， 已被移除。请引用原始来源（如论文、教材、Mathlib 官方证明）而非此演示节点。'
+                    : 'This node is a demo entry. The one-click BibTeX/AMS/APA citations previously pointed to non-existent journals and domains and have been removed. Please cite the original sources (papers, textbooks, or official Mathlib proofs) rather than this demo node.'}
                 </p>
                 <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-[11px] font-mono text-slate-300 overflow-x-auto">
-                  Mathlib: {node.leanFormalization?.mathlibImports?.join(', ') || '(无)'}
+                  Mathlib: {node.leanFormalization?.mathlibImports?.join(', ') || (isZh ? '(无)' : '(none)')}
                 </div>
               </div>
 
@@ -524,10 +525,12 @@ export default function NodeDetailClient({ node }: NodeDetailClientProps) {
               <div className="p-6 rounded-2xl border border-slate-800 bg-slate-950 space-y-4">
                 <div className="flex items-center gap-2 text-sm font-bold text-cyan-400">
                   <BookOpen className="w-4 h-4" />
-                  <span>文献批注与参考书目 (Bibliography & Notes)</span>
+                  <span>{isZh ? '文献批注与参考书目 (Bibliography & Notes)' : 'Bibliography & Notes'}</span>
                 </div>
                 <p className="text-xs text-slate-400">
-                  为本定理添加经典教材、专著章节或 arXiv 预印本文献批注
+                  {isZh
+                    ? '为本定理添加经典教材、专著章节或 arXiv 预印本文献批注'
+                    : 'Add literature annotations citing classic textbooks, monograph chapters, or arXiv preprints for this theorem'}
                 </p>
 
                 {/* List of custom references */}
@@ -547,13 +550,13 @@ export default function NodeDetailClient({ node }: NodeDetailClientProps) {
 
                 {/* Add reference form */}
                 <form onSubmit={handleAddCustomRef} className="pt-3 border-t border-slate-800 space-y-2.5 text-xs">
-                  <div className="font-semibold text-slate-300">添加新的参考书目 / 论文:</div>
+                  <div className="font-semibold text-slate-300">{isZh ? '添加新的参考书目 / 论文:' : 'Add a new reference / paper:'}</div>
                   <input
                     type="text"
                     required
                     value={newRefForm.title}
                     onChange={(e) => setNewRefForm({ ...newRefForm, title: e.target.value })}
-                    placeholder="文献 / 书名 (如: Real and Complex Analysis)"
+                    placeholder={isZh ? '文献 / 书名 (如: Real and Complex Analysis)' : 'Reference / book title (e.g. Real and Complex Analysis)'}
                     className="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded-xl px-3 py-2 outline-none focus:border-cyan-500"
                   />
                   <div className="grid grid-cols-2 gap-2">
@@ -561,14 +564,14 @@ export default function NodeDetailClient({ node }: NodeDetailClientProps) {
                       type="text"
                       value={newRefForm.authors}
                       onChange={(e) => setNewRefForm({ ...newRefForm, authors: e.target.value })}
-                      placeholder="作者 (如: Walter Rudin)"
+                      placeholder={isZh ? '作者 (如: Walter Rudin)' : 'Author (e.g. Walter Rudin)'}
                       className="bg-slate-900 border border-slate-700 text-slate-200 rounded-xl px-3 py-2 outline-none focus:border-cyan-500"
                     />
                     <input
                       type="text"
                       value={newRefForm.year}
                       onChange={(e) => setNewRefForm({ ...newRefForm, year: e.target.value })}
-                      placeholder="年份 (如: 1987)"
+                      placeholder={isZh ? '年份 (如: 1987)' : 'Year (e.g. 1987)'}
                       className="bg-slate-900 border border-slate-700 text-slate-200 rounded-xl px-3 py-2 outline-none focus:border-cyan-500"
                     />
                   </div>
@@ -577,7 +580,7 @@ export default function NodeDetailClient({ node }: NodeDetailClientProps) {
                     className="w-full flex items-center justify-center gap-1.5 py-2 px-4 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs shadow-md shadow-cyan-500/20 transition-colors cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    <span>添加引用至本节点</span>
+                    <span>{isZh ? '添加引用至本节点' : 'Add citation to this node'}</span>
                   </button>
                 </form>
               </div>
@@ -589,8 +592,8 @@ export default function NodeDetailClient({ node }: NodeDetailClientProps) {
           <div className="space-y-6">
             <div className="flex items-center justify-between p-4 bg-slate-900/60 border border-slate-800 rounded-2xl">
               <div>
-                <h3 className="font-bold text-slate-200 text-xs">针对本定理提交同行修订提案</h3>
-                <p className="text-[11px] text-slate-400">发现公式勘误、更优直觉解释或更新 Lean 4 证明，可随时提交 PR</p>
+                <h3 className="font-bold text-slate-200 text-xs">{isZh ? '针对本定理提交同行修订提案' : 'Submit a peer revision proposal for this theorem'}</h3>
+                <p className="text-[11px] text-slate-400">{isZh ? '发现公式勘误、更优直觉解释或更新 Lean 4 证明，可随时提交 PR' : 'Spotted a formula erratum, a better intuition, or an updated Lean 4 proof? Submit a PR anytime'}</p>
               </div>
               <SubmitPrModal />
             </div>

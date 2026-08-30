@@ -1,30 +1,67 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Proof, MathNode } from '@/types/math';
 import LaTeXRenderer, { InlineLaTeX } from '@/components/math/LaTeXRenderer';
+import { useLanguage } from '@/context/LanguageContext';
 import { Lightbulb, CheckSquare, MessageSquare, ThumbsUp, User, ChevronDown, ChevronUp, Send, ShieldCheck } from 'lucide-react';
 
 interface ProofViewerProps {
   node: MathNode;
 }
 
+// Demo step comments, seeded per locale. The useState initializer below runs
+// before the stored locale is resolved, so the demo comments are re-seeded on
+// locale change; comments added by the user keep their original text.
+const demoCommentSeed = (zh: boolean): Record<number, Array<{ id: string; user: string; text: string; time: string }>> => ({
+  1: [
+    {
+      id: 'c1',
+      user: 'Serre_Fan',
+      text: zh
+        ? '这一步中引入的二次型构造非常巧妙，在复空间需要注意共轭对称性。'
+        : 'The quadratic-form construction introduced in this step is elegant — watch the conjugate symmetry in complex space.',
+      time: zh ? '2小时前' : '2 hours ago',
+    },
+  ],
+  2: [
+    {
+      id: 'c2',
+      user: 'AnalysisRookie',
+      text: zh
+        ? '请问如果判别式等于 0，是否意味着两个向量严格共线？'
+        : 'If the discriminant equals 0, does that mean the two vectors are strictly collinear?',
+      time: zh ? '5小时前' : '5 hours ago',
+    },
+  ],
+});
+
 export default function ProofViewer({ node }: ProofViewerProps) {
+  const { isZh } = useLanguage();
   const [activeProofIndex, setActiveProofIndex] = useState(0);
   const [viewMode, setViewMode] = useState<'intuition' | 'rigorous'>('rigorous');
   const [expandedStep, setExpandedStep] = useState<number | null>(1);
   const [activeCommentStep, setActiveCommentStep] = useState<number | null>(null);
-  
+
   // Local comment mock state
-  const [stepComments, setStepComments] = useState<Record<number, Array<{ id: string; user: string; text: string; time: string }>>>({
-    1: [
-      { id: 'c1', user: 'Serre_Fan', text: '这一步中引入的二次型构造非常巧妙，在复空间需要注意共轭对称性。', time: '2小时前' }
-    ],
-    2: [
-      { id: 'c2', user: 'AnalysisRookie', text: '请问如果判别式等于 0，是否意味着两个向量严格共线？', time: '5小时前' }
-    ]
-  });
+  const [stepComments, setStepComments] = useState<Record<number, Array<{ id: string; user: string; text: string; time: string }>>>(
+    demoCommentSeed(isZh)
+  );
   const [newCommentText, setNewCommentText] = useState('');
+
+  // Re-seed demo comments when the locale changes (see demoCommentSeed above).
+  useEffect(() => {
+    const seed = demoCommentSeed(isZh);
+    const demoById = new Map([...seed[1], ...seed[2]].map((c) => [c.id, c]));
+    setStepComments((prev) => {
+      const next: typeof prev = {};
+      for (const key of Object.keys(prev)) {
+        const step = Number(key);
+        next[step] = prev[step].map((c) => demoById.get(c.id) || c);
+      }
+      return next;
+    });
+  }, [isZh]);
 
   const currentProof = node.proofs[activeProofIndex] || node.proofs[0];
 
@@ -34,7 +71,7 @@ export default function ProofViewer({ node }: ProofViewerProps) {
       ...prev,
       [stepIdx]: [
         ...(prev[stepIdx] || []),
-        { id: `c-${Date.now()}`, user: 'You (Researcher)', text: newCommentText.trim(), time: '刚刚' }
+        { id: `c-${Date.now()}`, user: 'You (Researcher)', text: newCommentText.trim(), time: isZh ? '刚刚' : 'just now' }
       ]
     }));
     setNewCommentText('');
@@ -43,7 +80,7 @@ export default function ProofViewer({ node }: ProofViewerProps) {
   if (!currentProof) {
     return (
       <div className="p-8 rounded-2xl bg-slate-900 border border-slate-800 text-center text-slate-400">
-        该节点暂无证明记录，欢迎提交首个 Pull Request！
+        {isZh ? '该节点暂无证明记录，欢迎提交首个 Pull Request！' : 'No proofs recorded for this node yet — be the first to submit a Pull Request!'}
       </div>
     );
   }
@@ -80,7 +117,7 @@ export default function ProofViewer({ node }: ProofViewerProps) {
             }`}
           >
             <Lightbulb className="w-3.5 h-3.5" />
-            <span>直觉与动机 (Intuition)</span>
+            <span>{isZh ? '直觉与动机 (Intuition)' : 'Intuition'}</span>
           </button>
           <button
             onClick={() => setViewMode('rigorous')}
@@ -91,7 +128,7 @@ export default function ProofViewer({ node }: ProofViewerProps) {
             }`}
           >
             <CheckSquare className="w-3.5 h-3.5" />
-            <span>严谨推导 (Rigorous Proof)</span>
+            <span>{isZh ? '严谨推导 (Rigorous Proof)' : 'Rigorous proof'}</span>
           </button>
         </div>
       </div>
@@ -106,7 +143,7 @@ export default function ProofViewer({ node }: ProofViewerProps) {
           <span className="text-amber-400 font-mono text-[11px]">★ {currentProof.author.reputation}</span>
           {currentProof.author.isModerator && (
             <span className="px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 text-[10px] font-medium border border-purple-500/30">
-              领域专家
+              {isZh ? '领域专家' : 'Domain expert'}
             </span>
           )}
         </div>
@@ -115,19 +152,19 @@ export default function ProofViewer({ node }: ProofViewerProps) {
           {currentProof.verification === 'PEER_REVIEWED' && (
             <span className="text-amber-400 flex items-center gap-1 text-xs">
               <ShieldCheck className="w-3.5 h-3.5" />
-              标记为人工同行评审通过（演示）
+              {isZh ? '标记为人工同行评审通过（演示）' : 'Marked as peer-reviewed (demo)'}
             </span>
           )}
           {currentProof.verification === 'FORMALLY_VERIFIED' && (
             <span className="text-emerald-400 flex items-center gap-1 text-xs">
               <ShieldCheck className="w-3.5 h-3.5" />
-              标记为形式化通过（演示 · 未运行真实 Lean 内核）
+              {isZh ? '标记为形式化通过（演示 · 未运行真实 Lean 内核）' : 'Formally verified (demo · real Lean kernel not run)'}
             </span>
           )}
           {(currentProof.verification === 'UNVERIFIED' || currentProof.verification === 'VERIFICATION_FAILED') && (
             <span className="text-slate-400 flex items-center gap-1 text-xs">
               <ShieldCheck className="w-3.5 h-3.5" />
-              未评审
+              {isZh ? '未评审' : 'Unreviewed'}
             </span>
           )}
           <button className="flex items-center gap-1 text-slate-400 hover:text-cyan-400 text-xs">
@@ -143,7 +180,7 @@ export default function ProofViewer({ node }: ProofViewerProps) {
           <div className="space-y-4">
             <div className="p-4 rounded-xl bg-amber-950/20 border border-amber-500/30 text-amber-200 text-xs leading-relaxed">
               <div className="font-semibold flex items-center gap-1.5 mb-1 text-amber-300">
-                <Lightbulb className="w-4 h-4" /> 为什么这个结论是自然的？
+                <Lightbulb className="w-4 h-4" /> {isZh ? '为什么这个结论是自然的？' : 'Why is this result natural?'}
               </div>
               <div className="leading-relaxed">
                 <LaTeXRenderer content={currentProof.motivation} />
@@ -168,8 +205,8 @@ export default function ProofViewer({ node }: ProofViewerProps) {
             {currentProof.steps && currentProof.steps.length > 0 && (
               <div className="space-y-3 pt-2">
                 <div className="flex items-center justify-between text-xs font-semibold text-slate-300 pb-1 border-b border-slate-800">
-                  <span>拆解推导步骤与行内讨论 (Step-level Inline Annotations):</span>
-                  <span className="text-slate-500">点击右侧气泡可针对某一步发起研讨</span>
+                  <span>{isZh ? '拆解推导步骤与行内讨论 (Step-level Inline Annotations):' : 'Step-by-step breakdown with inline discussion:'}</span>
+                  <span className="text-slate-500">{isZh ? '点击右侧气泡可针对某一步发起研讨' : 'Click a bubble to start a discussion on any step'}</span>
                 </div>
 
                 <div className="space-y-3">
@@ -205,7 +242,7 @@ export default function ProofViewer({ node }: ProofViewerProps) {
                               className="flex items-center gap-1 text-slate-400 hover:text-cyan-300 text-xs px-2 py-1 rounded bg-slate-800"
                             >
                               <MessageSquare className="w-3.5 h-3.5 text-cyan-400" />
-                              <span>{comments.length} 讨论</span>
+                              <span>{comments.length} {isZh ? '讨论' : comments.length === 1 ? 'discussion' : 'discussions'}</span>
                             </button>
                             {isOpen ? <ChevronUp className="w-4 h-4 text-slate-500" /> : <ChevronDown className="w-4 h-4 text-slate-500" />}
                           </div>
@@ -222,7 +259,7 @@ export default function ProofViewer({ node }: ProofViewerProps) {
                               <div className="p-3.5 rounded-xl bg-slate-950 border border-cyan-500/30 space-y-3 animate-in fade-in">
                                 <div className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
                                   <MessageSquare className="w-3.5 h-3.5 text-cyan-400" />
-                                  <span>针对 Step {step.stepIndex} 的学术研讨：</span>
+                                  <span>{isZh ? `针对 Step ${step.stepIndex} 的学术研讨：` : `Discussion for Step ${step.stepIndex}:`}</span>
                                 </div>
 
                                 {/* Comment List */}
@@ -244,7 +281,7 @@ export default function ProofViewer({ node }: ProofViewerProps) {
                                     type="text"
                                     value={newCommentText}
                                     onChange={(e) => setNewCommentText(e.target.value)}
-                                    placeholder="输入你的数学推导疑问或修正建议 (支持 LaTeX $...$)"
+                                    placeholder={isZh ? '输入你的数学推导疑问或修正建议 (支持 LaTeX $...$)' : 'Ask a question or suggest a correction (LaTeX $...$ supported)'}
                                     className="flex-1 bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-lg px-3 py-2 outline-none focus:border-cyan-400"
                                     onKeyDown={(e) => e.key === 'Enter' && handleAddComment(step.stepIndex)}
                                   />

@@ -3,6 +3,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Surface3DMesh, Attractor3DTrajectory } from '../../types/sandbox.ts';
 import { generateParametricSurfaceMesh, solveODE_RK4, ParametricSurfaceType } from '../../lib/mathCompute.ts';
+import { useLanguage } from '@/context/LanguageContext';
 import { RotateCw, Play, Pause, Layers, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 
 interface Plot3DSurfaceProps {
@@ -22,6 +23,7 @@ export default function Plot3DSurface({
   height = 400,
   className = '',
 }: Plot3DSurfaceProps) {
+  const { isZh } = useLanguage();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Surface or Attractor selection
@@ -234,13 +236,13 @@ export default function Plot3DSurface({
       {/* Surface Type Selector */}
       <div className="absolute top-2 left-2 flex flex-wrap gap-1 bg-slate-900/90 p-1.5 rounded-lg border border-slate-800 backdrop-blur-md max-w-[80%]">
         {[
-          { id: 'mobius', label: '莫比乌斯带' },
-          { id: 'torus', label: '环面 (Torus)' },
-          { id: 'hyperbolic_paraboloid', label: '双曲抛物面 (马鞍面)' },
-          { id: 'catenoid', label: '悬链面' },
-          { id: 'helicoid', label: '正螺旋面' },
-          { id: 'enneper', label: '恩内佩尔极小曲面' },
-          { id: 'lorenz_attractor', label: 'Lorenz 3D 混沌吸引子' },
+          { id: 'mobius', label: isZh ? '莫比乌斯带' : 'Möbius strip' },
+          { id: 'torus', label: isZh ? '环面 (Torus)' : 'Torus' },
+          { id: 'hyperbolic_paraboloid', label: isZh ? '双曲抛物面 (马鞍面)' : 'Hyperbolic paraboloid (saddle)' },
+          { id: 'catenoid', label: isZh ? '悬链面' : 'Catenoid' },
+          { id: 'helicoid', label: isZh ? '正螺旋面' : 'Helicoid' },
+          { id: 'enneper', label: isZh ? '恩内佩尔极小曲面' : 'Enneper surface' },
+          { id: 'lorenz_attractor', label: isZh ? 'Lorenz 3D 混沌吸引子' : 'Lorenz attractor' },
         ].map((item) => (
           <button
             key={item.id}
@@ -263,7 +265,7 @@ export default function Plot3DSurface({
           className={`p-1.5 rounded transition-colors ${
             autoRotate ? 'text-cyan-400 bg-slate-800' : 'text-slate-400 hover:text-slate-200'
           }`}
-          title={autoRotate ? '暂停旋转' : '自动旋转'}
+          title={autoRotate ? (isZh ? '暂停旋转' : 'Pause rotation') : (isZh ? '自动旋转' : 'Auto-rotate')}
         >
           {autoRotate ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
         </button>
@@ -272,21 +274,21 @@ export default function Plot3DSurface({
           className={`p-1.5 rounded transition-colors ${
             wireframe ? 'text-cyan-400 bg-slate-800' : 'text-slate-400 hover:text-slate-200'
           }`}
-          title="切换线框模式"
+          title={isZh ? '切换线框模式' : 'Toggle wireframe'}
         >
           <Layers className="w-3.5 h-3.5" />
         </button>
         <button
           onClick={() => setZoom((z) => Math.min(3, z * 1.2))}
           className="p-1.5 rounded hover:bg-slate-800 text-slate-400 hover:text-slate-200"
-          title="放大"
+          title={isZh ? '放大' : 'Zoom in'}
         >
           <ZoomIn className="w-3.5 h-3.5" />
         </button>
         <button
           onClick={() => setZoom((z) => Math.max(0.4, z / 1.2))}
           className="p-1.5 rounded hover:bg-slate-800 text-slate-400 hover:text-slate-200"
-          title="缩小"
+          title={isZh ? '缩小' : 'Zoom out'}
         >
           <ZoomOut className="w-3.5 h-3.5" />
         </button>
@@ -297,14 +299,14 @@ export default function Plot3DSurface({
             setZoom(1.1);
           }}
           className="p-1.5 rounded hover:bg-slate-800 text-slate-400 hover:text-slate-200"
-          title="重置视角"
+          title={isZh ? '重置视角' : 'Reset view'}
         >
           <RotateCcw className="w-3.5 h-3.5" />
         </button>
       </div>
 
       <div className="absolute bottom-2 right-2 text-[10px] font-mono text-slate-500 pointer-events-none">
-        拖拽鼠标交互式旋转 · 3D 矩阵投影渲染
+        {isZh ? '拖拽鼠标交互式旋转 · 3D 矩阵投影渲染' : 'Drag to rotate interactively · 3D matrix projection rendering'}
       </div>
     </div>
   );

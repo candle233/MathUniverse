@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { ParameterSliderConfig } from '../../types/sandbox.ts';
+import { useLanguage } from '@/context/LanguageContext';
 import { Sliders, RotateCcw } from 'lucide-react';
 
 interface ParameterSlidersProps {
@@ -18,9 +19,10 @@ export default function ParameterSliders({
   values,
   onChange,
   onReset,
-  title = '实时参数控制滑块 (Interactive Parameter Controls)',
+  title,
   className = '',
 }: ParameterSlidersProps) {
+  const { isZh } = useLanguage();
   const configList = (Array.isArray(configs)
     ? configs.map((c, i) => ({ ...c, id: c.id || `param_${i}` }))
     : Object.entries(configs).map(([id, cfg]) => ({ ...cfg, id: cfg.id || id }))) as Array<ParameterSliderConfig & { id: string }>;
@@ -32,15 +34,15 @@ export default function ParameterSliders({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-xs font-semibold text-slate-200">
           <Sliders className="w-3.5 h-3.5 text-cyan-400" />
-          <span>{title}</span>
+          <span>{title || (isZh ? '实时参数控制滑块 (Interactive Parameter Controls)' : 'Interactive Parameter Controls')}</span>
         </div>
         {onReset && (
           <button
             onClick={onReset}
             className="flex items-center gap-1 px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 text-[11px] font-mono transition-colors cursor-pointer"
-            title="重置为默认值"
+            title={isZh ? '重置为默认值' : 'Reset to defaults'}
           >
-            <RotateCcw className="w-3 h-3" /> 重置
+            <RotateCcw className="w-3 h-3" /> {isZh ? '重置' : 'Reset'}
           </button>
         )}
       </div>
