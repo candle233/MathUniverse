@@ -314,7 +314,7 @@ export default function Plot2DCanvas({
         <button
           onClick={resetView}
           className="p-1 rounded hover:bg-slate-800 text-slate-300 hover:text-cyan-300 transition-colors"
-          title={isZh ? '重置视角' : 'Reset view'}
+          title={isZh ? '重置视角' : 'Reset View'}
         >
           <RotateCcw className="w-3.5 h-3.5" />
         </button>

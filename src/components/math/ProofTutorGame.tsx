@@ -3,21 +3,27 @@
 import React, { useState } from 'react';
 import { InlineLaTeX } from '@/components/math/LaTeXRenderer';
 import { Trophy, CheckCircle2, XCircle, HelpCircle, Sparkles, RotateCcw, ArrowRight, Award } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface ProofChallenge {
   id: string;
   title: string;
+  titleEn: string;
   theoremLatex: string;
   goal: string;
+  goalEn: string;
   steps: Array<{
     stepNumber: number;
     prompt: string;
+    promptEn: string;
     options: Array<{
       id: string;
       text: string;
+      textEn: string;
       latex?: string;
       isCorrect: boolean;
       explanation: string;
+      explanationEn: string;
     }>;
   }>;
 }
@@ -26,69 +32,88 @@ export const proofChallenges: ProofChallenge[] = [
   {
     id: 'challenge-cauchy-schwarz',
     title: '柯西-施瓦茨不等式形式化推导挑战',
+    titleEn: 'Cauchy-Schwarz Inequality: Formal Derivation Challenge',
     theoremLatex: '|\\langle u, v \\rangle|^2 \\le \\langle u, u \\rangle \\cdot \\langle v, v \\rangle',
     goal: '在实内积空间 V 中，利用内积正定性证明柯西不等式',
+    goalEn: 'Prove the Cauchy-Schwarz inequality in a real inner product space V using positive definiteness of the inner product',
     steps: [
       {
         stepNumber: 1,
         prompt: '第一步：为了利用内积的正定性 \\(\\langle w, w \\rangle \\ge 0\\)，我们应当构造怎样的一个关于实参数 \\(t\\) 的向量？',
+        promptEn: 'Step 1: To exploit positive definiteness \\(\\langle w, w \\rangle \\ge 0\\), which vector in the real parameter \\(t\\) should we construct?',
         options: [
           {
             id: 'opt-1a',
             text: '构造关于参数 t 的差向量 w = u - t v',
+            textEn: 'Construct the difference vector w = u - t v in the parameter t',
             latex: 'w = u - tv \\implies \\|u - tv\\|^2 \\ge 0',
             isCorrect: true,
             explanation: '正确！利用实参数 t 线性组合可构造关于 t 的一元二次非负函数。',
+            explanationEn: 'Correct! A linear combination with a real parameter t yields a univariate quadratic non-negative function in t.',
           },
           {
             id: 'opt-1b',
             text: '直接展开 \\(\\langle u+v, u+v \\rangle\\)',
+            textEn: 'Directly expand \\(\\langle u+v, u+v \\rangle\\)',
             isCorrect: false,
             explanation: '错误。直接展开只能得到 \\|u+v\\|^2 = \\|u\\|^2 + 2\\langle u,v \\rangle + \\|v\\|^2，无法导出乘积不等式。',
+            explanationEn: 'Incorrect. Direct expansion only gives \\|u+v\\|^2 = \\|u\\|^2 + 2\\langle u,v \\rangle + \\|v\\|^2, which cannot produce the product inequality.',
           },
           {
             id: 'opt-1c',
             text: '假设向量 u 与 v 互相正交',
+            textEn: 'Assume the vectors u and v are orthogonal',
             isCorrect: false,
             explanation: '错误。正交只是极特殊的情形，不能作为一般性证明的起点。',
+            explanationEn: 'Incorrect. Orthogonality is a highly special case and cannot start a general proof.',
           },
         ],
       },
       {
         stepNumber: 2,
         prompt: '第二步：展开范数平方 \\(f(t) = \\|u - tv\\|^2 = \\langle u-tv, u-tv \\rangle\\)，得到的关于 \\(t\\) 的二次函数表达式是什么？',
+        promptEn: 'Step 2: Expanding the squared norm \\(f(t) = \\|u - tv\\|^2 = \\langle u-tv, u-tv \\rangle\\), what is the resulting quadratic expression in \\(t\\)?',
         options: [
           {
             id: 'opt-2a',
             text: '标准二次型：At^2 + Bt + C',
+            textEn: 'The standard quadratic form: At^2 + Bt + C',
             latex: 'f(t) = \\langle v,v \\rangle t^2 - 2\\langle u,v \\rangle t + \\langle u,u \\rangle \\ge 0',
             isCorrect: true,
             explanation: '正确！由内积的双线性性，展开得 A = \\|v\\|^2, B = -2\\langle u,v \\rangle, C = \\|u\\|^2。',
+            explanationEn: 'Correct! By bilinearity of the inner product, expansion gives A = \\|v\\|^2, B = -2\\langle u,v \\rangle, C = \\|u\\|^2.',
           },
           {
             id: 'opt-2b',
             text: 'f(t) = t^2 (u \\cdot v) + t(u+v)',
+            textEn: 'f(t) = t^2 (u \\cdot v) + t(u+v)',
             isCorrect: false,
             explanation: '错误。内积展开并不包含单纯的向量求和项。',
+            explanationEn: 'Incorrect. The inner-product expansion contains no plain vector-sum term.',
           },
         ],
       },
       {
         stepNumber: 3,
         prompt: '第三步：因为对任意实数 \\(t\\)，二次函数 \\(f(t) \\ge 0\\) 恒非负，该多项式的判别式 \\(\\Delta = B^2 - 4AC\\) 必须满足什么条件？',
+        promptEn: 'Step 3: Since \\(f(t) \\ge 0\\) for every real \\(t\\), what must the discriminant \\(\\Delta = B^2 - 4AC\\) of this polynomial satisfy?',
         options: [
           {
             id: 'opt-3a',
             text: '判别式必有 Delta <= 0',
+            textEn: 'The discriminant must satisfy Delta <= 0',
             latex: '\\Delta = 4|\\langle u,v \\rangle|^2 - 4\\|u\\|^2\\|v\\|^2 \\le 0 \\implies |\\langle u,v \\rangle|^2 \\le \\|u\\|^2\\|v\\|^2',
             isCorrect: true,
             explanation: '完美通关！函数图象恒在 x 轴上方或与 x 轴相切，判别式小于等于 0 导出柯西-施瓦茨不等式！',
+            explanationEn: 'Perfect run! The parabola stays above the x-axis or touches it, so a discriminant <= 0 yields the Cauchy-Schwarz inequality!',
           },
           {
             id: 'opt-3b',
             text: '判别式 Delta > 0',
+            textEn: 'The discriminant Delta > 0',
             isCorrect: false,
             explanation: '错误。若 Delta > 0 则二次方程有两个相异实根，图像会穿越 x 轴导致部分区域为负值，与正定性矛盾。',
+            explanationEn: 'Incorrect. If Delta > 0 the quadratic has two distinct real roots, the graph crosses the x-axis and goes negative somewhere — contradicting positive definiteness.',
           },
         ],
       },
@@ -97,44 +122,56 @@ export const proofChallenges: ProofChallenge[] = [
   {
     id: 'challenge-lagrange',
     title: '拉格朗日群论定理陪集划分推导挑战',
+    titleEn: "Lagrange's Theorem: Coset Partition Derivation Challenge",
     theoremLatex: '|G| = [G : H] \\cdot |H|',
     goal: '证明有限群 G 的子群 H 的阶整除群阶 |G|',
+    goalEn: "Show that the order of a subgroup H of a finite group G divides the group order |G|",
     steps: [
       {
         stepNumber: 1,
         prompt: '第一步：在群 G 上定义元素间的哪种等价关系？',
+        promptEn: 'Step 1: Which equivalence relation between elements should be defined on the group G?',
         options: [
           {
             id: 'lag-1a',
             text: '同余等价关系 a ~ b <=> a^-1 b in H',
+            textEn: 'The congruence relation a ~ b <=> a^-1 b in H',
             latex: 'a \\sim b \\iff a^{-1}b \\in H',
             isCorrect: true,
             explanation: '正确！该等价关系将群 G 完全划分为左陪集 aH 的不相交之并。',
+            explanationEn: 'Correct! This equivalence relation partitions G exactly into a disjoint union of left cosets aH.',
           },
           {
             id: 'lag-1b',
             text: '定义 a ~ b <=> ab = e',
+            textEn: 'Define a ~ b <=> ab = e',
             isCorrect: false,
             explanation: '错误。这只能配对互逆元素，不能形成子群陪集划分。',
+            explanationEn: 'Incorrect. This only pairs mutually inverse elements and cannot form a coset partition.',
           },
         ],
       },
       {
         stepNumber: 2,
         prompt: '第二步：如何证明每个左陪集 \\(aH\\) 的元素个数严格等于 \\(|H|\\)？',
+        promptEn: 'Step 2: How do we prove that each left coset \\(aH\\) has exactly \\(|H|\\) elements?',
         options: [
           {
             id: 'lag-2a',
             text: '构造映射 h |-> ah，由群中左消去律证明其为双射 (Bijection)',
+            textEn: 'Build the map h |-> ah and prove it is a bijection via left cancellation',
             latex: '\\phi: H \\to aH, \\; h \\mapsto ah \\implies |aH| = |H|',
             isCorrect: true,
             explanation: '正确！左乘 a 构成集合间的双射，故所有陪集大小相同。',
+            explanationEn: 'Correct! Left multiplication by a is a bijection between sets, so every coset has the same size.',
           },
           {
             id: 'lag-2b',
             text: '直接使用抽屉原理',
+            textEn: 'Apply the pigeonhole principle directly',
             isCorrect: false,
             explanation: '错误。需要严格建立双射映射并验证单射与满射。',
+            explanationEn: 'Incorrect. A rigorous bijection must be constructed and both injectivity and surjectivity verified.',
           },
         ],
       },
@@ -143,6 +180,7 @@ export const proofChallenges: ProofChallenge[] = [
 ];
 
 export default function ProofTutorGame() {
+  const { isZh } = useLanguage();
   const [activeChallengeIdx, setActiveChallengeIdx] = useState(0);
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
@@ -199,10 +237,10 @@ export default function ProofTutorGame() {
           </div>
           <div>
             <h3 className="font-bold text-slate-100 text-sm">
-              形式化证明交互式推导闯关 (Interactive Proof Tutor Game)
+              {isZh ? '形式化证明交互式推导闯关 (Interactive Proof Tutor Game)' : 'Interactive Proof Tutor Game (Formal Derivation)'}
             </h3>
             <p className="text-xs text-slate-400">
-              扮演数学家，在每一步逻辑推导中选择正确的引理与策略，完成定理严格机器验证
+              {isZh ? '扮演数学家，在每一步逻辑推导中选择正确的引理与策略，完成定理严格机器验证' : 'Play the mathematician: pick the right lemma and strategy at every step and finish rigorous machine verification of the theorem'}
             </p>
           </div>
         </div>
@@ -210,7 +248,7 @@ export default function ProofTutorGame() {
         {/* Score & Challenge Switcher */}
         <div className="flex items-center gap-3">
           <div className="px-3 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-mono font-bold">
-            得分: {score} pts
+            {isZh ? '得分' : 'Score'}: {score} pts
           </div>
           <div className="flex items-center gap-1.5">
             {proofChallenges.map((c, idx) => (
@@ -223,7 +261,7 @@ export default function ProofTutorGame() {
                     : 'bg-slate-900 text-slate-400 hover:text-slate-200'
                 }`}
               >
-                {c.title.split('形式化')[0]}
+                {isZh ? c.title.split('形式化')[0] : c.titleEn.split(':')[0]}
               </button>
             ))}
           </div>
@@ -233,7 +271,7 @@ export default function ProofTutorGame() {
       {/* Theorem Header */}
       <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2">
         <div className="flex items-center justify-between text-xs">
-          <span className="text-slate-300 font-bold">{challenge.title}</span>
+          <span className="text-slate-300 font-bold">{isZh ? challenge.title : challenge.titleEn}</span>
           <span className="text-slate-500 font-mono">
             Step {currentStepIdx + 1} of {challenge.steps.length}
           </span>
@@ -241,14 +279,14 @@ export default function ProofTutorGame() {
         <div className="p-2 bg-slate-950 rounded-lg border border-slate-800 text-cyan-200 text-center font-mono text-xs">
           <InlineLaTeX formula={challenge.theoremLatex} displayMode={true} />
         </div>
-        <p className="text-xs text-slate-400">{challenge.goal}</p>
+        <p className="text-xs text-slate-400">{isZh ? challenge.goal : challenge.goalEn}</p>
       </div>
 
       {/* Game Step Area */}
       {!completed ? (
         <div className="space-y-4">
           <div className="text-sm font-semibold text-slate-200 leading-relaxed">
-            {step.prompt}
+            {isZh ? step.prompt : step.promptEn}
           </div>
 
           {/* Options Grid */}
@@ -274,7 +312,7 @@ export default function ProofTutorGame() {
                   className={`p-4 rounded-xl border transition-all cursor-pointer text-xs space-y-2 ${btnStyle}`}
                 >
                   <div className="flex items-center justify-between font-medium">
-                    <span>{opt.text}</span>
+                    <span>{isZh ? opt.text : opt.textEn}</span>
                     {isAnswered && opt.isCorrect && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
                     {isAnswered && isSelected && !opt.isCorrect && <XCircle className="w-4 h-4 text-rose-400" />}
                   </div>
@@ -302,16 +340,16 @@ export default function ProofTutorGame() {
                 {chosenOption.isCorrect ? (
                   <>
                     <Sparkles className="w-4 h-4 text-emerald-400" />
-                    <span>推导正确！(+100 分)</span>
+                    <span>{isZh ? '推导正确！(+100 分)' : 'Correct derivation! (+100 pts)'}</span>
                   </>
                 ) : (
                   <>
                     <HelpCircle className="w-4 h-4 text-rose-400" />
-                    <span>推导有误</span>
+                    <span>{isZh ? '推导有误' : 'Incorrect derivation'}</span>
                   </>
                 )}
               </div>
-              <p className="leading-relaxed text-slate-300">{chosenOption.explanation}</p>
+              <p className="leading-relaxed text-slate-300">{isZh ? chosenOption.explanation : chosenOption.explanationEn}</p>
             </div>
           )}
 
@@ -322,7 +360,7 @@ export default function ProofTutorGame() {
                 onClick={handleNextStep}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition-all cursor-pointer"
               >
-                <span>{currentStepIdx < challenge.steps.length - 1 ? '进入下一步推导' : '完成通关'}</span>
+                <span>{currentStepIdx < challenge.steps.length - 1 ? (isZh ? '进入下一步推导' : 'Next derivation step') : (isZh ? '完成通关' : 'Finish challenge')}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -334,9 +372,13 @@ export default function ProofTutorGame() {
           <div className="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 mx-auto">
             <Award className="w-8 h-8" />
           </div>
-          <h3 className="text-xl font-bold text-slate-100">🎉 恭喜通关！完成形式化推导</h3>
+          <h3 className="text-xl font-bold text-slate-100">{isZh ? '🎉 恭喜通关！完成形式化推导' : '🎉 Challenge complete! Formal derivation finished'}</h3>
           <p className="text-xs text-slate-300 max-w-md mx-auto leading-relaxed">
-            你已成功完成 {challenge.title} 的所有演绎步骤。获得数学形式化掌握勋章与 {score} 点声望奖励！
+            {isZh ? (
+              <>你已成功完成 {challenge.title} 的所有演绎步骤。获得数学形式化掌握勋章与 {score} 点声望奖励！</>
+            ) : (
+              <>You completed every derivation step of {challenge.titleEn}. Awarded the Formalization Mastery badge and {score} reputation points!</>
+            )}
           </p>
           <div className="pt-2">
             <button
@@ -344,7 +386,7 @@ export default function ProofTutorGame() {
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-colors cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span>重新挑战本定理</span>
+              <span>{isZh ? '重新挑战本定理' : 'Retry this theorem'}</span>
             </button>
           </div>
         </div>

@@ -29,6 +29,7 @@ async function initPyodideRuntime(packages = ['sympy', 'numpy']) {
       type: 'STATUS',
       state: 'loading',
       message: '正在从 CDN 加载 Pyodide WebAssembly 运行时 (0.26.4)...',
+      messageEn: 'Loading the Pyodide WebAssembly runtime from CDN (0.26.4)...',
       progress: 20,
     });
 
@@ -39,6 +40,7 @@ async function initPyodideRuntime(packages = ['sympy', 'numpy']) {
       type: 'STATUS',
       state: 'loading',
       message: '初始化 Python 虚拟机环境...',
+      messageEn: 'Initializing the Python virtual machine environment...',
       progress: 50,
     });
 
@@ -51,6 +53,7 @@ async function initPyodideRuntime(packages = ['sympy', 'numpy']) {
       type: 'STATUS',
       state: 'installing',
       message: '预热数学库 (SymPy 符号代数 & NumPy 矩阵运算)...',
+      messageEn: 'Prewarming the math libraries (SymPy symbolic algebra & NumPy matrix ops)...',
       progress: 75,
     });
 
@@ -89,6 +92,7 @@ def _format_latex_safe(obj):
       type: 'STATUS',
       state: 'ready',
       message: 'Pyodide + SymPy 就绪 (0ms 交互延迟)',
+      messageEn: 'Pyodide + SymPy ready (0ms interaction latency)',
       progress: 100,
     });
 
@@ -104,6 +108,7 @@ def _format_latex_safe(obj):
       type: 'STATUS',
       state: 'error',
       message: `Pyodide 加载失败: ${error.message || error}`,
+      messageEn: `Pyodide failed to load: ${error.message || error}`,
     });
   }
 }
@@ -117,6 +122,7 @@ async function runPythonCode(payload) {
       runId,
       errorType: 'RuntimeNotReady',
       errorMessage: 'Pyodide WebAssembly 运行时尚未就绪，请等待初始化完成。',
+      errorMessageEn: 'The Pyodide WebAssembly runtime is not ready yet — please wait for initialization to finish.',
     });
     return;
   }
@@ -237,6 +243,7 @@ async function verifyClaim(payload) {
       maxError: 1.0,
       sampleCount: 0,
       details: 'Pyodide 未就绪，无法执行 Python 验证',
+      detailsEn: 'Pyodide is not ready — unable to run the Python verification',
       durationMs: 0,
     });
     return;
@@ -263,6 +270,7 @@ for _k, _v in params.items():
     let maxError = 0;
     let sampleCount = 1;
     let details = '验证执行完毕';
+    let detailsEn = 'Verification finished';
 
     if (rawResult && typeof rawResult === 'object') {
       try {
@@ -272,11 +280,13 @@ for _k, _v in params.items():
           maxError = Number(dict.get('max_error') || 0);
           sampleCount = Number(dict.get('sample_count') || 1);
           details = String(dict.get('details') || (passed ? 'Python / SymPy 验证通过' : 'Python 验证未通过'));
+          detailsEn = String(dict.get('detailsEn') || dict.get('details') || (passed ? 'Python / SymPy verification passed' : 'Python verification failed'));
         } else if (typeof dict === 'object') {
           passed = Boolean(dict.passed);
           maxError = Number(dict.max_error || 0);
           sampleCount = Number(dict.sample_count || 1);
           details = String(dict.details || (passed ? 'Python / SymPy 验证通过' : 'Python 验证未通过'));
+          detailsEn = String(dict.detailsEn || dict.details || (passed ? 'Python / SymPy verification passed' : 'Python verification failed'));
         }
       } catch (e) {
         passed = Boolean(rawResult);
@@ -284,6 +294,7 @@ for _k, _v in params.items():
     } else if (typeof rawResult === 'boolean') {
       passed = rawResult;
       details = passed ? 'Python / SymPy 断言成立 (True)' : 'Python 断言失败 (False)';
+      detailsEn = passed ? 'Python / SymPy assertion holds (True)' : 'Python assertion failed (False)';
     }
 
     self.postMessage({
@@ -295,6 +306,7 @@ for _k, _v in params.items():
       maxError,
       sampleCount,
       details,
+      detailsEn,
       durationMs,
     });
   } catch (err) {
@@ -308,6 +320,7 @@ for _k, _v in params.items():
       maxError: 1.0,
       sampleCount: 0,
       details: `Python 验证执行异常: ${err.message || err}`,
+      detailsEn: `Python verification threw an exception: ${err.message || err}`,
       durationMs,
     });
   }

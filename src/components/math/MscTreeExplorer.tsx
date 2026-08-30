@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Folder, FolderOpen, FileText, ChevronRight, ChevronDown, BookOpen, Layers, ShieldCheck } from 'lucide-react';
 import { getNodeTypeMeta } from '@/lib/utils';
 import { InlineLaTeX } from '@/components/math/LaTeXRenderer';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface MscNode {
   code: string;
@@ -78,6 +79,7 @@ export const mscHierarchy: MscNode[] = [
 ];
 
 export default function MscTreeExplorer() {
+  const { isZh } = useLanguage();
   const [expandedCodes, setExpandedCodes] = useState<Set<string>>(new Set(['26', '20', '11', '58']));
   const [selectedCode, setSelectedCode] = useState<string>('all');
 
@@ -105,10 +107,10 @@ export default function MscTreeExplorer() {
           </div>
           <div>
             <h3 className="font-bold text-slate-100 text-sm">
-              MSC 2020 数学学科分类目录树 (AMS Subject Classification)
+              {isZh ? 'MSC 2020 数学学科分类目录树 (AMS Subject Classification)' : 'MSC 2020 Subject Classification Tree (AMS)'}
             </h3>
             <p className="text-xs text-slate-400">
-              国际数学联合会 (IMU) 与美国数学会 (AMS) 标准分类代码体系
+              {isZh ? '国际数学联合会 (IMU) 与美国数学会 (AMS) 标准分类代码体系' : 'The standard classification code system of the IMU and the American Mathematical Society (AMS)'}
             </p>
           </div>
         </div>
@@ -121,14 +123,14 @@ export default function MscTreeExplorer() {
               : 'bg-slate-900 text-slate-400 hover:text-slate-200'
           }`}
         >
-          查看全部分类 ({initialMathNodes.length})
+          {isZh ? `查看全部分类 (${initialMathNodes.length})` : `View all categories (${initialMathNodes.length})`}
         </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: MSC Hierarchy Tree */}
         <div className="lg:col-span-5 border-r border-slate-800/80 pr-4 space-y-2">
-          <div className="text-xs font-semibold text-slate-400 mb-2">学科分类层级目录:</div>
+          <div className="text-xs font-semibold text-slate-400 mb-2">{isZh ? '学科分类层级目录:' : 'Subject classification hierarchy:'}</div>
           <div className="space-y-1 text-xs">
             {mscHierarchy.map((cat) => {
               const isExpanded = expandedCodes.has(cat.code);
@@ -155,7 +157,7 @@ export default function MscTreeExplorer() {
                         <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
                       )}
                       <span className="font-mono text-cyan-400 font-bold">{cat.code}</span>
-                      <span className="font-medium text-xs truncate">{cat.nameZh}</span>
+                      <span className="font-medium text-xs truncate">{isZh ? cat.nameZh : cat.nameEn}</span>
                     </div>
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">
                       {count}
@@ -181,7 +183,7 @@ export default function MscTreeExplorer() {
                           >
                             <span className="truncate">
                               <span className="font-mono text-cyan-400 mr-1.5">{sub.code}</span>
-                              {sub.nameZh}
+                              {isZh ? sub.nameZh : sub.nameEn}
                             </span>
                             <span className="font-mono text-[10px] opacity-75">{subCount}</span>
                           </div>
@@ -198,14 +200,14 @@ export default function MscTreeExplorer() {
         {/* Right: Filtered Nodes under MSC code */}
         <div className="lg:col-span-7 space-y-3">
           <div className="text-xs font-semibold text-slate-400 flex items-center justify-between">
-            <span>分类下收录的数学命题 (MSC {selectedCode}):</span>
-            <span className="text-cyan-400 font-mono font-bold">{filteredNodes.length} 个词条</span>
+            <span>{isZh ? `分类下收录的数学命题 (MSC ${selectedCode}):` : `Theorems indexed under MSC ${selectedCode}:`}</span>
+            <span className="text-cyan-400 font-mono font-bold">{filteredNodes.length}{isZh ? ' 个词条' : ' entries'}</span>
           </div>
 
           <div className="space-y-2.5 max-h-[380px] overflow-auto pr-1">
             {filteredNodes.length > 0 ? (
               filteredNodes.map((node) => {
-                const meta = getNodeTypeMeta(node.nodeType);
+                const meta = getNodeTypeMeta(node.nodeType, isZh ? 'zh' : 'en');
                 return (
                   <Link
                     key={node.id}
@@ -218,13 +220,13 @@ export default function MscTreeExplorer() {
                           {meta.label}
                         </span>
                         <span className="font-bold text-slate-200 text-xs group-hover:text-cyan-300">
-                          {node.titleZh}
+                          {isZh ? node.titleZh : node.titleEn}
                         </span>
                       </div>
                       <span className="text-[11px] text-slate-500 font-mono">MSC {node.mscCode}</span>
                     </div>
 
-                    <p className="text-[11px] text-slate-400 font-mono truncate">{node.titleEn}</p>
+                    {isZh && <p className="text-[11px] text-slate-400 font-mono truncate">{node.titleEn}</p>}
                     <div className="mt-1 text-[11px] text-cyan-300/90 font-mono truncate">
                       <InlineLaTeX formula={node.statementLatex} />
                     </div>
@@ -233,7 +235,7 @@ export default function MscTreeExplorer() {
               })
             ) : (
               <div className="p-8 bg-slate-900/40 rounded-xl text-center text-slate-500 text-xs">
-                当前分类暂无录入词条，欢迎通过创作中心提交！
+                {isZh ? '当前分类暂无录入词条，欢迎通过创作中心提交！' : 'No entries indexed under this category yet — submit one from the creation studio!'}
               </div>
             )}
           </div>

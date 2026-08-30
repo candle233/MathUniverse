@@ -27,6 +27,7 @@ import ParameterSliders from './ParameterSliders';
 import Plot2DCanvas from './Plot2DCanvas';
 import Plot3DSurface from './Plot3DSurface';
 import NodeVerificationPanel from './NodeVerificationPanel';
+import { useLanguage } from '@/context/LanguageContext';
 import {
   Play,
   RotateCcw,
@@ -51,6 +52,7 @@ interface PythonSandboxProps {
 }
 
 export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
+  const { isZh } = useLanguage();
   // Code & Parameter state
   const [code, setCode] = useState<string>(snippet.code);
   const [params, setParams] = useState<Record<string, number>>(() => {
@@ -68,7 +70,7 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
 
   // Pyodide Worker State
   const [workerState, setWorkerState] = useState<PyodideState>('idle');
-  const [workerStatusMsg, setWorkerStatusMsg] = useState<string>('就绪 (可一键启动 Pyodide WASM 或使用 0ms TS 引擎)');
+  const [workerStatusMsg, setWorkerStatusMsg] = useState<string>(isZh ? '就绪 (可一键启动 Pyodide WASM 或使用 0ms TS 引擎)' : 'Ready (launch Pyodide WASM with one click, or use the 0ms TS engine)');
   const [workerProgress, setWorkerProgress] = useState<number>(0);
   const [preferWorker, setPreferWorker] = useState<boolean>(false);
 
@@ -93,7 +95,7 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
 
     try {
       setWorkerState('loading');
-      setWorkerStatusMsg('正在启动 Pyodide WebAssembly Worker 线程...');
+      setWorkerStatusMsg(isZh ? '正在启动 Pyodide WebAssembly Worker 线程...' : 'Starting the Pyodide WebAssembly worker thread...');
       const worker = new Worker('/workers/pyodide.worker.js');
 
       worker.onmessage = (event: MessageEvent<PyodideWorkerResponse>) => {
@@ -103,12 +105,12 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
         switch (data.type) {
           case 'STATUS':
             setWorkerState(data.state);
-            setWorkerStatusMsg(data.message);
+            setWorkerStatusMsg(isZh ? data.message : data.messageEn || data.message);
             if (data.progress !== undefined) setWorkerProgress(data.progress);
             break;
           case 'READY':
             setWorkerState('ready');
-            setWorkerStatusMsg(`Pyodide ${data.version} 就绪 (SymPy & NumPy 预热完成)`);
+            setWorkerStatusMsg(isZh ? `Pyodide ${data.version} 就绪 (SymPy & NumPy 预热完成)` : `Pyodide ${data.version} ready (SymPy & NumPy prewarmed)`);
             setWorkerProgress(100);
             break;
           case 'EXECUTION_SUCCESS':
@@ -126,7 +128,7 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
             if (data.runId === currentRunIdRef.current) {
               if (watchdogTimerRef.current) clearTimeout(watchdogTimerRef.current);
               setIsExecuting(false);
-              setStderr(`${data.errorType}: ${data.errorMessage}\n${data.traceback || ''}`);
+              setStderr(`${data.errorType}: ${isZh ? data.errorMessage : data.errorMessageEn || data.errorMessage}\n${data.traceback || ''}`);
             }
             break;
           default:
@@ -137,7 +139,7 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
       worker.onerror = (err) => {
         console.error('Worker error:', err);
         setWorkerState('error');
-        setWorkerStatusMsg(`Worker 异常: ${err.message || '未知错误'}`);
+        setWorkerStatusMsg(isZh ? `Worker 异常: ${err.message || '未知错误'}` : `Worker error: ${err.message || 'unknown error'}`);
         setIsExecuting(false);
       };
 
@@ -146,9 +148,9 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
     } catch (e: any) {
       console.warn('Could not initialize Pyodide worker, falling back to TypeScript math engine:', e);
       setWorkerState('error');
-      setWorkerStatusMsg('Web Worker 无法初始化，已启用纯前端 TypeScript 0ms 计算引擎。');
+      setWorkerStatusMsg(isZh ? 'Web Worker 无法初始化，已启用纯前端 TypeScript 0ms 计算引擎。' : 'Web Worker could not be initialized — the pure front-end TypeScript 0ms compute engine is now active.');
     }
-  }, []);
+  }, [isZh]);
 
   // Cleanup worker on unmount
   useEffect(() => {
@@ -186,14 +188,18 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
 
       const payload: PlotDataPayload = {
         mode: '2d_sequence_limit',
-        title: `数列极限收敛带状邻域检验 (L = ${L}, ε = ${eps}, N = ${N})`,
+        title: isZh
+          ? `数列极限收敛带状邻域检验 (L = ${L}, ε = ${eps}, N = ${N})`
+          : `Sequence-limit convergence band test (L = ${L}, ε = ${eps}, N = ${N})`,
         xRange: [0, maxN + 2],
         yRange: [L - 3 * eps, L + 3 * eps],
         sequenceLimit: { L, N, epsilon: eps, points },
       };
 
       return {
-        stdout: `=== 数列极限 (ε-N 定义) 交互式数值模拟 ===\n目标极限值 L = ${L}\n输入误差容界 ε = ${eps}\n计算所得门槛项 N = ${N}\n结论: 当 n > ${N} 时，所有项恒落入带状区间 [${(L - eps).toFixed(4)}, ${(L + eps).toFixed(4)}]`,
+        stdout: isZh
+          ? `=== 数列极限 (ε-N 定义) 交互式数值模拟 ===\n目标极限值 L = ${L}\n输入误差容界 ε = ${eps}\n计算所得门槛项 N = ${N}\n结论: 当 n > ${N} 时，所有项恒落入带状区间 [${(L - eps).toFixed(4)}, ${(L + eps).toFixed(4)}]`
+          : `=== Sequence limit (ε-N definition): interactive numerical simulation ===\nTarget limit L = ${L}\nTolerance ε = ${eps}\nComputed threshold index N = ${N}\nConclusion: for every n > ${N}, all terms stay inside the band [${(L - eps).toFixed(4)}, ${(L + eps).toFixed(4)}]`,
         latex: `\\lim_{n \\to \\infty} \\frac{2n + (-1)^n}{n + 3} = ${L} \\quad (N = ${N}, \\varepsilon = ${eps})`,
         plotPayload: payload,
       };
@@ -226,17 +232,21 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
 
       const payload: PlotDataPayload = {
         mode: '2d_curve',
-        title: `柯西-施瓦茨 2D 投影向量平面 (|⟨u,v⟩| = ${Math.abs(inner).toFixed(2)} ≤ ‖u‖‖v‖ = ${rhs.toFixed(2)})`,
+        title: isZh
+          ? `柯西-施瓦茨 2D 投影向量平面 (|⟨u,v⟩| = ${Math.abs(inner).toFixed(2)} ≤ ‖u‖‖v‖ = ${rhs.toFixed(2)})`
+          : `Cauchy-Schwarz 2D projection plane (|⟨u,v⟩| = ${Math.abs(inner).toFixed(2)} ≤ ‖u‖‖v‖ = ${rhs.toFixed(2)})`,
         xRange: [-5, 5],
         yRange: [-5, 5],
         curves: [
-          { id: 'vec-u', label: '向量 u', color: '#06b6d4', points: curve1, strokeWidth: 3 },
-          { id: 'vec-v', label: '向量 v', color: '#a855f7', points: curve2, strokeWidth: 3 },
+          { id: 'vec-u', label: isZh ? '向量 u' : 'Vector u', color: '#06b6d4', points: curve1, strokeWidth: 3 },
+          { id: 'vec-v', label: isZh ? '向量 v' : 'Vector v', color: '#a855f7', points: curve2, strokeWidth: 3 },
         ],
       };
 
       return {
-        stdout: `=== 柯西-施瓦茨不等式 向量几何分析 ===\n向量 u = (${ux}, ${uy}, ${uz}), 范数 ‖u‖ = ${normU.toFixed(4)}\n向量 v = (${vx}, ${vy}, ${vz}), 范数 ‖v‖ = ${normV.toFixed(4)}\n内积 ⟨u, v⟩ = ${inner.toFixed(4)}, 绝对值 |⟨u, v⟩| = ${Math.abs(inner).toFixed(4)}\n范数乘积 ‖u‖‖v‖ = ${rhs.toFixed(4)}\n空间夹角 θ = ${angle.toFixed(2)}°\n判定: ${Math.abs(inner) <= rhs + 1e-5 ? '柯西-施瓦茨不等式严格成立 ✓' : '不成立'}`,
+        stdout: isZh
+          ? `=== 柯西-施瓦茨不等式 向量几何分析 ===\n向量 u = (${ux}, ${uy}, ${uz}), 范数 ‖u‖ = ${normU.toFixed(4)}\n向量 v = (${vx}, ${vy}, ${vz}), 范数 ‖v‖ = ${normV.toFixed(4)}\n内积 ⟨u, v⟩ = ${inner.toFixed(4)}, 绝对值 |⟨u, v⟩| = ${Math.abs(inner).toFixed(4)}\n范数乘积 ‖u‖‖v‖ = ${rhs.toFixed(4)}\n空间夹角 θ = ${angle.toFixed(2)}°\n判定: ${Math.abs(inner) <= rhs + 1e-5 ? '柯西-施瓦茨不等式严格成立 ✓' : '不成立'}`
+          : `=== Cauchy-Schwarz inequality: vector-geometry analysis ===\nVector u = (${ux}, ${uy}, ${uz}), norm ‖u‖ = ${normU.toFixed(4)}\nVector v = (${vx}, ${vy}, ${vz}), norm ‖v‖ = ${normV.toFixed(4)}\nInner product ⟨u, v⟩ = ${inner.toFixed(4)}, absolute value |⟨u, v⟩| = ${Math.abs(inner).toFixed(4)}\nProduct of norms ‖u‖‖v‖ = ${rhs.toFixed(4)}\nAngle between them θ = ${angle.toFixed(2)}°\nVerdict: ${Math.abs(inner) <= rhs + 1e-5 ? 'Cauchy-Schwarz inequality strictly holds ✓' : 'does not hold'}`,
         latex: `|\\langle u, v \\rangle| = ${Math.abs(inner).toFixed(2)} \\le \\|u\\| \\|v\\| = ${rhs.toFixed(2)} \\quad (\\theta = ${angle.toFixed(1)}^\\circ)`,
         plotPayload: payload,
       };
@@ -263,7 +273,9 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
 
       const payload: PlotDataPayload = {
         mode: '2d_riemann_sum',
-        title: `黎曼和矩形分割逼近 f(x)=x² (n=${n}, 黎曼和=${riemann.sum.toFixed(4)}, 解析积分=${exact.toFixed(4)})`,
+        title: isZh
+          ? `黎曼和矩形分割逼近 f(x)=x² (n=${n}, 黎曼和=${riemann.sum.toFixed(4)}, 解析积分=${exact.toFixed(4)})`
+          : `Riemann-sum rectangle approximation of f(x)=x² (n=${n}, Riemann sum=${riemann.sum.toFixed(4)}, exact integral=${exact.toFixed(4)})`,
         xRange: [a - 0.5, b + 0.5],
         yRange: [0, Math.max(f(b) + 1, 4)],
         riemannRects: riemann.rectangles,
@@ -271,7 +283,9 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
       };
 
       return {
-        stdout: `=== 微积分基本定理与黎曼积分数值逼近 ===\n积分区间 [${a}, ${b}], 分割区间数 n = ${n}\n黎曼中点和 = ${riemann.sum.toFixed(6)}\n牛顿-莱布尼茨公式解析解 F(b)-F(a) = ${exact.toFixed(6)}\n数值离散截断误差 = ${error.toExponential(4)}`,
+        stdout: isZh
+          ? `=== 微积分基本定理与黎曼积分数值逼近 ===\n积分区间 [${a}, ${b}], 分割区间数 n = ${n}\n黎曼中点和 = ${riemann.sum.toFixed(6)}\n牛顿-莱布尼茨公式解析解 F(b)-F(a) = ${exact.toFixed(6)}\n数值离散截断误差 = ${error.toExponential(4)}`
+          : `=== Fundamental Theorem of Calculus & Riemann-sum numerical integration ===\nIntegration interval [${a}, ${b}], number of subintervals n = ${n}\nMidpoint Riemann sum = ${riemann.sum.toFixed(6)}\nNewton-Leibniz analytic value F(b)-F(a) = ${exact.toFixed(6)}\nNumerical discretization error = ${error.toExponential(4)}`,
         latex: `\\int_{${a}}^{${b}} x^2 dx = \\frac{${b}^3 - ${a}^3}{3} = ${exact.toFixed(4)} \\approx \\sum_{i=1}^{${n}} f(\\xi_i)\\Delta x = ${riemann.sum.toFixed(4)}`,
         plotPayload: payload,
       };
@@ -292,7 +306,9 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
       }
 
       return {
-        stdout: `=== 费马小定理同余式大整数代数验证 ===\n底数 a = ${a}\n素数模数 p = ${p}\n指数 p - 1 = ${p - 1n}\n计算 a^(p-1) mod p = ${rem}\n结论: ${rem === 1n ? '费马小定理成立 (余数为 1) ✓' : '余数不为 1 (检查 p 是否为素数)'}`,
+        stdout: isZh
+          ? `=== 费马小定理同余式大整数代数验证 ===\n底数 a = ${a}\n素数模数 p = ${p}\n指数 p - 1 = ${p - 1n}\n计算 a^(p-1) mod p = ${rem}\n结论: ${rem === 1n ? '费马小定理成立 (余数为 1) ✓' : '余数不为 1 (检查 p 是否为素数)'}`
+          : `=== Fermat's Little Theorem: big-integer congruence verification ===\nBase a = ${a}\nPrime modulus p = ${p}\nExponent p - 1 = ${p - 1n}\nComputed a^(p-1) mod p = ${rem}\nVerdict: ${rem === 1n ? "Fermat's Little Theorem holds (remainder is 1) ✓" : 'Remainder is not 1 (check whether p is prime)'}`,
         latex: `${a}^{${p - 1n}} \\equiv ${rem} \\pmod{${p}}`,
         plotPayload: null,
       };
@@ -308,12 +324,14 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
 
       const payload: PlotDataPayload = {
         mode: '3d_surface',
-        title: `斯托克斯定理微分流形与边界积分 (R = ${r})`,
+        title: isZh ? `斯托克斯定理微分流形与边界积分 (R = ${r})` : `Stokes theorem: differentiable manifold & boundary integral (R = ${r})`,
         surface3D: mesh,
       };
 
       return {
-        stdout: `=== 广义斯托克斯定理双侧积分计算 ===\n几何流形圆盘半径 R = ${r}\n边界圆周线积分 ∮_∂S F·dr = ${lineInt.toFixed(6)}\n曲面旋度通量积分 ∬_S (∇×F)·dS = ${fluxInt.toFixed(6)}\n微分形式形式化等价: ∫_∂Ω ω ≡ ∫_Ω dω ✓`,
+        stdout: isZh
+          ? `=== 广义斯托克斯定理双侧积分计算 ===\n几何流形圆盘半径 R = ${r}\n边界圆周线积分 ∮_∂S F·dr = ${lineInt.toFixed(6)}\n曲面旋度通量积分 ∬_S (∇×F)·dS = ${fluxInt.toFixed(6)}\n微分形式形式化等价: ∫_∂Ω ω ≡ ∫_Ω dω ✓`
+          : `=== Generalized Stokes theorem: both sides of the integral identity ===\nRadius R of the geometric disc manifold = ${r}\nBoundary line integral ∮_∂S F·dr = ${lineInt.toFixed(6)}\nSurface curl-flux integral ∬_S (∇×F)·dS = ${fluxInt.toFixed(6)}\nDifferential-form equivalence: ∫_∂Ω ω ≡ ∫_Ω dω ✓`,
         latex: `\\oint_{\\partial S} \\mathbf{F} \\cdot d\\mathbf{r} = \\iint_S (\\nabla \\times \\mathbf{F}) \\cdot d\\mathbf{S} = 2\\pi R^2 = ${(2 * Math.PI * r * r).toFixed(3)}`,
         plotPayload: payload,
       };
@@ -321,11 +339,13 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
 
     // Generic default
     return {
-      stdout: `=== Python/TypeScript 执行沙箱就绪 ===\n当前代码已加载，可点击上方“运行 Python 脚本”进行全量执行。`,
+      stdout: isZh
+        ? `=== Python/TypeScript 执行沙箱就绪 ===\n当前代码已加载，可点击上方“运行 Python 脚本”进行全量执行。`
+        : `=== Python/TypeScript execution sandbox ready ===\nCode loaded — click "Run compute" above for a full execution.`,
       latex: null,
       plotPayload: null,
     };
-  }, [params, snippet.id]);
+  }, [isZh, params, snippet.id]);
 
   // Sync TS computed result to state when not executing Pyodide
   useEffect(() => {
@@ -357,7 +377,7 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
     watchdogTimerRef.current = setTimeout(() => {
       if (isExecuting) {
         setIsExecuting(false);
-        setStderr('执行超时 (8秒 Watchdog 触发)。可能存在无限循环或高负载符号代数求解，已重置 Worker 运行时。');
+        setStderr(isZh ? '执行超时 (8秒 Watchdog 触发)。可能存在无限循环或高负载符号代数求解，已重置 Worker 运行时。' : 'Execution timed out (8s watchdog triggered). A possible infinite loop or a heavy symbolic computation — the worker runtime has been reset.');
         initWorker();
       }
     }, 8000);
@@ -392,7 +412,7 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
       return new Promise((resolve) => {
         const runId = `verify_${Date.now()}`;
         const timeout = setTimeout(() => {
-          resolve(executeVerificationContract(contract, params));
+          resolve(executeVerificationContract(contract, params, isZh ? 'zh' : 'en'));
         }, 6000);
 
         const listener = (event: MessageEvent<PyodideWorkerResponse>) => {
@@ -407,7 +427,7 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
               maxError: event.data.maxError,
               tolerance: contract.tolerance,
               sampleCount: event.data.sampleCount,
-              details: event.data.details,
+              details: isZh ? event.data.details : event.data.detailsEn || event.data.details,
               durationMs: event.data.durationMs,
               timestamp: new Date().toISOString(),
               executionMode: 'pyodide',
@@ -428,7 +448,7 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
         }
       });
     } else {
-      return executeVerificationContract(contract, params);
+      return executeVerificationContract(contract, params, isZh ? 'zh' : 'en');
     }
   };
 
@@ -462,11 +482,13 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600/90 hover:bg-blue-500 text-white text-xs font-semibold shadow-md shadow-blue-600/20 transition-all cursor-pointer"
             >
               <Cpu className="w-3.5 h-3.5" />
-              {workerState === 'loading' || workerState === 'installing' ? '正在加载 Pyodide...' : '启动 Pyodide WASM'}
+              {isZh
+                ? (workerState === 'loading' || workerState === 'installing' ? '正在加载 Pyodide...' : '启动 Pyodide WASM')
+                : (workerState === 'loading' || workerState === 'installing' ? 'Loading Pyodide...' : 'Launch Pyodide WASM')}
             </button>
           ) : (
             <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-mono">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Pyodide 就绪 (Worker 隔离运行)
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> {isZh ? 'Pyodide 就绪 (Worker 隔离运行)' : 'Pyodide ready (worker-isolated run)'}
             </div>
           )}
 
@@ -476,7 +498,7 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold shadow-md shadow-cyan-500/20 transition-all cursor-pointer disabled:opacity-50"
           >
             <Play className="w-3.5 h-3.5 fill-current" />
-            {isExecuting ? '执行中...' : '运行计算'}
+            {isExecuting ? (isZh ? '执行中...' : 'Running...') : (isZh ? '运行计算' : 'Run compute')}
           </button>
         </div>
       </div>
@@ -504,9 +526,9 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
           <div className="space-y-2">
             <div className="flex items-center justify-between text-[11px] text-slate-500 pb-1">
               <span className="flex items-center gap-1">
-                <Terminal className="w-3 h-3 text-cyan-400" /> Python / SymPy 交互代码编辑器:
+                <Terminal className="w-3 h-3 text-cyan-400" /> {isZh ? 'Python / SymPy 交互代码编辑器:' : 'Python / SymPy interactive code editor:'}
               </span>
-              <span className="text-slate-500 font-mono">UTF-8 · 可自由编辑代码</span>
+              <span className="text-slate-500 font-mono">{isZh ? 'UTF-8 · 可自由编辑代码' : 'UTF-8 · freely editable code'}</span>
             </div>
 
             <div className="relative rounded-xl border border-slate-800 bg-slate-900/80 p-3">
@@ -544,7 +566,7 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
                     : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
-                <BarChart3 className="w-3 h-3" /> 2D 绘图
+                <BarChart3 className="w-3 h-3" /> {isZh ? '2D 绘图' : '2D Plot'}
               </button>
               <button
                 onClick={() => setActiveTab('plot3d')}
@@ -554,7 +576,7 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
                     : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
-                <Layers className="w-3 h-3" /> 3D 曲面
+                <Layers className="w-3 h-3" /> {isZh ? '3D 曲面' : '3D Surface'}
               </button>
               <button
                 onClick={() => setActiveTab('latex')}
@@ -564,7 +586,7 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
                     : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
-                <Sparkles className="w-3 h-3" /> 符号公式
+                <Sparkles className="w-3 h-3" /> {isZh ? '符号公式' : 'Formula'}
               </button>
               <button
                 onClick={() => setActiveTab('terminal')}
@@ -574,7 +596,7 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
                     : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
-                <Terminal className="w-3 h-3" /> 终端输出
+                <Terminal className="w-3 h-3" /> {isZh ? '终端输出' : 'Terminal'}
               </button>
               <button
                 onClick={() => setActiveTab('verify')}
@@ -584,7 +606,7 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
                     : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
-                <ShieldCheck className="w-3 h-3" /> 定理验证
+                <ShieldCheck className="w-3 h-3" /> {isZh ? '定理验证' : 'Verification'}
               </button>
             </div>
 
@@ -613,10 +635,10 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
             {activeTab === 'latex' && (
               <div className="p-6 rounded-xl bg-slate-950 border border-slate-800 text-center space-y-4">
                 <span className="text-xs font-bold text-cyan-300 block">
-                  SymPy 符号代数推导解析输出 (Symbolic LaTeX Representation):
+                  {isZh ? 'SymPy 符号代数推导解析输出 (Symbolic LaTeX Representation):' : 'SymPy symbolic derivation output (Symbolic LaTeX Representation):'}
                 </span>
                 <div className="p-4 bg-slate-900/80 rounded-xl text-lg text-cyan-100 font-mono overflow-x-auto">
-                  <LaTeXRenderer content={latexResult || tsComputedData.latex || 'f(x) = \\text{解析就绪}'} />
+                  <LaTeXRenderer content={latexResult || tsComputedData.latex || (isZh ? 'f(x) = \\text{解析就绪}' : 'f(x) = \\text{symbolic output ready}')} />
                 </div>
               </div>
             )}
@@ -624,13 +646,13 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
             {/* Tab 4: Terminal Console */}
             {activeTab === 'terminal' && (
               <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs space-y-2 h-[340px] overflow-y-auto">
-                <div className="text-slate-500 text-[11px]">=== 标准输出 (stdout) ===</div>
+                <div className="text-slate-500 text-[11px]">{isZh ? '=== 标准输出 (stdout) ===' : '=== Standard output (stdout) ==='}</div>
                 <pre className="text-slate-200 whitespace-pre-wrap leading-relaxed">
-                  {stdout || '无输出内容'}
+                  {stdout || (isZh ? '无输出内容' : 'No output')}
                 </pre>
                 {stderr && (
                   <div className="pt-2 border-t border-slate-800 text-rose-400">
-                    <div className="text-rose-500 text-[11px] font-bold">=== 标准错误 / 异常 (stderr) ===</div>
+                    <div className="text-rose-500 text-[11px] font-bold">{isZh ? '=== 标准错误 / 异常 (stderr) ===' : '=== Standard error / exceptions (stderr) ==='}</div>
                     <pre className="whitespace-pre-wrap">{stderr}</pre>
                   </div>
                 )}
@@ -651,9 +673,9 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
           <div className="pt-2 text-[11px] text-slate-500 font-mono flex items-center justify-between border-t border-slate-800">
             <span className="flex items-center gap-1 text-slate-400">
               <Zap className="w-3 h-3 text-cyan-400" />
-              双引擎架构：Pyodide WASM + 0ms TypeScript 实时响应
+              {isZh ? '双引擎架构：Pyodide WASM + 0ms TypeScript 实时响应' : 'Dual-engine architecture: Pyodide WASM + 0ms TypeScript instant response'}
             </span>
-            <span>Watchdog: 8s 保护</span>
+            <span>{isZh ? 'Watchdog: 8s 保护' : 'Watchdog: 8s guard'}</span>
           </div>
         </div>
       </div>

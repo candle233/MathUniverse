@@ -299,7 +299,7 @@ export default function Plot3DSurface({
             setZoom(1.1);
           }}
           className="p-1.5 rounded hover:bg-slate-800 text-slate-400 hover:text-slate-200"
-          title={isZh ? '重置视角' : 'Reset view'}
+          title={isZh ? '重置视角' : 'Reset View'}
         >
           <RotateCcw className="w-3.5 h-3.5" />
         </button>

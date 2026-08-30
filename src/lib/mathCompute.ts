@@ -790,7 +790,8 @@ export function modularExp(base: bigint, exp: bigint, mod: bigint): bigint {
 
 export function verifyCauchySchwarz(
   params: Record<string, number> = {},
-  sampleSize: number = 2000
+  sampleSize: number = 2000,
+  locale: 'zh' | 'en' = 'zh'
 ): { passed: boolean; maxError: number; sampleCount: number; details: string } {
   const dim = Math.floor(params.dim ?? 4);
   let maxViolation = 0;
@@ -827,14 +828,19 @@ export function verifyCauchySchwarz(
     maxError: maxViolation,
     sampleCount: sampleSize,
     details: passed
-      ? `在 ${dim} 维实空间中随机采样 ${sampleSize} 组向量，全部满足 |⟨u, v⟩| ≤ ‖u‖‖v‖（最大误差 ${maxViolation.toExponential(3)}）。`
-      : `采样发现反例，最大违反量: ${maxViolation.toExponential(3)}`,
+      ? locale === 'en'
+        ? `Randomly sampled ${sampleSize} vector pairs in ${dim}-dimensional real space; |⟨u, v⟩| ≤ ‖u‖‖v‖ holds for every pair (max violation ${maxViolation.toExponential(3)}).`
+        : `在 ${dim} 维实空间中随机采样 ${sampleSize} 组向量，全部满足 |⟨u, v⟩| ≤ ‖u‖‖v‖（最大误差 ${maxViolation.toExponential(3)}）。`
+      : locale === 'en'
+        ? `Sampling found a counterexample, max violation: ${maxViolation.toExponential(3)}`
+        : `采样发现反例，最大违反量: ${maxViolation.toExponential(3)}`,
   };
 }
 
 export function verifyFTC(
   params: Record<string, number> = {},
-  sampleSize: number = 50
+  sampleSize: number = 50,
+  locale: 'zh' | 'en' = 'zh'
 ): { passed: boolean; maxError: number; sampleCount: number; details: string } {
   // Verifies FTC for f(x) = x^3 - 2x + 1, F(x) = x^4/4 - x^2 + x
   const f = (x: number) => x ** 3 - 2 * x + 1;
@@ -860,13 +866,19 @@ export function verifyFTC(
     maxError,
     sampleCount: sampleSize,
     details: passed
-      ? `在随机区间 [a, b] 上验证 ${sampleSize} 次，数值积分 ∫_a^b f'(t)dt 与解析差 F(b)-F(a) 误差均小于 1e-4（最大误差 ${maxError.toExponential(3)}）。`
-      : `数值积分与解析差超出容差，最大误差: ${maxError.toExponential(3)}`,
+      ? locale === 'en'
+        ? `Verified over ${sampleSize} random intervals [a, b]: the numerical integral ∫_a^b f'(t)dt and the analytic difference F(b)-F(a) agree to within 1e-4 (max error ${maxError.toExponential(3)}).`
+        : `在随机区间 [a, b] 上验证 ${sampleSize} 次，数值积分 ∫_a^b f'(t)dt 与解析差 F(b)-F(a) 误差均小于 1e-4（最大误差 ${maxError.toExponential(3)}）。`
+      : locale === 'en'
+        ? `Numerical integral and analytic difference exceed tolerance, max error: ${maxError.toExponential(3)}`
+        : `数值积分与解析差超出容差，最大误差: ${maxError.toExponential(3)}`,
   };
 }
 
 export function verifyStokes(
-  params: Record<string, number> = {}
+  params: Record<string, number> = {},
+  _sampleSize?: number,
+  locale: 'zh' | 'en' = 'zh'
 ): { passed: boolean; maxError: number; sampleCount: number; details: string } {
   // Vector field F = (-y, x, 0). Curl F = (0, 0, 2).
   // Over disk S of radius R in z = 0 plane:
@@ -898,13 +910,19 @@ export function verifyStokes(
     maxError: error,
     sampleCount: n,
     details: passed
-      ? `流形边界线积分 ∮_∂S F·dr (${lineInt.toFixed(4)}) 与旋度曲面积分 ∬_S (∇×F)·dS (${expected.toFixed(4)}) 精确吻合（误差: ${error.toExponential(3)}）。`
-      : `斯托克斯积分验证未通过，误差: ${error.toExponential(3)}`,
+      ? locale === 'en'
+        ? `Manifold boundary line integral ∮_∂S F·dr (${lineInt.toFixed(4)}) and curl surface integral ∬_S (∇×F)·dS (${expected.toFixed(4)}) match exactly (error: ${error.toExponential(3)}).`
+        : `流形边界线积分 ∮_∂S F·dr (${lineInt.toFixed(4)}) 与旋度曲面积分 ∬_S (∇×F)·dS (${expected.toFixed(4)}) 精确吻合（误差: ${error.toExponential(3)}）。`
+      : locale === 'en'
+        ? `Stokes integral verification failed, error: ${error.toExponential(3)}`
+        : `斯托克斯积分验证未通过，误差: ${error.toExponential(3)}`,
   };
 }
 
 export function verifyFermat(
-  params: Record<string, number> = {}
+  params: Record<string, number> = {},
+  _sampleSize?: number,
+  locale: 'zh' | 'en' = 'zh'
 ): { passed: boolean; maxError: number; sampleCount: number; details: string } {
   const primes = [13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97];
   let passedCount = 0;
@@ -922,13 +940,19 @@ export function verifyFermat(
     maxError: passed ? 0 : 1,
     sampleCount: total,
     details: passed
-      ? `对 ${total} 个随机选取的素数 p 及底数 a，费马同余式 a^(p-1) ≡ 1 (mod p) 全部 100% 成立。`
-      : `存在不满足同余式的情况`,
+      ? locale === 'en'
+        ? `For all ${total} randomly chosen primes p and bases a, the Fermat congruence a^(p-1) ≡ 1 (mod p) holds in 100% of cases.`
+        : `对 ${total} 个随机选取的素数 p 及底数 a，费马同余式 a^(p-1) ≡ 1 (mod p) 全部 100% 成立。`
+      : locale === 'en'
+        ? `Some cases do not satisfy the congruence`
+        : `存在不满足同余式的情况`,
   };
 }
 
 export function verifyEnergyConservation(
-  params: Record<string, number> = {}
+  params: Record<string, number> = {},
+  _sampleSize?: number,
+  locale: 'zh' | 'en' = 'zh'
 ): { passed: boolean; maxError: number; sampleCount: number; details: string } {
   // Exact pendulum equation: theta'' + (g/L) sin(theta) = 0
   // Conserved mechanical energy E(theta, v) = 0.5 * v^2 + (g/L) * (1 - cos(theta))
@@ -959,8 +983,12 @@ export function verifyEnergyConservation(
     maxError: maxDiff,
     sampleCount: res.trajectory.length,
     details: passed
-      ? `沿保守场无阻尼单摆 RK4 轨道积分 ${res.trajectory.length} 步，哈密顿能量 E = ½v² + (g/L)(1-cosθ) 严格守恒（最大数值漂移: ${maxDiff.toExponential(3)}）。`
-      : `能量漂移超出阈值: ${maxDiff.toExponential(3)}`,
+      ? locale === 'en'
+        ? `RK4 trajectory of the undamped pendulum integrated over ${res.trajectory.length} steps; the Hamiltonian energy E = ½v² + (g/L)(1-cosθ) is strictly conserved (max numerical drift: ${maxDiff.toExponential(3)}).`
+        : `沿保守场无阻尼单摆 RK4 轨道积分 ${res.trajectory.length} 步，哈密顿能量 E = ½v² + (g/L)(1-cosθ) 严格守恒（最大数值漂移: ${maxDiff.toExponential(3)}）。`
+      : locale === 'en'
+        ? `Energy drift exceeds the threshold: ${maxDiff.toExponential(3)}`
+        : `能量漂移超出阈值: ${maxDiff.toExponential(3)}`,
   };
 }
 
@@ -970,6 +998,7 @@ export const verificationContracts: NumericalVerificationContract[] = [
     id: 'contract-cauchy-schwarz',
     nodeId: 'thm-cauchy-schwarz',
     claimName: '柯西-施瓦茨不等式 向量蒙特卡洛验证',
+    claimNameEn: 'Cauchy-Schwarz inequality: vector Monte-Carlo verification',
     testType: 'CAUCHY_SCHWARZ',
     tolerance: 1e-9,
     sampleSize: 2000,
@@ -995,6 +1024,7 @@ def verify_cauchy_schwarz(sample_size=2000, dim=4):
     id: 'contract-ftc',
     nodeId: 'thm-ftc',
     claimName: '微积分基本定理 (FTC) 数值积分与原函数差检验',
+    claimNameEn: 'Fundamental Theorem of Calculus (FTC): numerical integral vs antiderivative check',
     testType: 'FUNDAMENTAL_THEOREM_CALCULUS',
     tolerance: 1e-4,
     sampleSize: 50,
@@ -1018,6 +1048,7 @@ def verify_ftc():
     id: 'contract-stokes',
     nodeId: 'thm-stokes',
     claimName: '广义斯托克斯定理 环路流通与旋度通量等价性',
+    claimNameEn: 'Generalized Stokes theorem: circulation vs curl-flux equivalence',
     testType: 'STOKES_THEOREM',
     tolerance: 1e-3,
     sampleSize: 1000,
@@ -1037,6 +1068,7 @@ def verify_stokes():
     id: 'contract-fermat',
     nodeId: 'thm-fermat-little',
     claimName: '费马小定理 大整数同余式验证',
+    claimNameEn: "Fermat's Little Theorem: big-integer congruence verification",
     testType: 'FERMAT_MOD_EXP',
     tolerance: 0,
     sampleSize: 20,
@@ -1058,10 +1090,11 @@ export function getVerificationContractsForNode(nodeId: string): NumericalVerifi
 
 export function executeVerificationContract(
   contract: NumericalVerificationContract,
-  params: Record<string, number> = {}
+  params: Record<string, number> = {},
+  locale: 'zh' | 'en' = 'zh'
 ): VerificationResult {
   const t0 = performance.now();
-  const res = contract.typescriptChecker(params, contract.sampleSize);
+  const res = contract.typescriptChecker(params, contract.sampleSize, locale);
   const t1 = performance.now();
 
   return {

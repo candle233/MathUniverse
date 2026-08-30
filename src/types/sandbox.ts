@@ -46,6 +46,7 @@ export interface PyodideStatusResponse {
   type: 'STATUS';
   state: PyodideState;
   message: string;
+  messageEn?: string;
   progress?: number; // 0 - 100
 }
 
@@ -65,6 +66,7 @@ export interface PyodideExecutionErrorResponse {
   runId: string;
   errorType: string;
   errorMessage: string;
+  errorMessageEn?: string;
   traceback?: string;
 }
 
@@ -77,6 +79,7 @@ export interface PyodideVerifyResponse {
   maxError: number;
   sampleCount: number;
   details: string;
+  detailsEn?: string;
   durationMs: number;
 }
 
@@ -234,13 +237,14 @@ export interface NumericalVerificationContract {
   id: string;
   nodeId: string;
   claimName: string;
+  claimNameEn?: string;
   testType: VerificationTestType;
   tolerance: number;
   sampleSize: number;
   domain: Record<string, [number, number]>;
   expectedResultDesc: string;
   pythonVerificationScript: string;
-  typescriptChecker: (params: Record<string, number>, sampleSize?: number) => {
+  typescriptChecker: (params: Record<string, number>, sampleSize?: number, locale?: 'zh' | 'en') => {
     passed: boolean;
     maxError: number;
     sampleCount: number;
