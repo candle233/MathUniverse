@@ -77,8 +77,12 @@ export default function ProofViewer({ node }: ProofViewerProps) {
     setNewCommentText('');
   };
 
+  const intuitionContent = isZh
+    ? (node.intuitionMd || node.intuitionEn)
+    : (node.intuitionEn || node.intuitionMd);
+
   if (!currentProof) {
-    if (node.intuitionMd) {
+    if (intuitionContent) {
       return (
         <div className="rounded-2xl border border-slate-800 bg-slate-950 overflow-hidden shadow-2xl p-6 space-y-4">
           <div className="flex items-center gap-2 text-amber-300 font-bold text-sm border-b border-slate-800/80 pb-3">
@@ -86,7 +90,7 @@ export default function ProofViewer({ node }: ProofViewerProps) {
             <span>{isZh ? '概念直觉与动机解析 (Conceptual Intuition & Motivation)' : 'Conceptual Intuition & Motivation'}</span>
           </div>
           <div className="prose prose-invert max-w-none text-slate-300 text-sm leading-relaxed">
-            <LaTeXRenderer content={node.intuitionMd} />
+            <LaTeXRenderer content={intuitionContent} />
           </div>
         </div>
       );
@@ -200,9 +204,9 @@ export default function ProofViewer({ node }: ProofViewerProps) {
               </div>
             </div>
 
-            {node.intuitionMd && (
+            {intuitionContent && (
               <div className="prose prose-invert max-w-none text-slate-300 text-sm leading-relaxed">
-                <LaTeXRenderer content={node.intuitionMd} />
+                <LaTeXRenderer content={intuitionContent} />
               </div>
             )}
           </div>
