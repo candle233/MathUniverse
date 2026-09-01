@@ -8,7 +8,7 @@ import { MathNode } from '@/types/math';
 import { getNodeTitle } from '@/lib/i18nHelper';
 import { useLanguage } from '@/context/LanguageContext';
 import Link from 'next/link';
-import { Sparkles, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Sparkles, ArrowRight, ShieldCheck, Copy, Check } from 'lucide-react';
 
 interface LaTeXRendererProps {
   content: string;
@@ -75,7 +75,7 @@ export function InlineLaTeX({ formula, displayMode = false }: { formula: string;
 
   return (
     <span
-      className={displayMode ? 'block my-3 text-center overflow-x-auto py-1' : 'inline-block px-0.5 align-middle'}
+      className={displayMode ? 'block my-3 text-center overflow-x-auto py-1.5' : 'inline-block px-0.5 align-middle'}
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );
@@ -123,10 +123,40 @@ export function MathWikiLink({ targetTitle }: { targetTitle: string }) {
   );
 }
 
+// Code Block with Copy Action
+function CodeBlock({ code, lang }: { code: string; lang?: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="my-3 rounded-xl overflow-hidden border border-slate-800 bg-slate-950 shadow-inner">
+      <div className="px-4 py-1.5 bg-slate-900/90 border-b border-slate-800 text-[11px] font-mono text-slate-400 flex items-center justify-between">
+        <span>{lang || 'code'}</span>
+        <button
+          onClick={handleCopy}
+          className="flex items-center gap-1 text-[10px] text-slate-400 hover:text-cyan-300 transition-colors cursor-pointer"
+        >
+          {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+          <span>{copied ? 'Copied' : 'Copy'}</span>
+        </button>
+      </div>
+      <pre className="p-4 text-xs font-mono text-cyan-200 overflow-x-auto leading-relaxed">
+        <code>{code}</code>
+      </pre>
+    </div>
+  );
+}
+
 // Helper to render inline markdown styles (bold, italic, inline code, inline math, links)
 function renderInlineContent(text: string, enableLinks: boolean = true): React.ReactNode[] {
   // Regex to match inline math $...$, \(...\), wiki links [[...]], code `...`, markdown links [text](url)
-  const tokenRegex = /(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\$[^$\n]+?\$|\\\([^)]+?\\\)|\[\[.+?\]\]|`[^`\n]+?`|\[[^\]]+?\]\([^)]+?\))/g;
+  // Using `\\\(.*?\\\)` with non-greedy match to allow nested parentheses like `\((a+b)^2\)`
+  const tokenRegex = /(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\\begin\{[a-zA-Z*]+\}[\s\S]*?\\end\{[a-zA-Z*]+\}|\$[^$\n]+?\$|\\\(.*?\\\)|\[\[.+?\]\]|`[^`\n]+?`|\[[^\]]+?\]\([^)]+?\))/g;
   const segments = text.split(tokenRegex);
 
   return segments.map((seg, segIdx) => {
@@ -137,22 +167,26 @@ function renderInlineContent(text: string, enableLinks: boolean = true): React.R
       const formula = seg.slice(2, -2);
       return <InlineLaTeX key={segIdx} formula={formula} displayMode={true} />;
     }
-    // 2. Inline math $...$
+    // 2. LaTeX environment \begin{...}...\end{...}
+    if (seg.startsWith('\\begin{') && seg.includes('\\end{')) {
+      return <InlineLaTeX key={segIdx} formula={seg} displayMode={true} />;
+    }
+    // 3. Inline math $...$
     if (seg.startsWith('$') && seg.endsWith('$')) {
       const formula = seg.slice(1, -1);
       return <InlineLaTeX key={segIdx} formula={formula} displayMode={false} />;
     }
-    // 3. Inline math \(...\)
+    // 4. Inline math \(...\)
     if (seg.startsWith('\\(') && seg.endsWith('\\)')) {
       const formula = seg.slice(2, -2);
       return <InlineLaTeX key={segIdx} formula={formula} displayMode={false} />;
     }
-    // 4. Wiki link [[...]]
+    // 5. Wiki link [[...]]
     if (enableLinks && seg.startsWith('[[') && seg.endsWith(']]')) {
       const linkText = seg.slice(2, -2);
       return <MathWikiLink key={segIdx} targetTitle={linkText} />;
     }
-    // 5. Inline code `...`
+    // 6. Inline code `...`
     if (seg.startsWith('`') && seg.endsWith('`')) {
       const codeText = seg.slice(1, -1);
       return (
@@ -164,7 +198,7 @@ function renderInlineContent(text: string, enableLinks: boolean = true): React.R
         </code>
       );
     }
-    // 6. Markdown link [text](url)
+    // 7. Markdown link [text](url)
     const linkMatch = seg.match(/^\[([^\]]+?)\]\(([^)]+?)\)$/);
     if (linkMatch) {
       const [, linkLabel, linkUrl] = linkMatch;
@@ -181,7 +215,7 @@ function renderInlineContent(text: string, enableLinks: boolean = true): React.R
       );
     }
 
-    // 7. Plain text: parse bold (**...** / __...__) and italic (*...* / _..._) and strikethrough (~~...~~)
+    // 8. Plain text: parse bold (**...** / __...__) and italic (*...* / _..._) and strikethrough (~~...~~)
     return <React.Fragment key={segIdx}>{parseFormatting(seg)}</React.Fragment>;
   });
 }
@@ -228,12 +262,54 @@ function parseFormatting(text: string): React.ReactNode[] {
   });
 }
 
+// Markdown Table Renderer
+function parseMarkdownTable(tableLines: string[], enableLinks: boolean): React.ReactNode {
+  if (tableLines.length < 2) return null;
+
+  const parseRow = (line: string) =>
+    line
+      .trim()
+      .replace(/^\||\|$/g, '')
+      .split('|')
+      .map((c) => c.trim());
+
+  const headers = parseRow(tableLines[0]);
+  const rows = tableLines.slice(2).map(parseRow);
+
+  return (
+    <div key={`table-${Math.random()}`} className="my-3 overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/70">
+      <table className="w-full text-xs text-left border-collapse">
+        <thead className="bg-slate-900/90 text-cyan-300 font-semibold border-b border-slate-800">
+          <tr>
+            {headers.map((h, hIdx) => (
+              <th key={hIdx} className="px-3.5 py-2">
+                {renderInlineContent(h, enableLinks)}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-800/60 text-slate-300">
+          {rows.map((row, rIdx) => (
+            <tr key={rIdx} className="hover:bg-slate-900/40 transition-colors">
+              {row.map((cell, cIdx) => (
+                <td key={cIdx} className="px-3.5 py-2 font-mono text-[11px]">
+                  {renderInlineContent(cell, enableLinks)}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 // Full Rich Text & Markdown & LaTeX Parser
 export default function LaTeXRenderer({ content, block = false, className = '', enableLinks = true }: LaTeXRendererProps) {
   const renderedElements = useMemo(() => {
     if (!content) return null;
 
-    // 1. Extract Code Blocks (```lang ... ```) and Display Math Blocks ($$...$$ / \[...\])
+    // 1. Extract Code Blocks (```lang ... ```) and Display Math Blocks ($$...$$ / \[...\] / \begin{...}...\end{...})
     const blockTokens: Array<{
       placeholder: string;
       type: 'code' | 'math';
@@ -252,9 +328,11 @@ export default function LaTeXRenderer({ content, block = false, className = '', 
     });
 
     // Display math blocks $$ ... $$ or \[ ... \]
-    tokenized = tokenized.replace(/(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\])/g, (match) => {
+    tokenized = tokenized.replace(/(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\\begin\{[a-zA-Z*]+\}[\s\S]*?\\end\{[a-zA-Z*]+\})/g, (match) => {
       const placeholder = `@@BLOCK_MATH_${blockTokens.length}@@`;
-      const formula = match.startsWith('$$') ? match.slice(2, -2) : match.slice(2, -2);
+      let formula = match;
+      if (match.startsWith('$$') && match.endsWith('$$')) formula = match.slice(2, -2);
+      else if (match.startsWith('\\[') && match.endsWith('\\]')) formula = match.slice(2, -2);
       blockTokens.push({ placeholder, type: 'math', formula });
       return `\n\n${placeholder}\n\n`;
     });
@@ -264,7 +342,15 @@ export default function LaTeXRenderer({ content, block = false, className = '', 
     const blocks: React.ReactNode[] = [];
 
     let currentList: { type: 'ul' | 'ol'; items: string[] } | null = null;
+    let currentTable: string[] | null = null;
     let currentParagraph: string[] = [];
+
+    const flushTable = () => {
+      if (currentTable && currentTable.length >= 2) {
+        blocks.push(parseMarkdownTable(currentTable, enableLinks));
+        currentTable = null;
+      }
+    };
 
     const flushList = () => {
       if (currentList) {
@@ -312,16 +398,7 @@ export default function LaTeXRenderer({ content, block = false, className = '', 
               );
             } else if (tokenMatch.type === 'code') {
               blocks.push(
-                <div key={`code-${blocks.length}`} className="my-3 rounded-xl overflow-hidden border border-slate-800 bg-slate-950">
-                  {tokenMatch.lang && (
-                    <div className="px-4 py-1.5 bg-slate-900 border-b border-slate-800 text-[11px] font-mono text-slate-400 flex items-center justify-between">
-                      <span>{tokenMatch.lang}</span>
-                    </div>
-                  )}
-                  <pre className="p-4 text-xs font-mono text-cyan-200 overflow-x-auto">
-                    <code>{tokenMatch.code}</code>
-                  </pre>
-                </div>
+                <CodeBlock key={`code-${blocks.length}`} code={tokenMatch.code || ''} lang={tokenMatch.lang} />
               );
             }
           } else {
@@ -340,10 +417,11 @@ export default function LaTeXRenderer({ content, block = false, className = '', 
       const rawLine = lines[i];
       const trimmed = rawLine.trim();
 
-      // Empty line -> flush paragraph / list
+      // Empty line -> flush paragraph / list / table
       if (!trimmed) {
         flushParagraph();
         flushList();
+        flushTable();
         continue;
       }
 
@@ -352,6 +430,7 @@ export default function LaTeXRenderer({ content, block = false, className = '', 
       if (token) {
         flushParagraph();
         flushList();
+        flushTable();
         if (token.type === 'math') {
           blocks.push(
             <InlineLaTeX
@@ -362,19 +441,21 @@ export default function LaTeXRenderer({ content, block = false, className = '', 
           );
         } else if (token.type === 'code') {
           blocks.push(
-            <div key={`code-${blocks.length}`} className="my-3 rounded-xl overflow-hidden border border-slate-800 bg-slate-950">
-              {token.lang && (
-                <div className="px-4 py-1.5 bg-slate-900 border-b border-slate-800 text-[11px] font-mono text-slate-400">
-                  <span>{token.lang}</span>
-                </div>
-              )}
-              <pre className="p-4 text-xs font-mono text-cyan-200 overflow-x-auto">
-                <code>{token.code}</code>
-              </pre>
-            </div>
+            <CodeBlock key={`code-${blocks.length}`} code={token.code || ''} lang={token.lang} />
           );
         }
         continue;
+      }
+
+      // Markdown Table row (| ... |)
+      if (trimmed.startsWith('|') && trimmed.endsWith('|') && trimmed.includes('|', 1)) {
+        flushParagraph();
+        flushList();
+        if (!currentTable) currentTable = [trimmed];
+        else currentTable.push(trimmed);
+        continue;
+      } else {
+        flushTable();
       }
 
       // Headings
@@ -477,6 +558,7 @@ export default function LaTeXRenderer({ content, block = false, className = '', 
 
     flushParagraph();
     flushList();
+    flushTable();
 
     return blocks;
   }, [content, enableLinks]);
