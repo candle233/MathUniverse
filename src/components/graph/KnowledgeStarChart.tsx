@@ -222,6 +222,7 @@ export default function KnowledgeStarChart({ selectedNodeId }: { selectedNodeId?
         setRenderedCount(visibleStars.length);
       }
       const visibleIdSet = new Set(visibleStars.map((s) => s.id));
+      const isLowLOD = zoom < 0.55;
 
       // 3. Draw Links (Dual-Graph: Prerequisite DAG + Semantic Multi-Graph)
       visibleStars.forEach((sourceStar) => {
@@ -325,8 +326,6 @@ export default function KnowledgeStarChart({ selectedNodeId }: { selectedNodeId?
       });
 
       // 4. Draw Visible Star Nodes (with Level of Detail optimization)
-      const isLowLOD = zoom < 0.55;
-
       visibleStars.forEach((star) => {
         const isSelected = selectedNode?.id === star.id;
         const isHovered = hoveredNode?.id === star.id;
