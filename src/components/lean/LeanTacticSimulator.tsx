@@ -120,6 +120,71 @@ export const tacticScenarios: TacticScenario[] = [
       },
     ],
   },
+  {
+    id: 'topology-limit-unique',
+    name: '拓扑空间：Hausdorff 空间极限唯一性',
+    nameEn: 'Topology: Uniqueness of limits in T2 space',
+    statement: 'theorem limit_unique [TopologicalSpace α] [T2Space α] (h₁ : Tendsto f atTop (𝓝 l₁)) (h₂ : Tendsto f atTop (𝓝 l₂)) : l₁ = l₂',
+    initialHypotheses: [
+      { name: 'α', type: 'Type*' },
+      { name: '[T2Space α]', type: 'Hausdorff separation' },
+      { name: 'f', type: 'ℕ → α' },
+      { name: 'l₁, l₂', type: 'α' },
+    ],
+    initialTarget: 'Tendsto f atTop (𝓝 l₁) → Tendsto f atTop (𝓝 l₂) → l₁ = l₂',
+    steps: [
+      {
+        tactic: 'intro h₁ h₂',
+        description: '引入两极限收敛假设 h₁ 与 h₂ 到局部上下文',
+        descriptionEn: 'Introduces the convergence hypotheses h₁ and h₂ into the local context',
+        resultHypotheses: [
+          { name: 'h₁', type: 'Tendsto f atTop (𝓝 l₁)' },
+          { name: 'h₂', type: 'Tendsto f atTop (𝓝 l₂)' },
+        ],
+        resultTarget: 'l₁ = l₂',
+      },
+      {
+        tactic: 'exact tendsto_nhds_unique h₁ h₂',
+        description: '直接调用 Mathlib Hausdorff 分离定理 tendsto_nhds_unique 封闭证明',
+        descriptionEn: 'Applies Mathlib Hausdorff uniqueness lemma tendsto_nhds_unique to close goal',
+        resultHypotheses: [],
+        resultTarget: 'Goals accomplished! 🎉 (Q.E.D.)',
+        isCompleted: true,
+      },
+    ],
+  },
+  {
+    id: 'algebra-group-inv-inv',
+    name: '近世代数：群双重逆元恒等式 ((g⁻¹)⁻¹ = g)',
+    nameEn: 'Abstract algebra: double inverse identity ((g⁻¹)⁻¹ = g)',
+    statement: 'theorem inv_inv_eq [Group G] (g : G) : (g⁻¹)⁻¹ = g',
+    initialHypotheses: [
+      { name: 'G', type: 'Type*' },
+      { name: '[Group G]', type: 'Group structure' },
+      { name: 'g', type: 'G' },
+    ],
+    initialTarget: '(g⁻¹)⁻¹ = g',
+    steps: [
+      {
+        tactic: 'have h : (g⁻¹)⁻¹ * g⁻¹ = 1 := inv_mul_cancel (g⁻¹)',
+        description: '建立逆元左乘单位元引理 h : (g⁻¹)⁻¹ * g⁻¹ = 1',
+        descriptionEn: 'Establishes the left-inverse identity lemma h',
+        resultHypotheses: [
+          { name: 'g', type: 'G' },
+          { name: 'h', type: '(g⁻¹)⁻¹ * g⁻¹ = 1' },
+        ],
+        resultTarget: '(g⁻¹)⁻¹ = g',
+      },
+      {
+        tactic: 'rw [← mul_one (g⁻¹)⁻¹, ← mul_inv_cancel g, ← mul_assoc, h, one_mul]',
+        description: '连续重写结合律与单位元公理消去中间项',
+        descriptionEn: 'Successively rewrites associativity and identity axioms to simplify',
+        resultHypotheses: [],
+        resultTarget: 'Goals accomplished! 🎉 (Q.E.D.)',
+        isCompleted: true,
+      },
+    ],
+  },
 ];
 
 export default function LeanTacticSimulator() {
@@ -175,7 +240,7 @@ export default function LeanTacticSimulator() {
         </div>
 
         {/* Scenario Switcher */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5">
           {tacticScenarios.map((sc, idx) => (
             <button
               key={sc.id}
