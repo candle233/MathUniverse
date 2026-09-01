@@ -272,7 +272,15 @@ export default function NodeDetailClient({ node }: NodeDetailClientProps) {
           }`}
         >
           <BookOpen className="w-4 h-4" />
-          <span>{isZh ? `推导与证明 (${node.proofs.length})` : `Proofs (${node.proofs.length})`}</span>
+          <span>
+            {isZh
+              ? node.proofs && node.proofs.length > 0
+                ? `推导与证明 (${node.proofs.length})`
+                : '概念直觉与动机'
+              : node.proofs && node.proofs.length > 0
+              ? `Proofs (${node.proofs.length})`
+              : 'Intuition & Motivation'}
+          </span>
         </button>
 
         <button

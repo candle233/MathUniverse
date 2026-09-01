@@ -78,6 +78,19 @@ export default function ProofViewer({ node }: ProofViewerProps) {
   };
 
   if (!currentProof) {
+    if (node.intuitionMd) {
+      return (
+        <div className="rounded-2xl border border-slate-800 bg-slate-950 overflow-hidden shadow-2xl p-6 space-y-4">
+          <div className="flex items-center gap-2 text-amber-300 font-bold text-sm border-b border-slate-800/80 pb-3">
+            <Lightbulb className="w-4 h-4 text-amber-400" />
+            <span>{isZh ? '概念直觉与动机解析 (Conceptual Intuition & Motivation)' : 'Conceptual Intuition & Motivation'}</span>
+          </div>
+          <div className="prose prose-invert max-w-none text-slate-300 text-sm leading-relaxed">
+            <LaTeXRenderer content={node.intuitionMd} />
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="p-8 rounded-2xl bg-slate-900 border border-slate-800 text-center text-slate-400">
         {isZh ? '该节点暂无证明记录，欢迎提交首个 Pull Request！' : 'No proofs recorded for this node yet — be the first to submit a Pull Request!'}
