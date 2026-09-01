@@ -493,6 +493,52 @@ export default function NodeDetailClient({ node }: NodeDetailClientProps) {
                 )}
               </div>
             </div>
+
+            {/* Semantic Graph Associations (G_semantic) */}
+            {node.semanticEdges && node.semanticEdges.length > 0 && (
+              <div className="p-6 rounded-2xl border border-slate-800 bg-slate-950 space-y-4">
+                <div className="flex items-center gap-2 text-sm font-bold text-cyan-400">
+                  <Sparkles className="w-4 h-4" />
+                  <span>{isZh ? '语义关联网络 (Semantic Graph: G_semantic)' : 'Semantic Graph Associations (G_semantic)'}</span>
+                </div>
+                <p className="text-xs text-slate-400">
+                  {isZh
+                    ? '语义图记录等价 (Equivalence)、推广 (Generalization)、特化 (Specialization) 及物理动机等跨概念联结，允许双向与环形网络：'
+                    : 'The semantic graph captures equivalences, generalizations, specializations, and motivations without DAG constraints:'}
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {node.semanticEdges.map((edge) => {
+                    const targetId = edge.fromNodeId === node.id ? edge.toNodeId : edge.fromNodeId;
+                    const targetNode = initialMathNodes.find((n) => n.id === targetId);
+                    return (
+                      <div
+                        key={edge.id}
+                        className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800/80 space-y-1.5"
+                      >
+                        <div className="flex items-center justify-between text-[10px] font-mono">
+                          <span className="px-2 py-0.5 rounded bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 font-bold">
+                            {edge.relationType}
+                          </span>
+                          <span className="text-slate-500">{edge.graphType}</span>
+                        </div>
+                        {targetNode && (
+                          <Link
+                            href={`/node/${targetNode.slug}`}
+                            className="block font-semibold text-xs text-slate-200 hover:text-cyan-300 transition-colors"
+                          >
+                            {getNodeTitle(targetNode, locale)}
+                          </Link>
+                        )}
+                        {edge.description && (
+                          <p className="text-[11px] text-slate-400 leading-relaxed">{edge.description}</p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {node.disciplineId === 'algebra' && (
               <div className="mt-6">
                 <CommutativeDiagramViewer />

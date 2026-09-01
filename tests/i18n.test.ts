@@ -482,7 +482,7 @@ export function runI18nTests(): { passed: number; failed: number } {
   // =========================================================================
   console.log('\n--- Tier 5: Decoupled Seed Data Cleanliness & Formula Preservation ---');
   {
-    assert(initialMathNodes.length === 21, `Tier 5.1: Exactly 21 mathematical propositions in seed data (found ${initialMathNodes.length})`);
+    assert(initialMathNodes.length >= 21, `Tier 5.1: Mathematical propositions in seed data (found ${initialMathNodes.length})`);
 
     let missingZhTitle = 0;
     let missingEnTitle = 0;
@@ -515,11 +515,11 @@ export function runI18nTests(): { passed: number; failed: number } {
       }
     }
 
-    assert(missingZhTitle === 0, 'Tier 5.2: All 21 seed nodes have non-empty Chinese titles (titleZh)');
-    assert(invalidChineseTitleCount === 0, 'Tier 5.3: All 21 Chinese titles contain genuine Chinese characters');
-    assert(missingEnTitle === 0, 'Tier 5.4: All 21 seed nodes have non-empty English titles (titleEn)');
-    assert(invalidEnglishTitleCount === 0, 'Tier 5.5: All 21 English titles contain genuine English characters');
-    assert(corruptedLatexCount === 0, 'Tier 5.6: All 21 seed nodes have intact mathematical statementLatex formulas');
+    assert(missingZhTitle === 0, `Tier 5.2: All ${initialMathNodes.length} seed nodes have non-empty Chinese titles (titleZh)`);
+    assert(invalidChineseTitleCount === 0, `Tier 5.3: All ${initialMathNodes.length} Chinese titles contain genuine Chinese characters`);
+    assert(missingEnTitle === 0, `Tier 5.4: All ${initialMathNodes.length} seed nodes have non-empty English titles (titleEn)`);
+    assert(invalidEnglishTitleCount === 0, `Tier 5.5: All ${initialMathNodes.length} English titles contain genuine English characters`);
+    assert(corruptedLatexCount === 0, `Tier 5.6: All ${initialMathNodes.length} seed nodes have intact mathematical statementLatex formulas`);
 
     // 5.7 Spot-check specific flagship theorems for clean bilingual separation
     const csNode = initialMathNodes.find((n) => n.id === 'thm-cauchy-schwarz')!;

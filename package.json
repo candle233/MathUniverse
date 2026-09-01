@@ -3,12 +3,14 @@
   "version": "1.0.0",
   "description": "MathUniverse - The Open-Source Mathematics Knowledge Base & Formal Verification Platform",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev -H 127.0.0.1 -p 5050",
     "build": "next build",
     "start": "next start -H 127.0.0.1 -p 5050",
     "test": "node --experimental-strip-types tests/runTests.ts",
-    "lint": "next lint"
+    "test:pbt": "node --experimental-strip-types tests/propertyBasedDAG.test.ts",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "clsx": "^2.1.1",

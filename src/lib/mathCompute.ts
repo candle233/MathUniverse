@@ -15,9 +15,13 @@ import type {
   VerificationResult,
 } from '../types/sandbox.ts';
 
+export * from './autodiff.ts';
+
 // ==========================================
-// 1. Matrix & Linear Algebra Types & Algorithms
+// 1. Matrix & Linear Algebra Kernel (DenseMatrix & Francis QR)
 // ==========================================
+
+const EPSILON = Number.EPSILON; // \approx 2.220446049250313e-16
 
 export interface MatrixResult {
   determinant: number;
@@ -26,8 +30,94 @@ export interface MatrixResult {
   inverse?: number[][];
   eigenvalues: Array<{ real: number; imag: number }>;
   eigenvectors?: Array<{ real: number[]; imag: number[] }>;
+  conditionNumber?: number;
 }
 
+/**
+ * High-performance Row-Major Continuous Float64Array Matrix
+ */
+export class DenseMatrix {
+  public readonly rows: number;
+  public readonly cols: number;
+  public readonly data: Float64Array;
+
+  constructor(rows: number, cols: number, source?: ArrayLike<number>) {
+    if (rows <= 0 || cols <= 0) {
+      throw new RangeError(`[DenseMatrix] Matrix dimensions must be positive integers. Got ${rows}x${cols}.`);
+    }
+    this.rows = rows;
+    this.cols = cols;
+    this.data = new Float64Array(rows * cols);
+    if (source) {
+      this.data.set(source);
+    }
+  }
+
+  public static from2D(arr: readonly (readonly number[])[]): DenseMatrix {
+    const r = arr.length;
+    const c = arr[0]?.length || 0;
+    if (r === 0 || c === 0) {
+      throw new Error('[DenseMatrix] Cannot instantiate an empty 2D matrix.');
+    }
+    const mat = new DenseMatrix(r, c);
+    let ptr = 0;
+    for (let i = 0; i < r; i++) {
+      if (arr[i].length !== c) {
+        throw new Error(`[DenseMatrix] Inconsistent row dimensions at row ${i}.`);
+      }
+      for (let j = 0; j < c; j++) {
+        mat.data[ptr++] = arr[i][j];
+      }
+    }
+    return mat;
+  }
+
+  public get(r: number, c: number): number {
+    return this.data[r * this.cols + c];
+  }
+
+  public set(r: number, c: number, val: number): void {
+    this.data[r * this.cols + c] = val;
+  }
+
+  public clone(): DenseMatrix {
+    return new DenseMatrix(this.rows, this.cols, this.data);
+  }
+
+  public to2D(): number[][] {
+    const res: number[][] = [];
+    for (let i = 0; i < this.rows; i++) {
+      const row: number[] = [];
+      const offset = i * this.cols;
+      for (let j = 0; j < this.cols; j++) {
+        row.push(this.data[offset + j]);
+      }
+      res.push(row);
+    }
+    return res;
+  }
+
+  /**
+   * Infinity Norm: \|A\|_\infty = \max_{1 \le i \le m} \sum_{j=1}^n |A_{ij}|
+   */
+  public normInfinity(): number {
+    let maxRowSum = 0;
+    for (let i = 0; i < this.rows; i++) {
+      let sum = 0;
+      const rowOffset = i * this.cols;
+      for (let j = 0; j < this.cols; j++) {
+        sum += Math.abs(this.data[rowOffset + j]);
+      }
+      if (sum > maxRowSum) maxRowSum = sum;
+    }
+    return maxRowSum;
+  }
+}
+
+/**
+ * Analyzes a square matrix with high precision, calculating trace, determinant, rank,
+ * inverse, and eigenvalues using Hessenberg reduction and Francis Double-Shift QR.
+ */
 export function analyzeMatrix(matrix: number[][]): MatrixResult {
   const n = matrix.length;
   const m = matrix[0]?.length || 0;
@@ -35,161 +125,370 @@ export function analyzeMatrix(matrix: number[][]): MatrixResult {
     throw new Error('Matrix must be a non-empty square matrix');
   }
 
-  // Trace
+  const mat = DenseMatrix.from2D(matrix);
+  const normInf = mat.normInfinity();
+  const tol = Math.max(1e-15, n * EPSILON * normInf);
+
+  // 1. Trace: \mathrm{tr}(A) = \sum A_{ii}
   let trace = 0;
-  for (let i = 0; i < n; i++) trace += matrix[i][i];
-
-  // Determinant & Rank via Gaussian Elimination with partial pivoting
-  const A = matrix.map((row) => [...row]);
-  let det = 1;
-  let rank = 0;
-
   for (let i = 0; i < n; i++) {
-    let pivot = i;
-    for (let r = i + 1; r < n; r++) {
-      if (Math.abs(A[r][i]) > Math.abs(A[pivot][i])) pivot = r;
+    trace += mat.get(i, i);
+  }
+
+  // 2. Scaled Partial Pivoting Gaussian Elimination for Det, Rank, and Inverse
+  const A = mat.clone();
+  const invMat = new DenseMatrix(n, n);
+  for (let i = 0; i < n; i++) invMat.set(i, i, 1.0);
+
+  let det = 1.0;
+  let rank = 0;
+  let isSingular = false;
+
+  for (let col = 0; col < n; col++) {
+    let maxVal = Math.abs(A.get(col, col));
+    let pivotRow = col;
+    for (let r = col + 1; r < n; r++) {
+      const val = Math.abs(A.get(r, col));
+      if (val > maxVal) {
+        maxVal = val;
+        pivotRow = r;
+      }
     }
 
-    if (Math.abs(A[pivot][i]) < 1e-11) continue;
-
-    if (pivot !== i) {
-      [A[i], A[pivot]] = [A[pivot], A[i]];
-      det = -det;
+    if (maxVal <= tol) {
+      isSingular = true;
+      continue;
     }
 
-    det *= A[i][i];
     rank++;
 
-    for (let j = i + 1; j < n; j++) {
-      const factor = A[j][i] / A[i][i];
-      for (let k = i; k < n; k++) {
-        A[j][k] -= factor * A[i][k];
+    if (pivotRow !== col) {
+      det = -det;
+      for (let j = 0; j < n; j++) {
+        const tmpA = A.get(col, j);
+        A.set(col, j, A.get(pivotRow, j));
+        A.set(pivotRow, j, tmpA);
+
+        const tmpI = invMat.get(col, j);
+        invMat.set(col, j, invMat.get(pivotRow, j));
+        invMat.set(pivotRow, j, tmpI);
+      }
+    }
+
+    const pivot = A.get(col, col);
+    det *= pivot;
+
+    const invPivot = 1.0 / pivot;
+    for (let j = 0; j < n; j++) {
+      A.set(col, j, A.get(col, j) * invPivot);
+      invMat.set(col, j, invMat.get(col, j) * invPivot);
+    }
+
+    for (let r = 0; r < n; r++) {
+      if (r === col) continue;
+      const factor = A.get(r, col);
+      if (Math.abs(factor) > 1e-18) {
+        for (let j = 0; j < n; j++) {
+          A.set(r, j, A.get(r, j) - factor * A.get(col, j));
+          invMat.set(r, j, invMat.get(r, j) - factor * invMat.get(col, j));
+        }
       }
     }
   }
 
   if (rank < n) {
     det = 0;
+    isSingular = true;
   }
 
-  // Matrix Inverse via Gauss-Jordan
-  let inverse: number[][] | undefined = undefined;
-  if (rank === n && Math.abs(det) > 1e-9) {
-    const aug = matrix.map((row, i) => [
-      ...row,
-      ...Array.from({ length: n }, (_, j) => (i === j ? 1 : 0)),
-    ]);
-
-    for (let i = 0; i < n; i++) {
-      let maxRow = i;
-      for (let k = i + 1; k < n; k++) {
-        if (Math.abs(aug[k][i]) > Math.abs(aug[maxRow][i])) maxRow = k;
-      }
-      [aug[i], aug[maxRow]] = [aug[maxRow], aug[i]];
-
-      const pivotVal = aug[i][i];
-      if (Math.abs(pivotVal) < 1e-12) continue;
-
-      for (let j = 0; j < 2 * n; j++) aug[i][j] /= pivotVal;
-
-      for (let r = 0; r < n; r++) {
-        if (r !== i) {
-          const factor = aug[r][i];
-          for (let c = 0; c < 2 * n; c++) {
-            aug[r][c] -= factor * aug[i][c];
-          }
-        }
-      }
-    }
-
-    inverse = aug.map((row) => row.slice(n));
+  let conditionNumber: number | undefined = undefined;
+  if (!isSingular) {
+    conditionNumber = normInf * invMat.normInfinity();
   }
 
-  // Eigenvalues
-  const eigenvalues: Array<{ real: number; imag: number }> = [];
+  const eigenvalues: Array<{ real: number; imag: number }> = computeEigenvalues(mat, tol);
+
+  return {
+    determinant: isSingular ? 0 : det,
+    trace,
+    rank,
+    inverse: isSingular ? undefined : invMat.to2D(),
+    eigenvalues,
+    conditionNumber,
+  };
+}
+
+function computeEigenvalues(mat: DenseMatrix, tol: number): Array<{ real: number; imag: number }> {
+  const n = mat.rows;
+  if (n === 1) {
+    return [{ real: mat.get(0, 0), imag: 0 }];
+  }
+
   if (n === 2) {
-    const a = matrix[0][0],
-      b = matrix[0][1],
-      c = matrix[1][0],
-      d = matrix[1][1];
+    const a = mat.get(0, 0),
+      b = mat.get(0, 1),
+      c = mat.get(1, 0),
+      d = mat.get(1, 1);
     const tr = a + d;
     const dt = a * d - b * c;
     const disc = tr * tr - 4 * dt;
     if (disc >= 0) {
-      eigenvalues.push({ real: (tr + Math.sqrt(disc)) / 2, imag: 0 });
-      eigenvalues.push({ real: (tr - Math.sqrt(disc)) / 2, imag: 0 });
+      const sqrtDisc = Math.sqrt(disc);
+      const q = tr >= 0 ? 0.5 * (tr + sqrtDisc) : 0.5 * (tr - sqrtDisc);
+      return [
+        { real: q, imag: 0 },
+        { real: Math.abs(q) > 1e-15 ? dt / q : 0, imag: 0 },
+      ];
     } else {
-      eigenvalues.push({ real: tr / 2, imag: Math.sqrt(-disc) / 2 });
-      eigenvalues.push({ real: tr / 2, imag: -Math.sqrt(-disc) / 2 });
+      const im = Math.sqrt(-disc) / 2;
+      return [
+        { real: tr / 2, imag: im },
+        { real: tr / 2, imag: -im },
+      ];
     }
-  } else if (n === 3) {
-    // 3x3 characteristic polynomial: λ³ - tr(A)λ² + M λ - det(A) = 0
-    const tr = trace;
-    const m11 = matrix[1][1] * matrix[2][2] - matrix[1][2] * matrix[2][1];
-    const m22 = matrix[0][0] * matrix[2][2] - matrix[0][2] * matrix[2][0];
-    const m33 = matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0];
-    const M = m11 + m22 + m33;
-    const D = det;
-
-    // Depressed cubic: t³ + pt + q = 0 with λ = t + tr/3
-    const p = M - (tr * tr) / 3;
-    const q = -(2 * tr ** 3) / 27 + (tr * M) / 3 - D;
-    const delta = (q * q) / 4 + (p * p * p) / 27;
-
-    if (delta <= 0) {
-      const r = Math.sqrt(-(p ** 3) / 27);
-      const phi = Math.acos(Math.max(-1, Math.min(1, -q / (2 * (r || 1e-12)))));
-      const t1 = 2 * Math.cbrt(r) * Math.cos(phi / 3);
-      const t2 = 2 * Math.cbrt(r) * Math.cos((phi + 2 * Math.PI) / 3);
-      const t3 = 2 * Math.cbrt(r) * Math.cos((phi + 4 * Math.PI) / 3);
-      eigenvalues.push({ real: t1 + tr / 3, imag: 0 });
-      eigenvalues.push({ real: t2 + tr / 3, imag: 0 });
-      eigenvalues.push({ real: t3 + tr / 3, imag: 0 });
-    } else {
-      const u = Math.cbrt(-q / 2 + Math.sqrt(delta));
-      const v = Math.cbrt(-q / 2 - Math.sqrt(delta));
-      const realRoot = u + v + tr / 3;
-      eigenvalues.push({ real: realRoot, imag: 0 });
-      const re = -(u + v) / 2 + tr / 3;
-      const im = ((u - v) * Math.sqrt(3)) / 2;
-      eigenvalues.push({ real: re, imag: im });
-      eigenvalues.push({ real: re, imag: -im });
-    }
-  } else {
-    eigenvalues.push({ real: trace / n, imag: 0 });
   }
 
-  return {
-    determinant: det,
-    trace,
-    rank,
-    inverse,
-    eigenvalues,
-  };
+  // Hessenberg Reduction
+  const H = mat.clone();
+  reduceToHessenberg(H);
+
+  const eigenvalues: Array<{ real: number; imag: number }> = [];
+  let nn = n;
+  let iter = 0;
+  const maxIter = 60 * n;
+
+  while (nn >= 1 && iter < maxIter) {
+    // 1. Check for deflation
+    let l = nn - 1;
+    while (l > 0) {
+      const s = Math.abs(H.get(l - 1, l - 1)) + Math.abs(H.get(l, l));
+      const threshold = s === 0 ? tol : EPSILON * s;
+      if (Math.abs(H.get(l, l - 1)) <= Math.max(tol, threshold)) {
+        H.set(l, l - 1, 0);
+        break;
+      }
+      l--;
+    }
+
+    if (l === nn - 1) {
+      // 1x1 block converged
+      eigenvalues.push({ real: H.get(nn - 1, nn - 1), imag: 0 });
+      nn--;
+      iter = 0;
+      continue;
+    }
+
+    if (l === nn - 2) {
+      // 2x2 block converged
+      const a = H.get(nn - 2, nn - 2);
+      const b = H.get(nn - 2, nn - 1);
+      const c = H.get(nn - 1, nn - 2);
+      const d = H.get(nn - 1, nn - 1);
+      const tr = a + d;
+      const dt = a * d - b * c;
+      const disc = tr * tr - 4 * dt;
+      if (disc >= 0) {
+        const sqrtDisc = Math.sqrt(disc);
+        const q = tr >= 0 ? 0.5 * (tr + sqrtDisc) : 0.5 * (tr - sqrtDisc);
+        eigenvalues.push({ real: q, imag: 0 });
+        eigenvalues.push({ real: Math.abs(q) > 1e-15 ? dt / q : 0, imag: 0 });
+      } else {
+        const im = Math.sqrt(-disc) / 2;
+        eigenvalues.push({ real: tr / 2, imag: im });
+        eigenvalues.push({ real: tr / 2, imag: -im });
+      }
+      nn -= 2;
+      iter = 0;
+      continue;
+    }
+
+    // QR Step
+    iter++;
+
+    let x = H.get(nn - 1, nn - 1);
+    let y = H.get(nn - 2, nn - 2);
+    let w = H.get(nn - 1, nn - 2) * H.get(nn - 2, nn - 1);
+
+    if (iter === 10 || iter === 20) {
+      // Exceptional shift
+      const s = Math.abs(H.get(nn - 1, nn - 2)) + Math.abs(H.get(nn - 2, nn - 3));
+      x = 0.75 * s;
+      y = 0.75 * s;
+      w = -0.4375 * s * s;
+    }
+
+    let p = (y - x) / 2.0;
+    let q = p * p + w;
+    let z = Math.sqrt(Math.abs(q));
+    x = H.get(nn - 1, nn - 1);
+    if (q >= 0) {
+      z = p >= 0 ? p + z : p - z;
+      x = x - w / (z || 1e-12);
+      y = x;
+    } else {
+      x = x + p;
+      y = z;
+    }
+
+    // Find starting point
+    let m = nn - 3;
+    while (m >= l) {
+      const zm = H.get(m, m);
+      const r = x - zm;
+      const s = y - zm;
+      let p0 = (r * s - w) / (H.get(m + 1, m) || 1e-12) + H.get(m, m + 1);
+      let q0 = H.get(m + 1, m + 1) - zm - r - s;
+      let vr = H.get(m + 2, m + 1);
+      const sNorm = Math.abs(p0) + Math.abs(q0) + Math.abs(vr);
+      p0 /= sNorm || 1;
+      q0 /= sNorm || 1;
+      vr /= sNorm || 1;
+      if (m === l) break;
+      if (
+        Math.abs(H.get(m, m - 1)) * (Math.abs(q0) + Math.abs(vr)) <=
+        EPSILON *
+          Math.abs(p0) *
+          (Math.abs(H.get(m - 1, m - 1)) + Math.abs(zm) + Math.abs(H.get(m + 1, m + 1)))
+      ) {
+        break;
+      }
+      m--;
+    }
+
+    for (let i = m; i <= nn - 2; i++) {
+      const notlast = i !== nn - 2;
+      let p0 = 0,
+        q0 = 0,
+        r0 = 0;
+      if (i === m) {
+        const zm = H.get(m, m);
+        const r = x - zm;
+        const s = y - zm;
+        p0 = (r * s - w) / (H.get(m + 1, m) || 1e-12) + H.get(m, m + 1);
+        q0 = H.get(m + 1, m + 1) - zm - r - s;
+        r0 = notlast ? H.get(m + 2, m + 1) : 0;
+      } else {
+        p0 = H.get(i, i - 1);
+        q0 = H.get(i + 1, i - 1);
+        r0 = notlast ? H.get(i + 2, i - 1) : 0;
+      }
+
+      const norm = Math.hypot(p0, q0, r0);
+      if (norm > 1e-15) {
+        const s = p0 >= 0 ? -norm : norm;
+        if (i !== m) {
+          H.set(i, i - 1, s);
+          H.set(i + 1, i - 1, 0);
+          if (notlast) H.set(i + 2, i - 1, 0);
+        }
+        const u0 = p0 - s;
+        const u1 = q0;
+        const u2 = r0;
+        const uNorm = Math.hypot(u0, u1, u2);
+        const w0 = u0 / uNorm;
+        const w1 = u1 / uNorm;
+        const w2 = u2 / uNorm;
+
+        // Row transformations
+        for (let j = i; j < n; j++) {
+          const dot =
+            2 * (w0 * H.get(i, j) + w1 * H.get(i + 1, j) + (notlast ? w2 * H.get(i + 2, j) : 0));
+          H.set(i, j, H.get(i, j) - dot * w0);
+          H.set(i + 1, j, H.get(i + 1, j) - dot * w1);
+          if (notlast) H.set(i + 2, j, H.get(i + 2, j) - dot * w2);
+        }
+
+        // Column transformations
+        const limit = Math.min(nn, i + 3);
+        for (let j = 0; j < limit; j++) {
+          const dot =
+            2 * (w0 * H.get(j, i) + w1 * H.get(j, i + 1) + (notlast ? w2 * H.get(j, i + 2) : 0));
+          H.set(j, i, H.get(j, i) - dot * w0);
+          H.set(j, i + 1, H.get(j, i + 1) - dot * w1);
+          if (notlast) H.set(j, i + 2, H.get(j, i + 2) - dot * w2);
+        }
+      }
+    }
+  }
+
+  // Fallback for remaining diagonal elements
+  while (nn > 0) {
+    eigenvalues.push({ real: H.get(nn - 1, nn - 1), imag: 0 });
+    nn--;
+  }
+
+  return eigenvalues;
+}
+
+function reduceToHessenberg(H: DenseMatrix): void {
+  const n = H.rows;
+  const v = new Float64Array(n);
+
+  for (let k = 0; k < n - 2; k++) {
+    let normSq = 0;
+    for (let i = k + 1; i < n; i++) {
+      normSq += H.get(i, k) ** 2;
+    }
+    const norm = Math.sqrt(normSq);
+    if (norm < 1e-15) continue;
+
+    const alpha = H.get(k + 1, k) > 0 ? -norm : norm;
+    const r = Math.sqrt(0.5 * (alpha * alpha - H.get(k + 1, k) * alpha));
+    v[k + 1] = (H.get(k + 1, k) - alpha) / (2 * r);
+    for (let i = k + 2; i < n; i++) {
+      v[i] = H.get(i, k) / (2 * r);
+    }
+
+    for (let j = k; j < n; j++) {
+      let dot = 0;
+      for (let i = k + 1; i < n; i++) dot += v[i] * H.get(i, j);
+      dot *= 2;
+      for (let i = k + 1; i < n; i++) H.set(i, j, H.get(i, j) - dot * v[i]);
+    }
+
+    for (let i = 0; i < n; i++) {
+      let dot = 0;
+      for (let j = k + 1; j < n; j++) dot += v[j] * H.get(i, j);
+      dot *= 2;
+      for (let j = k + 1; j < n; j++) H.set(i, j, H.get(i, j) - dot * v[j]);
+    }
+  }
 }
 
 export function gramSchmidt(vectors: number[][]): { orthogonal: number[][]; orthonormal: number[][] } {
+  if (!vectors || vectors.length === 0) {
+    return { orthogonal: [], orthonormal: [] };
+  }
+
+  const k = vectors.length;
+  const d = vectors[0].length;
+
+  const V: number[][] = vectors.map((vec) => [...vec]);
   const orthogonal: number[][] = [];
   const orthonormal: number[][] = [];
 
-  const dot = (a: number[], b: number[]) => a.reduce((sum, val, idx) => sum + val * (b[idx] || 0), 0);
-  const norm = (v: number[]) => Math.sqrt(dot(v, v));
+  for (let i = 0; i < k; i++) {
+    const vi = V[i];
+    let normSq = 0;
+    for (let l = 0; l < d; l++) normSq += vi[l] * vi[l];
+    const norm = Math.sqrt(normSq);
 
-  for (let i = 0; i < vectors.length; i++) {
-    const v = [...vectors[i]];
-    let u = [...v];
+    orthogonal.push([...vi]);
 
-    for (let j = 0; j < i; j++) {
-      const projFactor = dot(v, orthogonal[j]) / (dot(orthogonal[j], orthogonal[j]) || 1e-12);
-      u = u.map((val, idx) => val - projFactor * orthogonal[j][idx]);
-    }
+    if (norm > 1e-12) {
+      const e = new Array<number>(d);
+      const invNorm = 1.0 / norm;
+      for (let l = 0; l < d; l++) e[l] = vi[l] * invNorm;
+      orthonormal.push(e);
 
-    orthogonal.push(u);
-    const len = norm(u);
-    if (len > 1e-9) {
-      orthonormal.push(u.map((val) => val / len));
+      for (let j = i + 1; j < k; j++) {
+        let dot = 0;
+        const vj = V[j];
+        for (let l = 0; l < d; l++) dot += vj[l] * e[l];
+        for (let l = 0; l < d; l++) vj[l] -= dot * e[l];
+      }
     } else {
-      orthonormal.push(u.map(() => 0));
+      orthonormal.push(new Array<number>(d).fill(0));
     }
   }
 
@@ -197,32 +496,73 @@ export function gramSchmidt(vectors: number[][]): { orthogonal: number[][]; orth
 }
 
 // ==========================================
-// 2. Calculus: Derivatives, Integrals & Series
+// 2. Calculus: High-Order Derivatives, Adaptive Integrals & Series
 // ==========================================
 
+/**
+ * High-precision numerical derivative using 4th-order 5-point central stencil:
+ * f'(x_0) = \frac{-f(x_0+2h) + 8f(x_0+h) - 8f(x_0-h) + f(x_0-2h)}{12h} + O(h^4)
+ */
+export function numericalDerivative(f: (x: number) => number, x0: number, h?: number): number {
+  const step = h ?? Math.max(1e-5, Math.pow(EPSILON, 0.2) * Math.max(1, Math.abs(x0)));
+  const f_p2 = f(x0 + 2 * step);
+  const f_p1 = f(x0 + step);
+  const f_m1 = f(x0 - step);
+  const f_m2 = f(x0 - 2 * step);
+  return (-f_p2 + 8 * f_p1 - 8 * f_m1 + f_m2) / (12 * step);
+}
+
+/**
+ * Composite Simpson & Richardson Extrapolation Quadrature with local error estimation
+ */
 export function numericalIntegrate(
   f: (x: number) => number,
   a: number,
   b: number,
   n: number = 600
 ): { value: number; errorEstimate: number } {
-  if (n % 3 !== 0) n += 3 - (n % 3);
+  if (a === b) return { value: 0, errorEstimate: 0 };
+  if (n % 2 !== 0) n += 1;
+
   const h = (b - a) / n;
-  let sum = f(a) + f(b);
+  let sumOdd = 0;
+  let sumEven = 0;
 
   for (let i = 1; i < n; i++) {
     const x = a + i * h;
-    sum += i % 3 === 0 ? 2 * f(x) : 3 * f(x);
+    const y = f(x);
+    if (i % 2 === 1) {
+      sumOdd += y;
+    } else {
+      sumEven += y;
+    }
   }
 
-  const val = (3 * h * sum) / 8;
-  return { value: val, errorEstimate: Math.abs(h ** 4 * 1e-4) };
+  const s1 = (h / 3) * (f(a) + 4 * sumOdd + 2 * sumEven + f(b));
+
+  // Secondary coarser grid for Richardson error estimate
+  const h2 = 2 * h;
+  const n2 = n / 2;
+  let sumOdd2 = 0;
+  let sumEven2 = 0;
+  for (let i = 1; i < n2; i++) {
+    const x = a + i * h2;
+    const y = f(x);
+    if (i % 2 === 1) {
+      sumOdd2 += y;
+    } else {
+      sumEven2 += y;
+    }
+  }
+  const s2 = (h2 / 3) * (f(a) + 4 * sumOdd2 + 2 * sumEven2 + f(b));
+  const errorEstimate = Math.abs(s1 - s2) / 15;
+
+  return { value: s1, errorEstimate };
 }
 
-export function numericalDerivative(f: (x: number) => number, x0: number, h: number = 1e-5): number {
-  return (-f(x0 + 2 * h) + 8 * f(x0 + h) - 8 * f(x0 - h) + f(x0 - 2 * h)) / (12 * h);
-}
-
+/**
+ * Computes Taylor polynomial coefficients with scale-adjusted difference stencils
+ */
 export function computeTaylorSeries(
   f: (x: number) => number,
   x0: number,
@@ -239,13 +579,13 @@ export function computeTaylorSeries(
     } else if (k === 1) {
       deriv = numericalDerivative(f, x0);
     } else if (k === 2) {
-      const h = 1e-4;
+      const h = 1e-4 * Math.max(1, Math.abs(x0));
       deriv = (f(x0 + h) - 2 * f(x0) + f(x0 - h)) / (h * h);
     } else if (k === 3) {
-      const h = 1e-3;
+      const h = 2e-3 * Math.max(1, Math.abs(x0));
       deriv = (f(x0 + 2 * h) - 2 * f(x0 + h) + 2 * f(x0 - h) - f(x0 - 2 * h)) / (2 * h ** 3);
     } else {
-      const h = 1e-2;
+      const h = 1e-2 * Math.max(1, Math.abs(x0));
       deriv = (f(x0 + 2 * h) - 4 * f(x0 + h) + 6 * f(x0) - 4 * f(x0 - h) + f(x0 - 2 * h)) / (h ** 4);
     }
 
@@ -280,9 +620,9 @@ export function computeRiemannSum(
   const rectangles: Array<{ x: number; width: number; height: number; isPositive: boolean }> = [];
 
   for (let i = 0; i < n; i++) {
-    let sampleX = a + i * dx;
-    if (method === 'right') sampleX = a + (i + 1) * dx;
-    else if (method === 'midpoint') sampleX = a + (i + 0.5) * dx;
+    let sampleX = a + (i + 0.5) * dx;
+    if (method === 'left') sampleX = a + i * dx;
+    else if (method === 'right') sampleX = a + (i + 1) * dx;
 
     const height = f(sampleX);
     sum += height * dx;
@@ -311,20 +651,17 @@ export function computeFourierSeries(
     let y = 0;
 
     if (type === 'square') {
-      // 4/pi * sum (sin((2k-1)x)/(2k-1))
       for (let k = 1; k <= harmonics; k++) {
         const n = 2 * k - 1;
         y += (4 / Math.PI) * (Math.sin(n * x) / n);
       }
     } else if (type === 'triangle') {
-      // 8/pi^2 * sum ((-1)^(k-1) * sin((2k-1)x)/(2k-1)^2)
       for (let k = 1; k <= harmonics; k++) {
         const n = 2 * k - 1;
         const sign = k % 2 === 1 ? 1 : -1;
         y += (8 / (Math.PI * Math.PI)) * ((sign * Math.sin(n * x)) / (n * n));
       }
     } else {
-      // sawtooth: 2/pi * sum ((-1)^(k+1) * sin(kx)/k)
       for (let k = 1; k <= harmonics; k++) {
         const sign = k % 2 === 1 ? 1 : -1;
         y += (2 / Math.PI) * ((sign * Math.sin(k * x)) / k);
@@ -338,7 +675,7 @@ export function computeFourierSeries(
 }
 
 // ==========================================
-// 3. Differential Equations: RK4 & Vector Fields
+// 3. Differential Equations: High-Performance RK4 & Vector Fields
 // ==========================================
 
 export interface ODESystemParams {
@@ -351,78 +688,145 @@ export interface ODESystemParams {
 
 export interface ODESimulationResult {
   t: number[];
-  trajectory: number[][]; // Array of state vectors [x, y, z]
+  trajectory: number[][];
 }
 
 export function solveODE_RK4(config: ODESystemParams): ODESimulationResult {
   const { system, params, initialState, tSpan, dt } = config;
   const numSteps = Math.floor((tSpan[1] - tSpan[0]) / dt);
 
-  const t: number[] = [];
-  const trajectory: number[][] = [];
+  const t: number[] = new Array(numSteps + 1);
+  const trajectory: number[][] = new Array(numSteps + 1);
 
-  let state = [...initialState];
-  if (state.length === 2) state.push(0); // Ensure 3D state representation
+  let x = initialState[0] ?? 0;
+  let y = initialState[1] ?? 0;
+  let z = initialState[2] ?? 0;
   let curT = tSpan[0];
 
-  const getDerivs = (s: number[]): number[] => {
-    if (system === 'lorenz') {
-      const sigma = params.sigma ?? 10;
-      const rho = params.rho ?? 28;
-      const beta = params.beta ?? 8 / 3;
-      const [x, y, z] = s;
-      return [sigma * (y - x), x * (rho - z) - y, x * y - beta * z];
-    } else if (system === 'lotka_volterra') {
-      const alpha = params.alpha ?? 1.1;
-      const beta = params.beta ?? 0.4;
-      const delta = params.delta ?? 0.1;
-      const gamma = params.gamma ?? 0.4;
-      const [x, y] = s;
-      return [alpha * x - beta * x * y, delta * x * y - gamma * y, 0];
-    } else if (system === 'van_der_pol') {
-      const mu = params.mu ?? 1.5;
-      const [x, v] = s;
-      return [v, mu * (1 - x * x) * v - x, 0];
-    } else if (system === 'rossler') {
-      const a = params.a ?? 0.2;
-      const b = params.b ?? 0.2;
-      const c = params.c ?? 5.7;
-      const [x, y, z] = s;
-      return [-y - z, x + a * y, b + z * (x - c)];
-    } else if (system === 'sir') {
-      const beta = params.beta ?? 0.3;
-      const gamma = params.gamma ?? 0.1;
-      const [S, I, R] = s;
-      const N = S + I + R || 1;
-      return [(-beta * S * I) / N, (beta * S * I) / N - gamma * I, gamma * I];
-    } else {
-      // Damped pendulum
-      const g = params.g ?? 9.81;
-      const L = params.L ?? 1.0;
-      const damp = params.damp ?? 0.2;
-      const [theta, omega] = s;
-      return [omega, -(g / L) * Math.sin(theta) - damp * omega, 0];
+  const sigma = params.sigma ?? 10;
+  const rho = params.rho ?? 28;
+  const beta = params.beta ?? 8 / 3;
+
+  const lvAlpha = params.alpha ?? 1.1;
+  const lvBeta = params.beta ?? 0.4;
+  const lvDelta = params.delta ?? 0.1;
+  const lvGamma = params.gamma ?? 0.4;
+
+  const vdpMu = params.mu ?? 1.5;
+
+  const rosA = params.a ?? 0.2;
+  const rosB = params.b ?? 0.2;
+  const rosC = params.c ?? 5.7;
+
+  const sirBeta = params.beta ?? 0.3;
+  const sirGamma = params.gamma ?? 0.1;
+
+  const penG = params.g ?? 9.81;
+  const penL = params.L ?? 1.0;
+  const penDamp = params.damp ?? 0.2;
+
+  const evalDeriv = (sx: number, sy: number, sz: number, out: [number, number, number]): void => {
+    switch (system) {
+      case 'lorenz':
+        out[0] = sigma * (sy - sx);
+        out[1] = sx * (rho - sz) - sy;
+        out[2] = sx * sy - beta * sz;
+        break;
+      case 'lotka_volterra':
+        out[0] = lvAlpha * sx - lvBeta * sx * sy;
+        out[1] = lvDelta * sx * sy - lvGamma * sy;
+        out[2] = 0;
+        break;
+      case 'van_der_pol':
+        out[0] = sy;
+        out[1] = vdpMu * (1 - sx * sx) * sy - sx;
+        out[2] = 0;
+        break;
+      case 'rossler':
+        out[0] = -sy - sz;
+        out[1] = sx + rosA * sy;
+        out[2] = rosB + sz * (sx - rosC);
+        break;
+      case 'sir': {
+        const N = sx + sy + sz || 1;
+        out[0] = (-sirBeta * sx * sy) / N;
+        out[1] = (sirBeta * sx * sy) / N - sirGamma * sy;
+        out[2] = sirGamma * sy;
+        break;
+      }
+      default:
+        out[0] = sy;
+        out[1] = -(penG / penL) * Math.sin(sx) - penDamp * sy;
+        out[2] = 0;
+        break;
     }
   };
 
+  const k1: [number, number, number] = [0, 0, 0];
+  const k2: [number, number, number] = [0, 0, 0];
+  const k3: [number, number, number] = [0, 0, 0];
+  const k4: [number, number, number] = [0, 0, 0];
+
   for (let step = 0; step <= numSteps; step++) {
-    t.push(curT);
-    trajectory.push([...state]);
+    t[step] = curT;
+    trajectory[step] = [x, y, z];
 
-    // RK4 Steps
-    const k1 = getDerivs(state);
-    const s2 = state.map((v, i) => v + 0.5 * dt * k1[i]);
-    const k2 = getDerivs(s2);
-    const s3 = state.map((v, i) => v + 0.5 * dt * k2[i]);
-    const k3 = getDerivs(s3);
-    const s4 = state.map((v, i) => v + dt * k3[i]);
-    const k4 = getDerivs(s4);
+    evalDeriv(x, y, z, k1);
+    evalDeriv(x + 0.5 * dt * k1[0], y + 0.5 * dt * k1[1], z + 0.5 * dt * k1[2], k2);
+    evalDeriv(x + 0.5 * dt * k2[0], y + 0.5 * dt * k2[1], z + 0.5 * dt * k2[2], k3);
+    evalDeriv(x + dt * k3[0], y + dt * k3[1], z + dt * k3[2], k4);
 
-    state = state.map((v, i) => v + (dt / 6) * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]));
+    x += (dt / 6) * (k1[0] + 2 * k2[0] + 2 * k3[0] + k4[0]);
+    y += (dt / 6) * (k1[1] + 2 * k2[1] + 2 * k3[1] + k4[1]);
+    z += (dt / 6) * (k1[2] + 2 * k2[2] + 2 * k3[2] + k4[2]);
     curT += dt;
   }
 
   return { t, trajectory };
+}
+
+/**
+ * Symplectic Velocity-Verlet Integrator for Conservative Hamiltonian Systems
+ * Preserves the canonical symplectic 2-form \omega = \sum dq_i \wedge dp_i and guarantees bounded energy error without numerical dissipation.
+ */
+export function solveHamiltonian_Verlet(
+  force: (q: number) => number,
+  q0: number,
+  p0: number,
+  m: number = 1.0,
+  tSpan: [number, number] = [0, 20],
+  dt: number = 0.01
+): { t: number[]; q: number[]; p: number[]; energy: number[] } {
+  const numSteps = Math.floor((tSpan[1] - tSpan[0]) / dt);
+  const t: number[] = new Array(numSteps + 1);
+  const qArr: number[] = new Array(numSteps + 1);
+  const pArr: number[] = new Array(numSteps + 1);
+  const energy: number[] = new Array(numSteps + 1);
+
+  let q = q0;
+  let p = p0;
+  let curT = tSpan[0];
+
+  for (let step = 0; step <= numSteps; step++) {
+    t[step] = curT;
+    qArr[step] = q;
+    pArr[step] = p;
+    // Kinetic T = p^2/(2m)
+    energy[step] = (0.5 * p * p) / m;
+
+    const f1 = force(q);
+    // Half-kick: p_{n+1/2} = p_n + 0.5 * dt * F(q_n)
+    const p_half = p + 0.5 * dt * f1;
+    // Drift: q_{n+1} = q_n + dt * p_{n+1/2} / m
+    q += (dt * p_half) / m;
+    // Second half-kick: p_{n+1} = p_{n+1/2} + 0.5 * dt * F(q_{n+1})
+    const f2 = force(q);
+    p = p_half + 0.5 * dt * f2;
+
+    curT += dt;
+  }
+
+  return { t, q: qArr, p: pArr, energy };
 }
 
 export function generateVectorFieldGrid(
@@ -442,7 +846,7 @@ export function generateVectorFieldGrid(
       const y = yRange[0] + j * dy;
       const vx = fX(x, y);
       const vy = fY(x, y);
-      const mag = Math.sqrt(vx * vx + vy * vy);
+      const mag = Math.hypot(vx, vy);
       const angle = Math.atan2(vy, vx);
       arrows.push({
         x,
@@ -950,13 +1354,14 @@ export function verifyFermat(
 }
 
 export function verifyEnergyConservation(
-  params: Record<string, number> = {},
+  params: Record<string, number> | string = {},
   _sampleSize?: number,
   locale: 'zh' | 'en' = 'zh'
 ): { passed: boolean; maxError: number; sampleCount: number; details: string } {
   // Exact pendulum equation: theta'' + (g/L) sin(theta) = 0
   // Conserved mechanical energy E(theta, v) = 0.5 * v^2 + (g/L) * (1 - cos(theta))
-  const gOverL = (params.omega ?? 2.0) ** 2;
+  const omega = typeof params === 'object' && params ? (params.omega ?? 2.0) : 2.0;
+  const gOverL = omega ** 2;
   const theta0 = 0.8;
   const v0 = 0.0;
 

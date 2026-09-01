@@ -4,7 +4,8 @@ import { getTransitivePrerequisites, topologicalSort } from './dagEngine.ts';
 export interface BottleneckInfo {
   node: MathNode;
   dependentCount: number;
-  betweennessScore: number;
+  betweennessScore: number; // Retained for backward compatibility
+  dependencyImportanceScore: number; // Mathematically descriptive name for DAG dependency centrality
   reason: string;
 }
 
@@ -40,6 +41,7 @@ export interface PrerequisiteClosureResult {
   unlearnedPrerequisiteNodes: MathNode[];
   learnedPrerequisiteNodes: MathNode[];
   readinessPercentage: number;
+  weightedReadinessPercentage: number;
   totalEstimatedHours: number;
   criticalBottlenecks: BottleneckInfo[];
   disciplineBreakdown: Record<string, number>;
@@ -275,7 +277,8 @@ export function computeTransitiveReduction(
 }
 
 /**
- * Calculates critical bottleneck theorems in a prerequisite subgraph
+ * Calculates critical bottleneck theorems in a prerequisite subgraph using DAG dependency importance centrality.
+ * Note: This score is a heuristic metric based on direct fanout and downstream subgraph reachability.
  */
 export function calculateCriticalBottlenecks(
   closureNodeIds: string[],
@@ -289,8 +292,9 @@ export function calculateCriticalBottlenecks(
     const reachable = new Set<string>();
     const queue = [id];
     const visited = new Set<string>([id]);
-    while (queue.length > 0) {
-      const curr = queue.shift()!;
+    let head = 0;
+    while (head < queue.length) {
+      const curr = queue[head++];
       const n = nodeMap.get(curr);
       if (n) {
         for (const depId of n.dependents) {
@@ -310,8 +314,8 @@ export function calculateCriticalBottlenecks(
     const directClosureDependents = node.dependents.filter((depId) => closureSet.has(depId));
     const allDownstreamInClosure = reachableMap.get(id)?.size || 0;
 
-    // Betweenness score: combination of direct dependent fanout and total transitive downstream load
-    const betweennessScore = directClosureDependents.length * 10 + allDownstreamInClosure * 5;
+    // Dependency Importance Score: weighted combination of direct dependent fanout and downstream dependency load
+    const dependencyImportanceScore = directClosureDependents.length * 10 + allDownstreamInClosure * 5;
 
     let reason = '基础前置定义';
     if (allDownstreamInClosure >= 4) {
@@ -325,22 +329,30 @@ export function calculateCriticalBottlenecks(
     return {
       node,
       dependentCount: directClosureDependents.length,
-      betweennessScore,
+      betweennessScore: dependencyImportanceScore,
+      dependencyImportanceScore,
       reason,
     };
   });
 
-  scores.sort((a, b) => b.betweennessScore - a.betweennessScore || b.dependentCount - a.dependentCount);
+  scores.sort((a, b) => b.dependencyImportanceScore - a.dependencyImportanceScore || b.dependentCount - a.dependentCount);
   return scores;
 }
 
 /**
- * Computes the minimal learning closure to reach a target theorem from a set of known theorems
+ * Computes the minimal learning closure to reach a target theorem from a set of known theorems.
+ * 
+ * Readiness Metrics:
+ * - Unweighted: R = (|P_learned| / |P_all|) * 100%
+ * - Weighted:   R_w = (sum_{i in P} w_i * m_i / sum_{i in P} w_i) * 100%, where w_i = difficultyLevel
+ * 
+ * Note: Learning hours mapping is a pedagogical heuristic estimate (d=1,2,3,4,5 -> 2,4,6,9,14h).
  */
 export function computeMinimumPrerequisiteClosure(
   targetId: string,
   knownNodeIds: string[],
-  allNodes: MathNode[]
+  allNodes: MathNode[],
+  userMastery?: Record<string, number>
 ): PrerequisiteClosureResult | null {
   const nodeMap = new Map<string, MathNode>(allNodes.map((n) => [n.id, n]));
   const targetNode = nodeMap.get(targetId);
@@ -365,11 +377,27 @@ export function computeMinimumPrerequisiteClosure(
 
   const learningSequence = [...orderedUnlearnedNodes, targetNode];
 
-  // Calculate readiness percentage
+  // Calculate unweighted readiness percentage
   const totalCount = allPrereqIds.length;
   const readinessPercentage = totalCount === 0 ? 100 : Math.round((learnedIds.length / totalCount) * 100);
 
-  // Estimate hours (difficulty 1 -> 2h, 2 -> 4h, 3 -> 6h, 4 -> 9h, 5 -> 14h)
+  // Calculate weighted readiness percentage: R_w = (sum w_i * m_i) / (sum w_i)
+  let totalWeight = 0;
+  let accumulatedMasteryWeight = 0;
+  for (const prereqId of allPrereqIds) {
+    const pNode = nodeMap.get(prereqId);
+    const weight = pNode ? pNode.difficultyLevel : 1;
+    totalWeight += weight;
+    const mastery = userMastery && userMastery[prereqId] !== undefined
+      ? Math.min(1, Math.max(0, userMastery[prereqId]))
+      : (knownSet.has(prereqId) ? 1 : 0);
+    accumulatedMasteryWeight += weight * mastery;
+  }
+  const weightedReadinessPercentage = totalWeight === 0
+    ? 100
+    : Math.round((accumulatedMasteryWeight / totalWeight) * 100);
+
+  // Heuristic estimate of learning hours (difficulty 1 -> 2h, 2 -> 4h, 3 -> 6h, 4 -> 9h, 5 -> 14h)
   const difficultyHoursMap: Record<number, number> = { 1: 2, 2: 4, 3: 6, 4: 9, 5: 14 };
   const totalEstimatedHours = orderedUnlearnedNodes.reduce(
     (acc, n) => acc + (difficultyHoursMap[n.difficultyLevel] || 4),
@@ -396,6 +424,7 @@ export function computeMinimumPrerequisiteClosure(
     unlearnedPrerequisiteNodes: orderedUnlearnedNodes,
     learnedPrerequisiteNodes: orderedLearnedNodes,
     readinessPercentage,
+    weightedReadinessPercentage,
     totalEstimatedHours,
     criticalBottlenecks,
     disciplineBreakdown,

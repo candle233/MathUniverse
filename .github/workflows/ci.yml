@@ -1,0 +1,40 @@
+name: MathUniverse CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x, 22.x]
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install Dependencies
+      run: npm ci
+
+    - name: Run TypeScript Type Check
+      run: npm run type-check
+
+    - name: Run Property-Based DAG & Graph Theory Tests
+      run: npm run test:pbt
+
+    - name: Run Unified Test Suite
+      run: npm test
+
+    - name: Build Next.js Production App
+      run: npm run build
