@@ -158,7 +158,7 @@ function renderInlineContent(text: string, enableLinks: boolean = true): React.R
   const tokenMap = new Map<string, React.ReactNode>();
   let placeholderCounter = 0;
 
-  const tokenRegex = /(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\\begin\{[a-zA-Z*]+\}[\s\S]*?\\end\{[a-zA-Z*]+\}|\$[^$\n]+?\$|\\\(.*?\\\)|\[\[.+?\]\]|`[^`\n]+?`|\[[^\]]+?\]\([^)]+?\))/g;
+  const tokenRegex = /(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\\begin\{[a-zA-Z*]+\}[\s\S]*?\\end\{[a-zA-Z*]+\}|\$[^$\n]+?\$|\\\(.*?\\\)|\[\[.+?\]\]|`[^`\n]+?`|\[[^\]]+?\]\([^)]+?\)|\\(?:int|sum|prod|lim|infty|partial|mathbb|mathcal|mathrm|mathbf|mathscr|mathfrak|alpha|beta|gamma|delta|epsilon|varepsilon|zeta|eta|theta|iota|kappa|lambda|mu|nu|xi|pi|varpi|rho|varrho|sigma|tau|upsilon|phi|varphi|chi|psi|omega|Gamma|Delta|Theta|Lambda|Xi|Pi|Sigma|Upsilon|Phi|Psi|Omega|forall|exists|nexists|in|notin|ni|subset|subseteq|supset|supseteq|cap|cup|setminus|times|otimes|oplus|wedge|vee|to|rightarrow|leftarrow|leftrightarrow|implies|impliedby|iff|equiv|sim|simeq|approx|cong|le|ge|leq|geq|neq|pm|mp|cdot|circ|bullet|nabla|sqrt|frac|langle|rangle)\b(?:\{[^{}\n]*\}|\^[0-9a-zA-Z]|\_[0-9a-zA-Z])*(?:\([^()\n]*\))?)/g;
 
   const protectedText = text.replace(tokenRegex, (match) => {
     const ph = `\uFFF0TKN${placeholderCounter++}\uFFF1`;
@@ -188,6 +188,9 @@ function renderInlineContent(text: string, enableLinks: boolean = true): React.R
           {codeText}
         </code>
       );
+    } else if (match.startsWith('\\')) {
+      // Auto-detected bare LaTeX command in prose
+      tokenMap.set(ph, <InlineLaTeX key={ph} formula={match} displayMode={false} />);
     } else {
       const linkMatch = match.match(/^\[([^\]]+?)\]\(([^)]+?)\)$/);
       if (linkMatch) {

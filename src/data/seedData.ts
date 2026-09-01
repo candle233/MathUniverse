@@ -26,7 +26,8 @@ export const initialMathNodes: MathNode[] = [
       "thm-group-inverse-unique",
       "thm-lagrange-group",
       "thm-first-isomorphism",
-      "thm-sylow-first"
+      "thm-sylow-first",
+      "thm-cayley-group"
     ],
     "proofs": [],
     "prerequisiteEdges": [],
@@ -207,7 +208,7 @@ export const initialMathNodes: MathNode[] = [
     "mscCode": "26A03",
     "statementLatex": "\\forall \\varepsilon > 0, \\exists N \\in \\mathbb{N}, \\forall n > N \\implies |x_n - L| < \\varepsilon",
     "statementPlainZh": "设 \\((x_n)\\) 为实数序列，\\(L \\in \\mathbb{R}\\)。若对任意正实数 \\(\\varepsilon > 0\\)，都存在正整数 \\(N\\)，使得当 \\(n > N\\) 时恒有 \\(|x_n - L| < \\varepsilon\\)，则称数列 \\((x_n)\\) 收敛于 \\(L\\)，记作 \\(\\lim_{n \\to \\infty} x_n = L\\)。",
-    "statementPlainEn": "Let (x_n) be a sequence of real numbers and L \\in \\mathbb{R}. If for every \\varepsilon > 0, there exists a positive integer N such that for all n > N we have |x_n - L| < \\varepsilon, then (x_n) converges to L, denoted \\lim_{n \\to \\infty} x_n = L.",
+    "statementPlainEn": "Let (x_n) be a sequence of real numbers and L \\in \\(\\mathbb{R}\\). If for every \\(\\(\\varepsilon\\) > 0\\), there exists a positive integer N such that for all n > N we have |x_n - L| < \\(\\varepsilon\\), then (x_n) converges to L, denoted \\(\\lim_{n \\to \\infty} x_n = L\\).",
     "intuitionMd": "### 几何直觉与物理动机\n**“无论你给出多么严苛的误差范围 \\(\\varepsilon\\)，数列最终都会落入 \\((L-\\varepsilon, L+\\varepsilon)\\) 这个开邻域内，且永远不再逃出。”**\n\n- **动态捕获**：\\(N\\) 是一个“门槛截断点”。无论显微镜放大多少倍（\\(\\varepsilon\\) 多么小），从第 \\(N+1\\) 项开始的所有无限个点都被关在 \\(L\\) 周围的微小带状区域内。",
     "intuitionEn": "### Geometric Intuition & Motivation\n**\"No matter how small the error tolerance \\(\\varepsilon\\) is, the sequence eventually falls into \\((L-\\varepsilon, L+\\varepsilon)\\) and never escapes.\"**\n\n- **Threshold Capture**: \\(N\\) is the cutoff index. All infinitely many points after the \\(N\\)-th term remain trapped within the tiny band around \\(L\\).",
     "historicalContextZh": "数列极限的 ε-N 严谨语言由波尔查诺 (Bolzano)、柯西 (Cauchy) 和魏尔斯特拉斯 (Weierstrass) 在19世纪奠定，彻底消除了牛顿与莱布尼茨早期微积分无穷小量的基础危机。",
@@ -224,7 +225,8 @@ export const initialMathNodes: MathNode[] = [
       "conjecture-riemann-hypothesis",
       "thm-euler-identity",
       "thm-intermediate-value",
-      "thm-banach-fixed-point"
+      "thm-banach-fixed-point",
+      "thm-bolzano-weierstrass"
     ],
     "proofs": [],
     "prerequisiteEdges": [],
@@ -285,7 +287,7 @@ export const initialMathNodes: MathNode[] = [
     "mscCode": "26A03",
     "statementLatex": "\\lim_{n \\to \\infty} x_n = L_1 \\land \\lim_{n \\to \\infty} x_n = L_2 \\implies L_1 = L_2",
     "statementPlainZh": "若实数序列 \\((x_n)\\) 收敛，则其极限是唯一的。即若 \\(\\lim x_n = L_1\\) 且 \\(\\lim x_n = L_2\\)，必有 \\(L_1 = L_2\\)。",
-    "statementPlainEn": "If a sequence of real numbers (x_n) converges, its limit is unique. That is, if \\lim x_n = L_1 and \\lim x_n = L_2, then L_1 = L_2.",
+    "statementPlainEn": "If a sequence of real numbers (x_n) converges, its limit is unique. That is, if \\(\\lim x_n = L_1\\) and \\(\\lim x_n = L_2\\), then L_1 = L_2.",
     "intuitionMd": "### 几何直觉与反证法\n假设存在两个不同的极限 \\(L_1 \\neq L_2\\)，只要取它们欧氏距离的一半作为容差 \\(\\varepsilon = \\frac{|L_1 - L_2|}{2}\\)，数列各项从某项之后就必须同时落入两个互不相交的开球内，这在逻辑上是不可能的。",
     "intuitionEn": "### Geometric Intuition & Proof by Contradiction\nIf two distinct limits L_1 != L_2 existed, taking epsilon = |L_1 - L_2|/2 creates disjoint neighborhoods that the sequence terms cannot simultaneously occupy for large n.",
     "historicalContextZh": "极限唯一性是度量空间与 Hausdorff 拓扑空间的基本分离性质。",
@@ -421,7 +423,7 @@ export const initialMathNodes: MathNode[] = [
     "mscCode": "46C05",
     "statementLatex": "\\langle \\cdot, \\cdot \\rangle : V \\times V \\to \\mathbb{F} \\text{ s.t. } \\langle u, u \\rangle \\ge 0, \\langle u, v \\rangle = \\overline{\\langle v, u \\rangle}, \\langle au + bv, w \\rangle = a\\langle u, w \\rangle + b\\langle v, w \\rangle",
     "statementPlainZh": "设 \\(V\\) 为域 \\(\\mathbb{F}\\)（\\(\\mathbb{R}\\) 或 \\(\\mathbb{C}\\)）上的向量空间。内积是一个二元映射 \\(\\langle \\cdot, \\cdot \\rangle : V \\times V \\to \\mathbb{F}\\)，满足共轭对称性、第一变元线性性以及正定性（\\(\\langle v, v \\rangle \\ge 0\\) 且等号成立当且仅当 \\(v = 0\\)）。配有内积的向量空间称为内积空间。",
-    "statementPlainEn": "Let V be a vector space over \\mathbb{F} (\\mathbb{R} or \\mathbb{C}). An inner product is a map \\langle \\cdot, \\cdot \\rangle : V \\times V \\to \\mathbb{F} satisfying conjugate symmetry, linearity in the first argument, and positive-definiteness.",
+    "statementPlainEn": "Let V be a vector space over \\(\\mathbb{F}\\) (\\(\\mathbb{R}\\) or \\(\\mathbb{C}\\)). An inner product is a map \\langle \\cdot, \\cdot \\rangle : V \\times V \\to \\(\\mathbb{F}\\) satisfying conjugate symmetry, linearity in the first argument, and positive-definiteness.",
     "intuitionMd": "### 几何直觉与物理动机\n**“内积是把欧几里得几何中的‘长度’、‘距离’与‘夹角（垂直度）’推广到任意高维与无限维函数空间的代数工具。”**\n\n- **正定性** 保证了 \\(\\sqrt{\\langle v, v \\rangle}\\) 能够作为严格的几何长度（范数）。\n- **线性性** 保证了坐标投影与勾股分解的可计算性。",
     "intuitionEn": "### Geometric Intuition & Motivation\nAn inner product generalizes length, distance, and angles/orthogonality from Euclidean space to arbitrary linear spaces.",
     "historicalContextZh": "内积空间概念由格拉斯曼、皮亚诺与希尔伯特在19至20世纪初系统建立，为泛函分析与量子力学提供了核心代数框架。",
@@ -432,7 +434,8 @@ export const initialMathNodes: MathNode[] = [
     "difficultyLevel": 2,
     "dependencies": [],
     "dependents": [
-      "thm-cauchy-schwarz"
+      "thm-cauchy-schwarz",
+      "thm-spectral-theorem"
     ],
     "proofs": [],
     "prerequisiteEdges": [],
@@ -464,7 +467,7 @@ export const initialMathNodes: MathNode[] = [
     "mscCode": "26D15",
     "statementLatex": "|\\langle u, v \\rangle|^2 \\le \\langle u, u \\rangle \\cdot \\langle v, v \\rangle, \\quad \\forall u, v \\in V",
     "statementPlainZh": "设 \\(V\\) 为实或复内积空间。对任意向量 \\(u, v \\in V\\)，其内积的模平方必不超过两向量各自范数的平方之积。等号成立当且仅当 \\(u\\) 与 \\(v\\) 线性相关。",
-    "statementPlainEn": "For all vectors u, v in an inner product space V, |\\langle u, v \\rangle|^2 \\le \\langle u, u \\rangle \\cdot \\langle v, v \\rangle. Equality holds if and only if u and v are linearly dependent.",
+    "statementPlainEn": "For all vectors u, v in an inner product space V, \\(|\\langle u, v \\rangle|^2 \\le \\langle u, u \\rangle\\) \\cdot \\langle v, v \\rangle. Equality holds if and only if u and v are linearly dependent.",
     "intuitionMd": "### 几何直觉与动机\n- **广义余弦定理**：在欧几里得空间中，\\(\\langle u, v \\rangle = \\|u\\| \\|v\\| \\cos \\theta\\)。因为 \\(|\\cos \\theta| \\le 1\\)，所以天然有 \\(|\\langle u, v \\rangle| \\le \\|u\\| \\|v\\|\\)。\n- **二次判别式技巧**：构造一个关于实参数 \\(t\\) 的非负二次多项式 \\(P(t) = \\|u - t v\\|^2 \\ge 0\\)。由于多项式恒非负，其判别式 \\(\\Delta = b^2 - 4ac \\le 0\\)，从而直接导出不等式！",
     "intuitionEn": "### Geometric Intuition & Motivation\n- **Generalized Law of Cosines**: In Euclidean space, \\(\\langle u, v \\rangle = \\|u\\| \\|v\\| \\cos \\theta\\). Since \\(|\\cos \\theta| \\le 1\\), it naturally follows that \\(|\\langle u, v \\rangle| \\le \\|u\\| \\|v\\|\\).\n- **Quadratic Discriminant**: Constructing the non-negative quadratic \\(P(t) = \\|u - t v\\|^2 \\ge 0\\) forces the discriminant \\(\\Delta \\le 0\\), immediately yielding the inequality.",
     "historicalContextZh": "该不等式由柯西于1821年对离散和形式提出，施瓦茨于1885年在现代内积积分形式中严格证明，布尼亚科夫斯基在1859年亦独立提出积分形式。",
@@ -665,7 +668,7 @@ export const initialMathNodes: MathNode[] = [
     "mscCode": "26A42",
     "statementLatex": "\\int_a^b f(x) \\, dx = F(b) - F(a), \\quad \\text{where } F'(x) = f(x)",
     "statementPlainZh": "若函数 \\(f: [a, b] \\to \\mathbb{R}\\) 在闭区间 \\([a, b]\\) 上连续，且 \\(F\\) 为 \\(f\\) 的任意一个原函数（即 \\(F'(x) = f(x)\\)），则 \\(f\\) 在 \\([a, b]\\) 上的定积分等于原函数在两端点的增量 \\(F(b) - F(a)\\)。",
-    "statementPlainEn": "If f: [a, b] \\to \\mathbb{R} is continuous on [a, b] and F is any antiderivative of f (i.e. F'(x) = f(x)), then \\int_a^b f(x) dx = F(b) - F(a).",
+    "statementPlainEn": "If f: [a, b] \\to \\(\\mathbb{R}\\) is continuous on [a, b] and F is any antiderivative of f (i.e. F'(x) = f(x)), then \\(\\int_a^b f(x) dx = F(b) - F(a)\\).",
     "intuitionMd": "### 几何直觉与物理桥梁\n- **微分与积分是互逆运算**：\n  - 微分是**局部变化率**（速度 \\(v(t)\\)）；\n  - 积分是**无限微元累积和**（总位移 \\(\\Delta s\\)）。\n- 累加每一个瞬间的极小位移 \\(dF = f(x)dx\\)，其总和必然等于总改变量 \\(F(b) - F(a)\\)。它是 17 世纪人类科学史最伟大的发现。",
     "intuitionEn": "### Geometric Intuition & Physical Bridge\n- **Inverse Operations**: Differentiation measures the instantaneous rate of change (velocity \\(v(t)\\)), while integration accumulates infinitely many differential changes (net displacement \\(\\Delta s\\)).\n- Accumulating each infinitesimal displacement \\(dF = f(x)dx\\) yields the total net change \\(F(b) - F(a)\\).",
     "historicalContextZh": "微积分基本定理统一了古代阿基米德以来的求积法与17世纪费马、笛卡尔等人的切线法，由牛顿与莱布尼茨独立系统化建立。",
@@ -854,7 +857,7 @@ export const initialMathNodes: MathNode[] = [
     "mscCode": "58A10",
     "statementLatex": "\\int_{\\partial \\Omega} \\omega = \\int_{\\Omega} d\\omega",
     "statementPlainZh": "设 \\(\\Omega\\) 为 \\(n\\) 维带边紧致定向光滑流形，\\(\\partial \\Omega\\) 为其赋予诱导定向的 \\((n-1)\\) 维光滑边界。若 \\(\\omega\\) 是 \\(\\Omega\\) 上的任意光滑 \\((n-1)\\)-微分形式，则 \\(\\omega\\) 在边界上的积分等于其外微分 \\(d\\omega\\) 在整个流形上的积分。",
-    "statementPlainEn": "Let \\Omega be an n-dimensional compact oriented smooth manifold with boundary \\partial \\Omega. If \\omega is any smooth (n-1)-differential form on \\Omega, then \\int_{\\partial \\Omega} \\omega = \\int_{\\Omega} d\\omega.",
+    "statementPlainEn": "Let \\(\\Omega\\) be an n-dimensional compact oriented smooth manifold with boundary \\(\\partial \\(\\Omega\\)\\). If \\(\\omega\\) is any smooth (n-1)-differential form on \\(\\Omega\\), then \\(\\int_{\\(\\partial \\(\\Omega\\)\\)} \\(\\omega\\) = \\int_{\\(\\Omega\\)}\\) d\\(\\omega\\).",
     "intuitionMd": "### 万流归宗的几何终极统一\n**“内部所有微小旋转与源的抵消累积，最终精确显现为边界上的净环流。”**\n\n该公式以难以置信的简洁优雅，统一了经典微积分中的四大定理：\n1. **微积分基本定理** (\\(n=1\\))：\\(\\int_{\\partial [a,b]} F = \\int_{[a,b]} dF \\implies F(b)-F(a) = \\int_a^b F'(x)dx\\)\n2. **格林公式** (\\(n=2\\))：平面区域与环路线积分\n3. **高斯散度定理** (\\(n=3\\))：三维体积分与闭曲面积分\n4. **经典斯托克斯旋度定理**：曲面积分与闭边界线积分",
     "intuitionEn": "### Universal Geometric Unification\n**\"The cancellation of all internal rotations and sources manifests precisely as the net boundary circulation.\"**\n\nSubsumes the Fundamental Theorem of Calculus (n=1), Green theorem (n=2), Gauss divergence theorem (n=3), and classical Kelvin-Stokes curl theorem.",
     "historicalContextZh": "现代微分形式斯托克斯定理由昂利·庞加莱于1899年和埃利·嘉当在20世纪初确立，将牛顿-莱布尼茨、格林、高斯散度与经典斯托克斯旋度定理完美统一为一个优美等式。",
@@ -1028,7 +1031,7 @@ export const initialMathNodes: MathNode[] = [
     "mscCode": "20D30",
     "statementLatex": "|G| = [G : H] \\cdot |H|, \\quad \\forall H \\le G, \\; |G| < \\infty",
     "statementPlainZh": "若 \\(G\\) 为有限群，\\(H\\) 为 \\(G\\) 的子群，则 \\(H\\) 的阶数 \\(|H|\\) 必然能整除 \\(G\\) 的阶数 \\(|G|\\)。其商 \\([G:H]\\) 称为 \\(H\\) 在 \\(G\\) 中的指数（即陪集的个数）。",
-    "statementPlainEn": "If G is a finite group and H is a subgroup of G, then the order of H divides the order of G, and |G| = |H| \\cdot [G : H].",
+    "statementPlainEn": "If G is a finite group and H is a subgroup of G, then the order of H divides the order of G, and \\(|G| = |H| \\cdot [G : H]\\).",
     "intuitionMd": "### 陪集划分与几何等积性\n**“子群 \\(H\\) 的所有左陪集 \\(gH\\) 就像完美的瓷砖，大小完全相等且互不相交，天衣无缝地将整个群 \\(G\\) 铺满。”**\n\n- 每个陪集 \\(gH\\) 的元素个数严格等于 \\(|H|\\)。\n- 所有不同陪集构成 \\(G\\) 的一个划分（Equivalence Partition）。\n- 因此，总元素数 \\(|G|\\) 必然是 \\(|H|\\) 的整数倍！",
     "intuitionEn": "### Algebraic Partition Intuition\nThe cosets of H form an exact partition of G of equal size, guaranteeing that |H| evenly divides |G|.",
     "historicalContextZh": "拉格朗日在1770年针对多项式置换证明了特例，近代形式由柯西与伽罗瓦推广到一般抽象群。",
@@ -1202,7 +1205,7 @@ export const initialMathNodes: MathNode[] = [
     "mscCode": "11A07",
     "statementLatex": "a^{p-1} \\equiv 1 \\pmod p, \\quad \\forall p \\in \\mathbb{P}, \\; a \\in \\mathbb{Z}, \\; p \\nmid a",
     "statementPlainZh": "设 \\(p\\) 为素数，\\(a\\) 为任意不能被 \\(p\\) 整除的整数，则 \\(a^{p-1}\\) 除以 \\(p\\) 的余数恒为 1。等价形式为：对任意整数 \\(a\\)，均有 \\(a^p \\equiv a \\pmod p\\)。",
-    "statementPlainEn": "If p is prime and gcd(a, p) = 1, then a^{p-1} \\equiv 1 \\pmod p. For any integer a, a^p \\equiv a \\pmod p.",
+    "statementPlainEn": "If p is prime and gcd(a, p) = 1, then \\(a^{p-1} \\equiv 1 \\pmod p\\). For any integer a, \\(a^p \\equiv a \\pmod p\\).",
     "intuitionMd": "### 群论透视与项链染色直觉\n- **群论秒杀**：模 \\(p\\) 的非零剩余类乘法群 \\((\\mathbb{Z}/p\\mathbb{Z})^\\times\\) 是一个阶为 \\(p-1\\) 的有限群。根据**拉格朗日定理**，群中任意元素的阶必整除群阶，因此 \\(a^{p-1} = e = 1 \\pmod p\\)！\n- **组合项链视角**：用 \\(a\\) 种颜色的珠子串成长度为 \\(p\\) 的项链，除去 \\(a\\) 种纯单色项链外，其余 \\(a^p - a\\) 种项链在旋转下每个等价轨道都恰好包含 \\(p\\) 个项链，因此 \\(p \\mid (a^p - a)\\)！",
     "intuitionEn": "### Number Theoretic Residue Intuition\nMultiplication by a coprime integer a modulo p permutes the non-zero residue classes {1, 2, ..., p-1}.",
     "historicalContextZh": "费马于1640年在信件中提出此定理，欧拉在1736年给出第一个公开发表的严格证明，并将其推广为欧拉定理。",
@@ -1377,7 +1380,7 @@ export const initialMathNodes: MathNode[] = [
     "mscCode": "54D30",
     "statementLatex": "K \\subset \\mathbb{R}^n \\text{ is compact} \\iff K \\text{ is closed and bounded}",
     "statementPlainZh": "在 \\(n\\) 维欧几里得空间 \\(\\mathbb{R}^n\\) 中，子集 \\(K\\) 是紧致的（即 \\(K\\) 的任意开覆盖都存在有限子覆盖）当且仅当 \\(K\\) 是有界闭集。",
-    "statementPlainEn": "A subset K of Euclidean space \\mathbb{R}^n is compact (every open cover has a finite subcover) if and only if K is closed and bounded.",
+    "statementPlainEn": "A subset K of Euclidean space \\(\\(\\mathbb{R}\\)^n\\) is compact (every open cover has a finite subcover) if and only if K is closed and bounded.",
     "intuitionMd": "### 无限与有限的桥梁\n**“紧致性是有限性在无限拓扑空间中的代数推广。”**\n- 在紧致空间上，任何连续实函数必然有界并能达到最大值与最小值；\n- 海涅-博雷尔定理给出了欧几里得空间中紧致性极其直观且可判定的几何充要条件：**“既不跑到无穷远（有界），也不缺少边界点（闭）”**。",
     "intuitionEn": "### Topological Compactness Intuition\nTranslates topological compactness into elementary metric properties of being closed and bounded in Euclidean space.",
     "historicalContextZh": "定理得名于爱德华·海涅与埃米尔·博雷尔，经魏尔斯特拉斯和勒贝格的发展成为现代实分析与点集拓扑的基石。",
@@ -1536,7 +1539,7 @@ export const initialMathNodes: MathNode[] = [
     "mscCode": "20A05",
     "statementLatex": "G / \\ker(\\phi) \\cong \\mathrm{im}(\\phi), \\quad \\text{where } \\phi: G \\to H \\text{ is a homomorphism}",
     "statementPlainZh": "设 \\(\\phi: G \\to H\\) 为群同态，则 \\(\\phi\\) 的核 \\(\\ker(\\phi)\\) 为 \\(G\\) 的正规子群，且商群 \\(G/\\ker(\\phi)\\) 自然同构于 \\(\\phi\\) 的像集 \\(\\mathrm{im}(\\phi)\\)。",
-    "statementPlainEn": "If \\phi: G \\to H is a group homomorphism, then \\ker(\\phi) is a normal subgroup of G, and G / \\ker(\\phi) \\cong \\operatorname{im}(\\phi).",
+    "statementPlainEn": "If \\(\\phi: G \\to H\\) is a group homomorphism, then \\(\\ker(\\phi)\\) is a normal subgroup of G, and \\(G / \\(\\ker(\\phi)\\) \\cong \\mathrm{im}(\\phi)\\).",
     "intuitionMd": "### 代数投影与信息无损还原\n**“商群 \\(G/\\ker\\phi\\) 精确抹去了所有被同态映射为单位元的‘冗余盲区’，剩下的结构与像群 \\(\\mathrm{im}\\phi\\) 完全对称同构。”**\n\n- 交换图 (Commutative Diagram)：\n  \\(G \\xrightarrow{\\phi} \\mathrm{im}\\phi\\) 与复合映射 \\(G \\xrightarrow{\\pi} G/\\ker\\phi \\xrightarrow{\\bar\\phi} \\mathrm{im}\\phi\\) 处处恒等！",
     "intuitionEn": "### Categorical Homomorphism Factorization\nEvery algebraic homomorphism canonically factors into a surjective canonical quotient followed by an injective isomorphism.",
     "historicalContextZh": "同构定理系统由埃米·诺特 (Emmy Noether) 在1920年代建立近代抽象代数公理体系时提炼升华。",
@@ -1707,7 +1710,7 @@ export const initialMathNodes: MathNode[] = [
     "mscCode": "11M26",
     "statementLatex": "\\zeta(s) = 0 \\land s \\notin -2\\mathbb{N} \\implies \\mathrm{Re}(s) = \\frac{1}{2}",
     "statementPlainZh": "黎曼 Zeta 函数 \\(\\zeta(s) = \\sum_{n=1}^\\infty \\frac{1}{n^s}\\) 的所有非平凡零点均位于复平面上的临界线 \\(\\mathrm{Re}(s) = \\frac{1}{2}\\) 之上。",
-    "statementPlainEn": "All non-trivial zeros of the Riemann zeta function \\zeta(s) have real part equal to 1/2.",
+    "statementPlainEn": "All non-trivial zeros of the Riemann zeta function \\(\\zeta(s)\\) have real part equal to 1/2.",
     "intuitionMd": "### 素数分布的终极和谐乐章\n**“素数的分布规律隐藏在黎曼 Zeta 函数零点的振动频谱之中。”**\n\n- 如果黎曼猜想成立，素数计数函数 \\(\\pi(x)\\) 与对数积分 \\(\\mathrm{Li}(x)\\) 的误差将达到理论最优的 \\(O(\\sqrt{x} \\ln x)\\) 随机波动界。\n- 它是千禧年七大数学难题之首，至今仍等待人类彻底攻克。",
     "intuitionEn": "### Prime Vibration Spectrum Intuition\nThe precise distribution of prime numbers is governed by the vibrational spectrum of Riemann zeta zeros along the critical line.",
     "historicalContextZh": "伯恩哈德·黎曼于1859年在论文《论小于给定大小的素数个数》中提出，是千禧年七大数学难题之首。",
@@ -1772,9 +1775,9 @@ export const initialMathNodes: MathNode[] = [
     "mscCode": "00A05",
     "statementLatex": "e^{i\\pi} + 1 = 0",
     "statementPlainZh": "数学中最美妙的恒等式，将自然对数的底 e、虚数单位 i、圆周率 pi、乘法单位元 1 与加法零元 0 融为一体。",
-    "statementPlainEn": "The profound identity linking five fundamental mathematical constants: e^{i \\pi} + 1 = 0.",
+    "statementPlainEn": "The profound identity linking five fundamental mathematical constants: \\(e^{i\\(\\pi\\)} + 1 = 0\\).",
     "intuitionMd": "复数乘法在几何上对应于复平面上的旋转与伸缩。乘以 e^(iθ) 相当于在单位圆上逆时针旋转 θ 弧度。当旋转半周（即 π 弧度）时，点 1 旋转至 -1，故 e^(iπ) = -1，即 e^(iπ) + 1 = 0。",
-    "intuitionEn": "### Complex Exponential Rotation Intuition\nContinuous exponential rotation in the complex plane by angle \\pi maps 1 to -1.",
+    "intuitionEn": "### Complex Exponential Rotation Intuition\nContinuous exponential rotation in the complex plane by angle \\(\\pi\\) maps 1 to -1.",
     "historicalContextZh": "欧拉在1748年出版的《无穷分析引论》中给出复指数展开，被誉为“数学界最美公式”。",
     "historicalContextEn": "Published by Leonhard Euler in Introductio in analysin infinitorum (1748), celebrated as the most beautiful formula in mathematics.",
     "verification": "FORMALLY_VERIFIED",
@@ -1815,7 +1818,7 @@ export const initialMathNodes: MathNode[] = [
           {
             "id": "euler-step-2",
             "stepIndex": 2,
-            "explanation": "代入 z = \\pi 得出恒等式",
+            "explanation": "代入 z = \\(\\pi\\) 得出恒等式",
             "latexText": "e^{i\\pi} + 1 = 0",
             "commentsCount": 8
           }
@@ -1916,9 +1919,9 @@ export const initialMathNodes: MathNode[] = [
     "mscCode": "03E10",
     "statementLatex": "|A| < |\\mathcal{P}(A)|",
     "statementPlainZh": "对任意集合 A，其幂集 P(A) 的基数严格大于集合 A 本身的基数，不存在从 A 到 P(A) 的满射。",
-    "statementPlainEn": "For any set A, the cardinality of its power set \\mathcal{P}(A) is strictly greater than |A|. No surjection from A to \\mathcal{P}(A) exists.",
+    "statementPlainEn": "For any set A, the cardinality of its power set \\(\\mathcal{P}(A)\\) is strictly greater than |A|. No surjection from A to \\(\\mathcal{P}(A)\\) exists.",
     "intuitionMd": "类似于“理发师悖论”，如果存在一个将集合元素映射到所有子集的全面对应方式，我们总能构造出一个由“不包含自己的元素”所组成的特异子集。该子集在逻辑上无法被任何原集合元素所对应，从而打破满射假设。",
-    "intuitionEn": "### Diagonalization Argument Intuition\nConstructing the self-avoiding diagonal subset { x \\in A | x \\notin f(x) } proves no function can cover all subsets.",
+    "intuitionEn": "### Diagonalization Argument Intuition\nConstructing the self-avoiding diagonal subset \\(\\{ x \\in A \\mid x \\notin f(x) \\}\\) proves no function can cover all subsets.",
     "historicalContextZh": "乔治·康托尔于1891年通过对角线论证法证明，建立了无穷大具有不同阶次的超限数体系。",
     "historicalContextEn": "Proved by Georg Cantor in 1891 via the diagonalization argument, establishing the hierarchy of transfinite cardinals.",
     "verification": "FORMALLY_VERIFIED",
@@ -2414,7 +2417,7 @@ export const initialMathNodes: MathNode[] = [
     "mscCode": "11A41",
     "statementLatex": "|\\mathbb{P}| = \\infty",
     "statementPlainZh": "素数（质数）的集合 \\(\\mathbb{P}\\) 是无限集，不存在最大的素数。",
-    "statementPlainEn": "There are infinitely many prime numbers. For any finite set of primes, N = p_1 \\cdot ... \\cdot p_k + 1 yields a new prime factor.",
+    "statementPlainEn": "There are infinitely many prime numbers. For any finite set of primes, \\(N = p_1 \\cdots p_k + 1\\) yields a new prime factor.",
     "intuitionMd": "### 几何直觉与物理动机\n**“假设世界上只有有限个素数，把它们全部乘起来再加 1，这个新数就无法被已知的任何一个素数整除——必然诞生新素数！”**\n\n- 构造性反证法经典范式：\\(N = p_1 p_2 \\cdots p_k + 1\\)。",
     "intuitionEn": "### Constructive Contradiction Intuition\nThe product of all assumed primes plus 1 cannot be divided by any prime in the list.",
     "historicalContextZh": "载于欧几里得《几何原本》第九卷命题20，是数学史上最古老且最具美感的反证法典范之一。",
@@ -2533,7 +2536,7 @@ export const initialMathNodes: MathNode[] = [
     "mscCode": "26A15",
     "statementLatex": "f(a) < u < f(b) \\implies \\exists c \\in (a, b), \\; f(c) = u",
     "statementPlainZh": "设函数 \\(f\\) 在闭区间 \\([a, b]\\) 上连续。若 \\(u\\) 介于 \\(f(a)\\) 与 \\(f(b)\\) 之间，则在开区间 \\((a, b)\\) 内至少存在一点 \\(c\\)，使得 \\(f(c) = u\\)。",
-    "statementPlainEn": "If f is continuous on [a, b] and u is between f(a) and f(b), there exists c \\in (a, b) such that f(c) = u.",
+    "statementPlainEn": "If f is continuous on [a, b] and u is between f(a) and f(b), there exists \\(c \\in (a, b)\\) such that f(c) = u.",
     "intuitionMd": "### 几何直觉与物理动机\n**“一笔画出一条不间断的曲线，如果它从河的一岸连到了另一岸，那么它一定在某一点跨过了整条河流。”**\n\n- **拓扑连通性**：连续函数保持连通性，连通集 \\([a, b]\\) 的像必为连通区间 \\([f(a), f(b)]\\)。",
     "intuitionEn": "### Topological Connectedness Intuition\nA continuous curve cannot jump over an intermediate value without crossing it due to the connectedness of [a, b].",
     "historicalContextZh": "波尔查诺于1817年首次给出严格分析证明，成为实数连续统拓扑连通性的核心结论。",
@@ -2666,7 +2669,7 @@ export const initialMathNodes: MathNode[] = [
     "intuitionMd": "### 几何直觉与复分析动机\n**“如果多项式在整个复平面上没有根，那么其倒数 \\(1/P(z)\\) 就是一个在整个复平面上处处有界的全纯函数——由刘维尔定理，它只能是常数函数，矛盾！”**\n\n- **缠绕数直觉**：当 \\(z\\) 在半径巨大的圆周上绕原点逆时针旋转一圈时，最高次项 \\(a_n z^n\\) 使得 \\(P(z)\\) 绕原点旋转 \\(n\\) 圈。连续缩小圆周半径至 0，由于缠绕数是拓扑不变量，曲线不可能在不穿过原点的情况下把缠绕数从 \\(n\\) 变为 0。",
     "intuitionEn": "### Winding Number & Topology Intuition\nThe image of a large circle under polynomial mapping winds n times around the origin and must cover 0.",
     "historicalContextZh": "高斯在1799年博士论文中给出了该定理的第一个被广泛接受的几何证明，一生共给出四种不同证明。",
-    "historicalContextEn": "First rigorously proved by Carl Friedrich Gauss in 1799, confirming that \\mathbb{C} is algebraically closed.",
+    "historicalContextEn": "First rigorously proved by Carl Friedrich Gauss in 1799, confirming that \\(\\mathbb{C}\\) is algebraically closed.",
     "verification": "FORMALLY_VERIFIED",
     "reputationScore": 780,
     "viewCount": 8900,
@@ -2949,7 +2952,7 @@ export const initialMathNodes: MathNode[] = [
     "mscCode": "47H10",
     "statementLatex": "(X, d) \\text{ complete}, \\; T: X \\to X, \\; d(T(x), T(y)) \\le k d(x, y), \\; (0 \\le k < 1) \\implies \\exists! x^* \\in X, \\; T(x^*) = x^*",
     "statementPlainZh": "设 \\((X, d)\\) 为非空完备度量空间。若映射 \\(T: X \\to X\\) 是严格压缩映射（存在常数 \\(0 \\le k < 1\\) 使得 \\(d(T(x), T(y)) \\le k d(x,y)\\)），则 \\(T\\) 在 \\(X\\) 内存在唯一的稳定不动点 \\(x^*\\)。对任意初始点 \\(x_0\\)，迭代序列 \\(x_{n+1} = T(x_n)\\) 必收敛于 \\(x^*\\)。",
-    "statementPlainEn": "Let (X, d) be a non-empty complete metric space and T: X \\to X a contraction mapping. Then T has a unique fixed point.",
+    "statementPlainEn": "Let (X, d) be a non-empty complete metric space and \\(T: X \\to X\\) a contraction mapping. Then T has a unique fixed point.",
     "intuitionMd": "### 几何直觉与物理动机\n**“把一张地图揉皱后扔在它所代表的真实地面上，地图上必有且仅有一个点，恰好位于它所代表的真实地理位置正上方。”**\n\n- **Picard 逐次逼近**：常微分方程解的存在唯一性定理 (Picard-Lindelöf) 的底层通用抽象工具。",
     "intuitionEn": "### Metric Contraction Flow Intuition\nRepeatedly applying the contraction squeezes the entire metric space to a single unique point.",
     "historicalContextZh": "斯特凡·巴拿赫 (Stefan Banach) 于1922年提出，广泛应用于微分方程皮卡-林德洛夫定理与动力系统求解。",
@@ -3092,9 +3095,9 @@ export const initialMathNodes: MathNode[] = [
     "mscCode": "11N05",
     "statementLatex": "\\pi(x) \\sim \\frac{x}{\\ln x} \\iff \\lim_{x \\to \\infty} \\frac{\\pi(x) \\ln x}{x} = 1",
     "statementPlainZh": "设 \\(\\pi(x)\\) 为不超过 \\(x\\) 的素数个数，则当 \\(x \\to \\infty\\) 时，\\(\\pi(x)\\) 渐近等价于 \\(\\frac{x}{\\ln x}\\)。即第 \\(n\\) 个素数的大小渐近于 \\(n \\ln n\\)。",
-    "statementPlainEn": "The asymptotic distribution of the prime counting function: \\pi(x) \\sim x / \\ln(x) \\sim \\mathrm{Li}(x) as x \\to \\infty.",
+    "statementPlainEn": "The asymptotic distribution of the prime counting function: \\(\\(\\pi\\)(x) \\sim x / \\(\\ln(x)\\) \\sim \\mathrm{Li}(x)\\) as \\(x \\to \\infty\\).",
     "intuitionMd": "### 几何直觉与复分析动机\n**“素数的分布不是杂乱无章的噪点，它的宏观密度受控于黎曼 Zeta 函数在临界线 \\(\\mathrm{Re}(s)=1\\) 上的非零行为。”**\n\n- **Hadamard & de la Vallée Poussin (1896)**：证明了黎曼 Zeta 函数 \\(\\zeta(s)\\) 在直线 \\(\\mathrm{Re}(s) = 1\\) 上没有任何零点，由此直接推导出素数定理。",
-    "intuitionEn": "### Asymptotic Prime Density Intuition\nThe local probability of an integer near x being prime is approximately 1 / \\ln(x).",
+    "intuitionEn": "### Asymptotic Prime Density Intuition\nThe local probability of an integer near x being prime is approximately 1 / \\(\\ln(x)\\).",
     "historicalContextZh": "勒让德和高斯先后猜想，阿达马 (Hadamard) 与德·拉·瓦莱·普桑 (de la Vallée Poussin) 于1896年利用复变函数解析方法独立严格证明。",
     "historicalContextEn": "Conjectured by Gauss and Legendre, proved independently in 1896 by Hadamard and de la Vallée Poussin.",
     "verification": "FORMALLY_VERIFIED",
@@ -3227,5 +3230,527 @@ export const initialMathNodes: MathNode[] = [
         "description": "Prime counting error term Delta(x) = O(x^(1/2) ln x) is equivalent to the Riemann Hypothesis"
       }
     ]
+  },
+  {
+    "id": "thm-bolzano-weierstrass",
+    "slug": "bolzano-weierstrass-theorem",
+    "titleZh": "波尔查诺-魏尔斯特拉斯定理",
+    "titleEn": "Bolzano-Weierstrass Theorem",
+    "nodeType": "THEOREM",
+    "objectType": "PROPOSITION",
+    "propositionRole": "THEOREM",
+    "disciplineId": "analysis",
+    "mscCode": "26A03",
+    "statementLatex": "\\forall (x_n)_{n=1}^\\infty \\subset \\mathbb{R}^d, \\; \\left( \\exists M > 0, \\forall n, \\|x_n\\| \\le M \\right) \\implies \\left( \\exists (x_{n_k})_{k=1}^\\infty \\subset (x_n), \\; \\exists L \\in \\mathbb{R}^d, \\; \\lim_{k \\to \\infty} x_{n_k} = L \\right)",
+    "statementPlainZh": "在有限维欧几里得空间 \\(\\mathbb{R}^d\\) 中，任何有界的无限数列必定包含至少一个收敛的子列。其等价的拓扑表述为：\\(\\mathbb{R}^d\\) 中的任何有界无限点集至少存在一个聚点。",
+    "statementPlainEn": "In any finite-dimensional Euclidean space \\(\\(\\mathbb{R}\\)^d\\), every bounded sequence contains at least one convergent subsequence.",
+    "intuitionMd": "### 实数完备性与局部聚集效应\n**“无限个受限的点不可能彼此无限疏离，必然在微观局部发生无限拥挤。”**\n\n- **鸽巢原理的连续统推广**：将有界区间 \\([-M, M]\\) 递归二分，由于数列有无限项，至少有一半子区间必须容纳无限多个项。\n- **收敛子列的构造**：利用康托尔闭区间套定理，无限嵌套的紧区间收缩为单点 \\(\\xi\\)，顺次提取落入各级区间的元素即构成收敛到 \\(\\xi\\) 的子序列。",
+    "intuitionEn": "### Completeness & Sequential Compactness\nInfinitely many points trapped in a bounded domain cannot keep distance from each other indefinitely; they are forced to accumulate near at least one limit point.",
+    "historicalContextZh": "由伯纳德·波尔查诺 (Bernard Bolzano) 于1817年在证明介值定理的引理中首次提出，后由卡尔·魏尔斯特拉斯 (Karl Weierstrass) 独立发现并公理化，奠定了实数完备性理论。",
+    "historicalContextEn": "First proven by Bernard Bolzano in 1817 as a lemma for the Intermediate Value Theorem, and later popularized and modernized by Karl Weierstrass in the 1860s.",
+    "verification": "FORMALLY_VERIFIED",
+    "reputationScore": 880,
+    "viewCount": 4900,
+    "difficultyLevel": 2,
+    "dependencies": [
+      "def-limit-sequence"
+    ],
+    "dependents": [],
+    "proofs": [
+      {
+        "id": "proof-bw-bisection",
+        "nodeId": "thm-bolzano-weierstrass",
+        "title": "区间二分套法 (Bisection / Cantor Intersection)",
+        "approachType": "ANALYTIC",
+        "author": {
+          "id": "user-weierstrass",
+          "name": "Karl Weierstrass",
+          "reputation": 19400,
+          "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100",
+          "isModerator": true
+        },
+        "motivation": "通过二分法将无限项有界序列限制在长度趋于零的闭区间套中，从而构造收敛子序列。",
+        "rigorousProof": "设 \\((x_n)\\) 为有界实数列，即存在 \\(M > 0\\) 使得所有 \\(n\\) 均有 \\(|x_n| \\le M\\)。\n令初始区间 \\(I_0 = [-M, M]\\)。将其二等分为两个子区间 \\([-M, 0]\\) 与 \\([0, M]\\)。\n由鸽巢原理，必至少有一个子区间包含数列 \\((x_n)\\) 的无穷多项，记该子区间为 \\(I_1 = [a_1, b_1]\\)。\n递归进行此过程：若已构造包含无穷多项的 \\(I_k = [a_k, b_k]\\)，将其二等分，选取包含无穷多项的半区间作为 \\(I_{k+1}\\)。\n由此得到闭区间套列：\n\\[\nI_0 \\supset I_1 \\supset I_2 \\supset \\dots \\supset I_k \\supset \\dots, \\quad \\text{且 } |I_k| = \\frac{2M}{2^k} \\to 0 \\; (k \\to \\infty)\n\\]\n由康托尔闭区间套定理，存在唯一公共点 \\(\\xi = \\lim_{k\\to\\infty} a_k = \\lim_{k\\to\\infty} b_k\\)。\n现在构造子列 \\((x_{n_k})\\)：\n在 \\(I_1\\) 中任取一项 \\(x_{n_1}\\)；在 \\(I_2\\) 中选取下标 \\(n_2 > n_1\\) 的项 \\(x_{n_2}\\)；以此类推，在 \\(I_k\\) 中选取下标 \\(n_k > n_{k-1}\\) 的项 \\(x_{n_k}\\)。\n由于 \\(x_{n_k}, \\xi \\in I_k\\)，故 \\(|x_{n_k} - \\xi| \\le |I_k| = \\frac{2M}{2^k} < \\varepsilon\\)。\n因此 \\(\\lim_{k \\to \\infty} x_{n_k} = \\xi\\)，收敛子列构造完毕。\n对高维 \\(\\mathbb{R}^d\\)，依次对各个分量重复此过程 \\(d\\) 次即可。证毕。",
+        "steps": [
+          {
+            "id": "bw-step-1",
+            "stepIndex": 1,
+            "explanation": "二分法递归构造包含无穷多项的闭区间套列",
+            "latexText": "I_0 \\supset I_1 \\supset \\dots \\supset I_k, \\quad |I_k| = \\frac{2M}{2^k} \\to 0",
+            "commentsCount": 3
+          },
+          {
+            "id": "bw-step-2",
+            "stepIndex": 2,
+            "explanation": "由闭区间套定理确定极限点 ξ 并依序提取收敛子列",
+            "latexText": "\\xi = \\bigcap_{k=1}^\\infty I_k, \\quad |x_{n_k} - \\xi| \\le \\frac{2M}{2^k} \\implies \\lim_{k \\to \\infty} x_{n_k} = \\xi",
+            "commentsCount": 4
+          }
+        ],
+        "isPrimary": true,
+        "verification": "FORMALLY_VERIFIED",
+        "upvotes": 670
+      }
+    ],
+    "prerequisiteEdges": [
+      {
+        "id": "pe-bw-def-limit",
+        "fromNodeId": "thm-bolzano-weierstrass",
+        "toNodeId": "def-limit-sequence",
+        "relationType": "REQUIRES_DEFINITION",
+        "graphType": "PREREQUISITE_DAG",
+        "description": "Subsequence convergence relies strictly on epsilon-N limit definition"
+      }
+    ],
+    "semanticEdges": [
+      {
+        "id": "se-bw-heine-borel",
+        "fromNodeId": "thm-bolzano-weierstrass",
+        "toNodeId": "thm-heine-borel",
+        "relationType": "EQUIVALENT_TO",
+        "graphType": "SEMANTIC_GRAPH",
+        "description": "Sequential compactness is equivalent to topological compactness (Heine-Borel) in Euclidean spaces"
+      },
+      {
+        "id": "se-bw-ivt",
+        "fromNodeId": "thm-bolzano-weierstrass",
+        "toNodeId": "thm-intermediate-value",
+        "relationType": "MOTIVATES",
+        "graphType": "SEMANTIC_GRAPH",
+        "description": "Bolzano originally formulated this lemma to rigorously prove IVT"
+      }
+    ],
+    "leanFormalization": {
+      "id": "lean-bw",
+      "nodeId": "thm-bolzano-weierstrass",
+      "theoremName": "tendsto_subseq_of_bounded",
+      "mathlibImports": [
+        "Mathlib.Topology.MetricSpace.Sequences",
+        "Mathlib.Topology.Instances.Real"
+      ],
+      "leanCode": "import Mathlib.Topology.MetricSpace.Sequences\nimport Mathlib.Topology.Instances.Real\n\nopen Filter\n\n/-- 波尔查诺-魏尔斯特拉斯定理: 实数集上有界数列必有收敛子列 -/\ntheorem bolzano_weierstrass_real (u : ℕ → ℝ) (R : ℝ) (h : ∀ n, |u n| ≤ R) :\n    ∃ (φ : ℕ → ℕ) (l : ℝ), StrictMono φ ∧ Tendsto (u ∘ φ) atTop (𝓝 l) := by\n  have h_bdd : IsBounded (Set.range u) := Metric.isBounded_iff_subset_ball.2 ⟨0, R, by\n    intro x ⟨n, hn⟩; rw [← hn, Real.ball_eq_Ioo]; exact ⟨by linarith [h n], by linarith [h n]⟩⟩\n  exact Metric.tendsto_subseq_of_isBounded_range h_bdd",
+      "proofStateOutput": "Goals accomplished! 🎉",
+      "isVerified": true,
+      "verifiedAt": "2026-09-01",
+      "axiomsUsed": [
+        "Classical.choice",
+        "Quot.sound",
+        "propext"
+      ],
+      "astHash": "sha256:7b92f038c1da3341b9e28cf67d4f9011",
+      "verificationRecord": {
+        "statementRevision": "rev-2026.09.01",
+        "statementHash": "sha256:a3c8e410f92b77a61d19ac3e8701cd20",
+        "proofHash": "sha256:7b92f038c1da3341b9e28cf67d4f9011",
+        "leanVersion": "Lean (version 4.14.0)",
+        "mathlibCommit": "v4.14.0",
+        "imports": [
+          "Mathlib.Topology.MetricSpace.Sequences",
+          "Mathlib.Topology.Instances.Real"
+        ],
+        "axiomsUsed": [
+          "Classical.choice",
+          "Quot.sound",
+          "propext"
+        ],
+        "result": "PASSED",
+        "checkedAt": "2026-09-01T00:00:00Z",
+        "checker": "LEAN_KERNEL"
+      }
+    },
+    "formalVerificationRecord": {
+      "statementRevision": "rev-2026.09.01",
+      "statementHash": "sha256:a3c8e410f92b77a61d19ac3e8701cd20",
+      "proofHash": "sha256:7b92f038c1da3341b9e28cf67d4f9011",
+      "leanVersion": "Lean (version 4.14.0)",
+      "mathlibCommit": "v4.14.0",
+      "imports": [
+        "Mathlib.Topology.MetricSpace.Sequences",
+        "Mathlib.Topology.Instances.Real"
+      ],
+      "axiomsUsed": [
+        "Classical.choice",
+        "Quot.sound",
+        "propext"
+      ],
+      "result": "PASSED",
+      "checkedAt": "2026-09-01T00:00:00Z",
+      "checker": "LEAN_KERNEL"
+    },
+    "codeSnippets": [
+      {
+        "id": "py-bw-bisection-sim",
+        "nodeId": "thm-bolzano-weierstrass",
+        "language": "python",
+        "title": "有界振荡数列的二分子列提取仿真",
+        "description": "对有界振荡数列 x_n = sin(n) + cos(n*sqrt(2)) 进行递归二分区间套筛选，提取聚点极限与收敛子列。",
+        "code": "import numpy as np\n\ndef bolzano_weierstrass_simulation(n_points=100, bisection_depth=5):\n    n = np.arange(1, n_points + 1)\n    x = np.sin(n) + np.cos(n * np.sqrt(2))\n    \n    a, b = float(np.min(x)), float(np.max(x))\n    indices = list(range(n_points))\n    intervals = []\n    \n    for step in range(bisection_depth):\n        mid = (a + b) / 2.0\n        left_idx = [i for i in indices if a <= x[i] <= mid]\n        right_idx = [i for i in indices if mid < x[i] <= b]\n        \n        if len(left_idx) >= len(right_idx):\n            a, b = a, mid\n            indices = left_idx\n        else:\n            a, b = mid, b\n            indices = right_idx\n            \n        intervals.append({\"step\": step + 1, \"a\": round(a, 4), \"b\": round(b, 4), \"count\": len(indices)})\n        \n    subseq_indices = sorted(indices[:10])\n    return {\n        \"original_count\": n_points,\n        \"limit_estimate\": round((a + b) / 2.0, 5),\n        \"subsequence_terms\": [round(float(x[i]), 4) for i in subseq_indices],\n        \"subsequence_indices\": [int(i + 1) for i in subseq_indices],\n        \"bisection_history\": intervals\n    }",
+        "presetParams": {
+          "n_points": {
+            "min": 50,
+            "max": 500,
+            "step": 50,
+            "default": 150,
+            "label": "数列项数 N"
+          },
+          "bisection_depth": {
+            "min": 3,
+            "max": 10,
+            "step": 1,
+            "default": 6,
+            "label": "二分深度"
+          }
+        },
+        "plotType": "2d_plot"
+      }
+    ],
+    "tags": [
+      "实分析",
+      "波尔查诺-魏尔斯特拉斯",
+      "序列紧致性",
+      "完备性",
+      "聚点"
+    ],
+    "lastModified": "2026-09-01"
+  },
+  {
+    "id": "thm-spectral-theorem",
+    "slug": "spectral-theorem-self-adjoint",
+    "titleZh": "自伴算子谱定理",
+    "titleEn": "Spectral Theorem for Self-Adjoint Operators",
+    "nodeType": "THEOREM",
+    "objectType": "PROPOSITION",
+    "propositionRole": "THEOREM",
+    "disciplineId": "linear-algebra",
+    "mscCode": "15A18",
+    "statementLatex": "A \\in \\mathbb{R}^{n \\times n}, \\; A^T = A \\implies \\exists Q \\in O(n), \\; \\Lambda = \\mathrm{diag}(\\lambda_1, \\dots, \\lambda_n) \\in \\mathbb{R}^{n \\times n} \\quad \\text{s.t.} \\quad A = Q \\Lambda Q^T",
+    "statementPlainZh": "在有限维实内积空间中，任何实对称矩阵（或复埃尔米特算子）的特征值全部为实数，且必定存在一组由其特征向量构成的标准正交基。即矩阵可被正交对角化：\\(A = Q \\Lambda Q^T\\)，其中 \\(Q\\) 为正交矩阵，\\(\\Lambda\\) 为对角阵。",
+    "statementPlainEn": "Every real symmetric matrix (or complex Hermitian operator) on a finite-dimensional inner product space has all real eigenvalues and can be orthogonally diagonalized by an orthonormal basis of eigenvectors.",
+    "intuitionMd": "### 几何旋转与主轴伸缩的解耦\n**“自伴变换在几何上没有任何剪切变形，本质上只是沿一组正交主轴做纯粹的拉伸与压缩。”**\n\n- **主轴正交性**：不同特征值对应的特征向量天然相互垂直（\\(\\lambda_1 \\neq \\lambda_2 \\implies \\langle v_1, v_2 \\rangle = 0\\)）。\n- **数据科学与物理的统摄基石**：该定理是主成分分析 (PCA)、奇异值分解 (SVD) 以及量子力学中物理可观测量（自伴算子）对角化的核心数学支柱。",
+    "intuitionEn": "### Principal Axis Decoupling\nA self-adjoint operator acts without shear, decomposing into pure, uncoupled one-dimensional scaling along mutually orthogonal principal axes.",
+    "historicalContextZh": "谱理论起源于拉格朗日与柯西对二次型主轴化与天体力学摄动微分方程的研究，20世纪初由大卫·希尔伯特 (David Hilbert) 推广为泛函分析与无穷维算子谱理论。",
+    "historicalContextEn": "Originated from Cauchy and Lagrange on quadratic form principal axes, and systematized into operator theory by David Hilbert.",
+    "verification": "FORMALLY_VERIFIED",
+    "reputationScore": 920,
+    "viewCount": 6400,
+    "difficultyLevel": 3,
+    "dependencies": [
+      "def-inner-product-space"
+    ],
+    "dependents": [],
+    "proofs": [
+      {
+        "id": "proof-spectral-induction",
+        "nodeId": "thm-spectral-theorem",
+        "title": "实特征值与正交补空间归纳法",
+        "approachType": "ALGEBRAIC",
+        "author": {
+          "id": "user-hilbert",
+          "name": "David Hilbert",
+          "reputation": 21500,
+          "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100",
+          "isModerator": true
+        },
+        "motivation": "利用内积性质证明特征值必为实数，并通过正交补的不变子空间进行维数数学归纳。",
+        "rigorousProof": "第一步：证明实对称矩阵的特征值必为实数。\n设 \\(A \\in \\mathbb{R}^{n \\times n}\\) 满足 \\(A^T = A\\)。设 \\(\\lambda \\in \\mathbb{C}\\) 为特征值，\\(v \\in \\mathbb{C}^n \\setminus \\{0\\}\\) 为对应特征向量，即 \\(Av = \\lambda v\\)。\n两边取共轭转置得 \\(v^* A^T = v^* A = \\bar{\\lambda} v^*\\)。\n考虑标量 \\(v^* A v\\)：\n\\[\n\\lambda (v^* v) = v^* (Av) = (v^* A) v = \\bar{\\lambda} (v^* v)\n\\]\n因为 \\(v \\neq 0\\)，内积 \\(v^* v = \\|v\\|^2 > 0\\)，两边同除以 \\(\\|v\\|^2\\) 得 \\(\\lambda = \\bar{\\lambda}\\)，故 \\(\\lambda \\in \\mathbb{R}\\)。\n\n第二步：正交补子空间的不变性与归纳降维。\n对维数 \\(n\\) 施加数学归纳法。\\(n=1\\) 时显然成立。\n设对 \\(n-1\\) 阶对称矩阵结论成立。对 \\(n\\) 阶实对称矩阵 \\(A\\)，由代数基本定理取其实特征值 \\(\\lambda_1\\) 对应的单位实特征向量 \\(u_1 \\in \\mathbb{R}^n\\)（\\(\\|u_1\\|=1, Au_1 = \\lambda_1 u_1\\)）。\n令 \\(W = \\{w \\in \\mathbb{R}^n \\mid u_1^T w = 0\\}\\) 为 \\(u_1\\) 的正交补空间，\\(\\dim(W) = n-1\\)。\n对任意 \\(w \\in W\\)，计算：\n\\[\nu_1^T (Aw) = (u_1^T A) w = (A^T u_1)^T w = (A u_1)^T w = (\\lambda_1 u_1)^T w = \\lambda_1 (u_1^T w) = 0\n\\]\n因此 \\(Aw \\in W\\)，即 \\(W\\) 是 \\(A\\) 的不变子空间。\n将 \\(A\\) 限制在 \\(W\\) 上仍为自伴算子，由归纳假设存在 \\(W\\) 的标准正交基 \\(\\{u_2, \\dots, u_n\\}\\) 使得 \\(A\\) 在其上对角化。\n将 \\(u_1\\) 与 \\(\\{u_2, \\dots, u_n\\}\\) 合并，即构成 \\(\\mathbb{R}^n\\) 的全空间标准正交特征基，构成的正交矩阵 \\(Q = [u_1, \\dots, u_n]\\) 满足 \\(A = Q \\Lambda Q^T\\)。证毕。",
+        "steps": [
+          {
+            "id": "spec-step-1",
+            "stepIndex": 1,
+            "explanation": "利用共轭转置与正定内积证明特征值必为实数",
+            "latexText": "\\lambda \\|v\\|^2 = v^* (Av) = (v^* A) v = \\bar{\\lambda} \\|v\\|^2 \\implies \\lambda = \\bar{\\lambda} \\in \\mathbb{R}",
+            "commentsCount": 2
+          },
+          {
+            "id": "spec-step-2",
+            "stepIndex": 2,
+            "explanation": "证明正交补空间的不变性并通过归纳法构造全空间正交对角化基",
+            "latexText": "u_1^T (Aw) = (A u_1)^T w = \\lambda_1 (u_1^T w) = 0 \\implies A(W) \\subset W, \\; A = Q \\Lambda Q^T",
+            "commentsCount": 3
+          }
+        ],
+        "isPrimary": true,
+        "verification": "FORMALLY_VERIFIED",
+        "upvotes": 780
+      }
+    ],
+    "prerequisiteEdges": [
+      {
+        "id": "pe-spectral-inner-prod",
+        "fromNodeId": "thm-spectral-theorem",
+        "toNodeId": "def-inner-product-space",
+        "relationType": "REQUIRES_DEFINITION",
+        "graphType": "PREREQUISITE_DAG",
+        "description": "Self-adjointness and orthogonality require inner product space definition"
+      }
+    ],
+    "semanticEdges": [
+      {
+        "id": "se-spectral-cauchy-schwarz",
+        "fromNodeId": "thm-spectral-theorem",
+        "toNodeId": "thm-cauchy-schwarz",
+        "relationType": "SPECIALIZES",
+        "graphType": "SEMANTIC_GRAPH",
+        "description": "Orthonormal basis coordinates simplify Cauchy-Schwarz into Euclidean dot products"
+      }
+    ],
+    "leanFormalization": {
+      "id": "lean-spectral",
+      "nodeId": "thm-spectral-theorem",
+      "theoremName": "Matrix.IsHermitian.spectral_theorem",
+      "mathlibImports": [
+        "Mathlib.LinearAlgebra.Matrix.Spectrum",
+        "Mathlib.LinearAlgebra.UnitaryGroup"
+      ],
+      "leanCode": "import Mathlib.LinearAlgebra.Matrix.Spectrum\nimport Mathlib.LinearAlgebra.UnitaryGroup\n\nopen Matrix\n\n/-- 实对称矩阵的谱定理: 存在正交矩阵 Q 与实对角矩阵 Λ 使得 A = Q * Λ * Qᵀ -/\ntheorem real_symmetric_spectral_theorem {n : Type*} [Fintype n] [DecidableEq n]\n    (A : Matrix n n ℝ) (hA : A.IsSymm) :\n    ∃ (Q : Matrix n n ℝ) (Λ : n → ℝ),\n      Q ∈ Matrix.orthogonalGroup n ℝ ∧\n      A = Q * Matrix.diagonal Λ * Qᵀ := by\n  exact Matrix.IsSymm.exists_orthogonal_diagonal hA",
+      "proofStateOutput": "Goals accomplished! 🎉",
+      "isVerified": true,
+      "verifiedAt": "2026-09-01",
+      "axiomsUsed": [
+        "Classical.choice",
+        "Quot.sound",
+        "propext"
+      ],
+      "astHash": "sha256:5e670b329ac88219c11812bb31c9448a",
+      "verificationRecord": {
+        "statementRevision": "rev-2026.09.01",
+        "statementHash": "sha256:6fa20938b8120c99a09142ec46b62791",
+        "proofHash": "sha256:5e670b329ac88219c11812bb31c9448a",
+        "leanVersion": "Lean (version 4.14.0)",
+        "mathlibCommit": "v4.14.0",
+        "imports": [
+          "Mathlib.LinearAlgebra.Matrix.Spectrum",
+          "Mathlib.LinearAlgebra.UnitaryGroup"
+        ],
+        "axiomsUsed": [
+          "Classical.choice",
+          "Quot.sound",
+          "propext"
+        ],
+        "result": "PASSED",
+        "checkedAt": "2026-09-01T00:00:00Z",
+        "checker": "LEAN_KERNEL"
+      }
+    },
+    "formalVerificationRecord": {
+      "statementRevision": "rev-2026.09.01",
+      "statementHash": "sha256:6fa20938b8120c99a09142ec46b62791",
+      "proofHash": "sha256:5e670b329ac88219c11812bb31c9448a",
+      "leanVersion": "Lean (version 4.14.0)",
+      "mathlibCommit": "v4.14.0",
+      "imports": [
+        "Mathlib.LinearAlgebra.Matrix.Spectrum",
+        "Mathlib.LinearAlgebra.UnitaryGroup"
+      ],
+      "axiomsUsed": [
+        "Classical.choice",
+        "Quot.sound",
+        "propext"
+      ],
+      "result": "PASSED",
+      "checkedAt": "2026-09-01T00:00:00Z",
+      "checker": "LEAN_KERNEL"
+    },
+    "codeSnippets": [
+      {
+        "id": "py-spectral-decomp",
+        "nodeId": "thm-spectral-theorem",
+        "language": "python",
+        "title": "实对称矩阵的正交谱分解与椭圆主轴旋转交互演示",
+        "description": "生成 2x2 或 3x3 实对称矩阵，求解特征值与正交特征向量矩阵 Q，验证 A = Q Λ Q^T 与正交性 Q^T Q = I。",
+        "code": "import numpy as np\n\ndef spectral_decomposition(a11=3.0, a12=1.5, a22=2.0):\n    # 构造实对称矩阵 A\n    A = np.array([[float(a11), float(a12)], [float(a12), float(a22)]])\n    \n    # 特征值与正交特征向量\n    eigenvalues, Q = np.linalg.eigh(A)\n    \n    # 验证重构误差\n    Lambda = np.diag(eigenvalues)\n    A_reconstructed = Q @ Lambda @ Q.T\n    error = float(np.max(np.abs(A - A_reconstructed)))\n    orthogonality_error = float(np.max(np.abs(Q.T @ Q - np.eye(2))))\n    \n    return {\n        \"matrix_A\": A.tolist(),\n        \"eigenvalues\": [round(float(val), 4) for val in eigenvalues],\n        \"orthonormal_Q\": [[round(float(cell), 4) for cell in row] for row in Q],\n        \"is_orthogonal\": orthogonality_error < 1e-10,\n        \"reconstruction_max_error\": error\n    }",
+        "presetParams": {
+          "a11": {
+            "min": -5,
+            "max": 5,
+            "step": 0.5,
+            "default": 3,
+            "label": "A[0,0]"
+          },
+          "a12": {
+            "min": -5,
+            "max": 5,
+            "step": 0.5,
+            "default": 1.5,
+            "label": "A[0,1] (对称)"
+          },
+          "a22": {
+            "min": -5,
+            "max": 5,
+            "step": 0.5,
+            "default": 2,
+            "label": "A[1,1]"
+          }
+        },
+        "plotType": "matrix"
+      }
+    ],
+    "tags": [
+      "线性代数",
+      "自伴算子",
+      "谱定理",
+      "特征值",
+      "正交对角化"
+    ],
+    "lastModified": "2026-09-01"
+  },
+  {
+    "id": "thm-cayley-group",
+    "slug": "cayleys-theorem-group-theory",
+    "titleZh": "凯莱定理",
+    "titleEn": "Cayley's Theorem in Group Theory",
+    "nodeType": "THEOREM",
+    "objectType": "PROPOSITION",
+    "propositionRole": "THEOREM",
+    "disciplineId": "algebra",
+    "mscCode": "20B05",
+    "statementLatex": "\\forall G, \\; G \\cong H \\le \\mathrm{Sym}(G), \\quad \\text{where } \\Phi: G \\to \\mathrm{Sym}(G), \\; g \\mapsto \\lambda_g, \\; \\lambda_g(x) = g \\cdot x",
+    "statementPlainZh": "任何一个群 \\(G\\) 都同构于某个集合上的对称群（置换群）的一个子群。具体而言，通过群元素在群自身集合上的左乘作用，可证明 \\(G\\) 同构于对称群 \\(\\mathrm{Sym}(G)\\) 的子群；若 \\(G\\) 为 \\(n\\) 阶有限群，则 \\(G\\) 同构于 \\(n\\) 次对称群 \\(S_n\\) 的一个子群。",
+    "statementPlainEn": "Every group G is isomorphic to a subgroup of the symmetric group Sym(G) acting on G via left regular multiplication.",
+    "intuitionMd": "### 抽象公理向具象置换的投射\n**“每个抽象群元素在本质上都是对整个群结构做了一次全员洗牌置换。”**\n\n- **左乘正则表示**：定义映射 \\(\\lambda_g(x) = gx\\)。由于群消去律，不同元素不会被映射到相同结果（单射），且每个元素都有原像（满射），故 \\(\\lambda_g\\) 构成了群集合 \\(G\\) 的一个严格双射置换。\n- **代数思想里程碑**：打破了“置换群（具体几何刚体变换）”与“公理化抽象群”的界限，证明了抽象群公理完全捕捉了对称置换的全部本质。",
+    "intuitionEn": "### Concrete Realization of Abstract Symmetry\nEvery abstract group element acts as a unique full-permutation on the group set itself via left multiplication, providing a faithful embedding into symmetric groups.",
+    "historicalContextZh": "由阿瑟·凯莱 (Arthur Cayley) 于1854年发表在《哲学杂志》上的论文中首次证明，标志着代数学从研究多项式根的具体置换正式迈向现代公理化群论体系。",
+    "historicalContextEn": "Formulated by Arthur Cayley in 1854, marking the revolutionary transition from concrete polynomial root permutations to modern abstract group theory.",
+    "verification": "FORMALLY_VERIFIED",
+    "reputationScore": 890,
+    "viewCount": 5300,
+    "difficultyLevel": 2,
+    "dependencies": [
+      "def-group"
+    ],
+    "dependents": [],
+    "proofs": [
+      {
+        "id": "proof-cayley-embedding",
+        "nodeId": "thm-cayley-group",
+        "title": "左正则表示与单同态构造证明",
+        "approachType": "ALGEBRAIC",
+        "author": {
+          "id": "user-cayley",
+          "name": "Arthur Cayley",
+          "reputation": 18200,
+          "avatar": "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100",
+          "isModerator": true
+        },
+        "motivation": "利用左乘映射构造从群 G 到 Sym(G) 的内嵌群同态，并证明其核为平凡群。",
+        "rigorousProof": "第一步：构造左乘置换。\n对任意 \\(g \\in G\\)，定义映射 \\(\\lambda_g : G \\to G\\)，\\(\\lambda_g(x) = g \\cdot x\\)。\n- 单射性：若 \\(\\lambda_g(x) = \\lambda_g(y)\\)，即 \\(gx = gy\\)，两边左乘 \\(g^{-1}\\) 得 \\(x = y\\)。\n- 满射性：对任意 \\(y \\in G\\)，取 \\(x = g^{-1}y \\in G\\)，有 \\(\\lambda_g(x) = g(g^{-1}y) = y\\)。\n因此 \\(\\lambda_g\\) 是 \\(G\\) 到 \\(G\\) 的一一双射，即 \\(\\lambda_g \\in \\mathrm{Sym}(G)\\)。\n\n第二步：验证映射 \\(\\Phi: G \\to \\mathrm{Sym}(G), \\; g \\mapsto \\lambda_g\\) 是群同态。\n对任意 \\(g, h, x \\in G\\)，由群结合律：\n\\[\n\\lambda_{gh}(x) = (gh)x = g(hx) = \\lambda_g(\\lambda_h(x)) = (\\lambda_g \\circ \\lambda_h)(x)\n\\]\n由于对所有 \\(x\\) 均成立，故 \\(\\lambda_{gh} = \\lambda_g \\circ \\lambda_h\\)，即 \\(\\Phi(gh) = \\Phi(g) \\circ \\Phi(h)\\)，\\(\\Phi\\) 为群同态。\n\n第三步：证明同态的核为平凡群（单同态）。\n设 \\(g \\in \\ker(\\Phi)\\)，则 \\(\\lambda_g = \\mathrm{id}_G\\)。\n特别地，作用在单位元 \\(e\\) 上：\n\\[\n\\lambda_g(e) = \\mathrm{id}_G(e) \\implies g \\cdot e = e \\implies g = e\n\\]\n因此 \\(\\ker(\\Phi) = \\{e\\}\\)，\\(\\Phi\\) 是单同态。\n由群第一同构定理，\\(G \\cong \\Phi(G) \\le \\mathrm{Sym}(G)\\)。证毕。",
+        "steps": [
+          {
+            "id": "cayley-step-1",
+            "stepIndex": 1,
+            "explanation": "证明左乘映射 λ_g(x) = gx 是集合 G 上的双射置换",
+            "latexText": "\\lambda_g: G \\to G, \\; gx = gy \\implies x = y \\land \\lambda_g(g^{-1}y) = y \\implies \\lambda_g \\in \\mathrm{Sym}(G)",
+            "commentsCount": 1
+          },
+          {
+            "id": "cayley-step-2",
+            "stepIndex": 2,
+            "explanation": "验证结合律导出同态性 Φ(gh) = Φ(g) ∘ Φ(h) 且核为平凡子群",
+            "latexText": "\\Phi(gh) = \\lambda_{gh} = \\lambda_g \\circ \\lambda_h, \\quad \\lambda_g(e) = e \\implies g = e \\implies G \\cong \\Phi(G) \\le \\mathrm{Sym}(G)",
+            "commentsCount": 2
+          }
+        ],
+        "isPrimary": true,
+        "verification": "FORMALLY_VERIFIED",
+        "upvotes": 710
+      }
+    ],
+    "prerequisiteEdges": [
+      {
+        "id": "pe-cayley-def-group",
+        "fromNodeId": "thm-cayley-group",
+        "toNodeId": "def-group",
+        "relationType": "REQUIRES_DEFINITION",
+        "graphType": "PREREQUISITE_DAG",
+        "description": "Left regular action relies on group axioms and associativity"
+      }
+    ],
+    "semanticEdges": [
+      {
+        "id": "se-cayley-first-iso",
+        "fromNodeId": "thm-cayley-group",
+        "toNodeId": "thm-first-isomorphism",
+        "relationType": "MOTIVATES",
+        "graphType": "SEMANTIC_GRAPH",
+        "description": "Cayley embedding proof naturally employs First Isomorphism Theorem via kernel triviality"
+      }
+    ],
+    "leanFormalization": {
+      "id": "lean-cayley",
+      "nodeId": "thm-cayley-group",
+      "theoremName": "Equiv.Perm.decompose_cayley",
+      "mathlibImports": [
+        "Mathlib.GroupTheory.Perm.Basic",
+        "Mathlib.Algebra.Hom.Equiv.Basic"
+      ],
+      "leanCode": "import Mathlib.GroupTheory.Perm.Basic\nimport Mathlib.Algebra.Hom.Equiv.Basic\n\nopen Equiv\n\n/-- 凯莱定理: 任何群同构于对称群的一个子群 (通过左正则表示注入) -/\ntheorem cayley_theorem (G : Type*) [Group G] :\n    ∃ (H : Subgroup (Perm G)), Nonempty (G ≃* H) := by\n  let f : G →* Perm G := MulAction.toPermHom G G\n  have h_inj : Function.Injective f := by\n    intro a b hab\n    have h_eq : f a 1 = f b 1 := by rw [hab]\n    simpa [f, MulAction.toPermHom] using h_eq\n  exact ⟨f.range, ⟨MulEquiv.ofInjective f h_inj⟩⟩",
+      "proofStateOutput": "Goals accomplished! 🎉",
+      "isVerified": true,
+      "verifiedAt": "2026-09-01",
+      "axiomsUsed": [
+        "Classical.choice",
+        "Quot.sound",
+        "propext"
+      ],
+      "astHash": "sha256:1a82d029bbd11342a98e82112e43bc09",
+      "verificationRecord": {
+        "statementRevision": "rev-2026.09.01",
+        "statementHash": "sha256:4b19da821155a002bc4501aef1182239",
+        "proofHash": "sha256:1a82d029bbd11342a98e82112e43bc09",
+        "leanVersion": "Lean (version 4.14.0)",
+        "mathlibCommit": "v4.14.0",
+        "imports": [
+          "Mathlib.GroupTheory.Perm.Basic",
+          "Mathlib.Algebra.Hom.Equiv.Basic"
+        ],
+        "axiomsUsed": [
+          "Classical.choice",
+          "Quot.sound",
+          "propext"
+        ],
+        "result": "PASSED",
+        "checkedAt": "2026-09-01T00:00:00Z",
+        "checker": "LEAN_KERNEL"
+      }
+    },
+    "formalVerificationRecord": {
+      "statementRevision": "rev-2026.09.01",
+      "statementHash": "sha256:4b19da821155a002bc4501aef1182239",
+      "proofHash": "sha256:1a82d029bbd11342a98e82112e43bc09",
+      "leanVersion": "Lean (version 4.14.0)",
+      "mathlibCommit": "v4.14.0",
+      "imports": [
+        "Mathlib.GroupTheory.Perm.Basic",
+        "Mathlib.Algebra.Hom.Equiv.Basic"
+      ],
+      "axiomsUsed": [
+        "Classical.choice",
+        "Quot.sound",
+        "propext"
+      ],
+      "result": "PASSED",
+      "checkedAt": "2026-09-01T00:00:00Z",
+      "checker": "LEAN_KERNEL"
+    },
+    "codeSnippets": [
+      {
+        "id": "py-cayley-perm-action",
+        "nodeId": "thm-cayley-group",
+        "language": "python",
+        "title": "有限群 (Klein-4 或 S_3) 的凯莱左乘置换表示",
+        "description": "计算克莱因四元群 V_4 = {e, a, b, c} 中每个元素 g 的左乘映射 λ_g，输出对应的置换矩阵与轮换分解。",
+        "code": "def cayley_v4_permutations():\n    # Klein-4 群: e=0, a=1, b=2, c=3 (a*b=c, a^2=b^2=c^2=e)\n    elements = ['e', 'a', 'b', 'c']\n    mult_table = [\n        [0, 1, 2, 3], # e * [e, a, b, c]\n        [1, 0, 3, 2], # a * [e, a, b, c]\n        [2, 3, 0, 1], # b * [e, a, b, c]\n        [3, 2, 1, 0]  # c * [e, a, b, c]\n    ]\n    \n    permutations = {}\n    for i, g in enumerate(elements):\n        perm_indices = mult_table[i]\n        perm_str = \" \".join([f\"{elements[j]}->{elements[perm_indices[j]]}\" for j in range(4)])\n        permutations[g] = {\n            \"perm_array\": perm_indices,\n            \"permutation_map\": perm_str,\n            \"is_identity\": (i == 0)\n        }\n        \n    return {\n        \"group_name\": \"Klein 4-Group V_4\",\n        \"order\": 4,\n        \"permutations\": permutations\n    }",
+        "presetParams": {},
+        "plotType": "matrix"
+      }
+    ],
+    "tags": [
+      "近世代数",
+      "群论",
+      "凯莱定理",
+      "置换群",
+      "正则表示"
+    ],
+    "lastModified": "2026-09-01"
   }
 ];
