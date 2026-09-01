@@ -153,114 +153,122 @@ function CodeBlock({ code, lang }: { code: string; lang?: string }) {
 }
 
 // Helper to render inline markdown styles (bold, italic, inline code, inline math, links)
-function renderInlineContent(text: string, enableLinks: boolean = true): React.ReactNode[] {
-  // Regex to match inline math $...$, \(...\), wiki links [[...]], code `...`, markdown links [text](url)
-  // Using `\\\(.*?\\\)` with non-greedy match to allow nested parentheses like `\((a+b)^2\)`
+function renderInlineContent(text: string, enableLinks: boolean = true): React.ReactNode {
+  // 1. Math / Token extraction with alphanumeric placeholders (no underscores to prevent italic collision)
+  const tokenMap = new Map<string, React.ReactNode>();
+  let placeholderCounter = 0;
+
   const tokenRegex = /(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\\begin\{[a-zA-Z*]+\}[\s\S]*?\\end\{[a-zA-Z*]+\}|\$[^$\n]+?\$|\\\(.*?\\\)|\[\[.+?\]\]|`[^`\n]+?`|\[[^\]]+?\]\([^)]+?\))/g;
-  const segments = text.split(tokenRegex);
 
-  return segments.map((seg, segIdx) => {
-    if (!seg) return null;
+  const protectedText = text.replace(tokenRegex, (match) => {
+    const ph = `\uFFF0TKN${placeholderCounter++}\uFFF1`;
 
-    // 1. Display math inside inline block
-    if ((seg.startsWith('$$') && seg.endsWith('$$')) || (seg.startsWith('\\[') && seg.endsWith('\\]'))) {
-      const formula = seg.slice(2, -2);
-      return <InlineLaTeX key={segIdx} formula={formula} displayMode={true} />;
-    }
-    // 2. LaTeX environment \begin{...}...\end{...}
-    if (seg.startsWith('\\begin{') && seg.includes('\\end{')) {
-      return <InlineLaTeX key={segIdx} formula={seg} displayMode={true} />;
-    }
-    // 3. Inline math $...$
-    if (seg.startsWith('$') && seg.endsWith('$')) {
-      const formula = seg.slice(1, -1);
-      return <InlineLaTeX key={segIdx} formula={formula} displayMode={false} />;
-    }
-    // 4. Inline math \(...\)
-    if (seg.startsWith('\\(') && seg.endsWith('\\)')) {
-      const formula = seg.slice(2, -2);
-      return <InlineLaTeX key={segIdx} formula={formula} displayMode={false} />;
-    }
-    // 5. Wiki link [[...]]
-    if (enableLinks && seg.startsWith('[[') && seg.endsWith(']]')) {
-      const linkText = seg.slice(2, -2);
-      return <MathWikiLink key={segIdx} targetTitle={linkText} />;
-    }
-    // 6. Inline code `...`
-    if (seg.startsWith('`') && seg.endsWith('`')) {
-      const codeText = seg.slice(1, -1);
-      return (
+    if ((match.startsWith('$$') && match.endsWith('$$')) || (match.startsWith('\\[') && match.endsWith('\\]'))) {
+      const formula = match.slice(2, -2);
+      tokenMap.set(ph, <InlineLaTeX key={ph} formula={formula} displayMode={true} />);
+    } else if (match.startsWith('\\begin{') && match.includes('\\end{')) {
+      tokenMap.set(ph, <InlineLaTeX key={ph} formula={match} displayMode={true} />);
+    } else if (match.startsWith('$') && match.endsWith('$')) {
+      const formula = match.slice(1, -1);
+      tokenMap.set(ph, <InlineLaTeX key={ph} formula={formula} displayMode={false} />);
+    } else if (match.startsWith('\\(') && match.endsWith('\\)')) {
+      const formula = match.slice(2, -2);
+      tokenMap.set(ph, <InlineLaTeX key={ph} formula={formula} displayMode={false} />);
+    } else if (enableLinks && match.startsWith('[[') && match.endsWith(']]')) {
+      const linkText = match.slice(2, -2);
+      tokenMap.set(ph, <MathWikiLink key={ph} targetTitle={linkText} />);
+    } else if (match.startsWith('`') && match.endsWith('`')) {
+      const codeText = match.slice(1, -1);
+      tokenMap.set(
+        ph,
         <code
-          key={segIdx}
+          key={ph}
           className="px-1.5 py-0.5 mx-0.5 rounded bg-slate-800/90 text-cyan-300 font-mono text-xs border border-slate-700/80"
         >
           {codeText}
         </code>
       );
-    }
-    // 7. Markdown link [text](url)
-    const linkMatch = seg.match(/^\[([^\]]+?)\]\(([^)]+?)\)$/);
-    if (linkMatch) {
-      const [, linkLabel, linkUrl] = linkMatch;
-      return (
-        <a
-          key={segIdx}
-          href={linkUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2 transition-colors font-medium"
-        >
-          {linkLabel}
-        </a>
-      );
+    } else {
+      const linkMatch = match.match(/^\[([^\]]+?)\]\(([^)]+?)\)$/);
+      if (linkMatch) {
+        const [, linkLabel, linkUrl] = linkMatch;
+        tokenMap.set(
+          ph,
+          <a
+            key={ph}
+            href={linkUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2 transition-colors font-medium"
+          >
+            {linkLabel}
+          </a>
+        );
+      } else {
+        tokenMap.set(ph, match);
+      }
     }
 
-    // 8. Plain text: parse bold (**...** / __...__) and italic (*...* / _..._) and strikethrough (~~...~~)
-    return <React.Fragment key={segIdx}>{parseFormatting(seg)}</React.Fragment>;
+    return ph;
   });
+
+  // 2. Recursive formatting parser (bold, italic, strikethrough)
+  const parseFormattedNodes = (inputStr: string): React.ReactNode[] => {
+    const formatRegex = /(\*\*[^*]+?\*\*|__[^_]+?__|~~[^~]+?~~|\*[^*]+?\*|_[^_]+?_)/g;
+    const parts = inputStr.split(formatRegex);
+
+    return parts.map((part, pIdx) => {
+      if (!part) return null;
+
+      // Bold **...** or __...__
+      if ((part.startsWith('**') && part.endsWith('**')) || (part.startsWith('__') && part.endsWith('__'))) {
+        const inner = part.slice(2, -2);
+        return (
+          <strong key={`b-${pIdx}`} className="font-bold text-slate-100">
+            {parseFormattedNodes(inner)}
+          </strong>
+        );
+      }
+      // Strikethrough ~~...~~
+      if (part.startsWith('~~') && part.endsWith('~~')) {
+        const inner = part.slice(2, -2);
+        return (
+          <del key={`del-${pIdx}`} className="line-through text-slate-500">
+            {parseFormattedNodes(inner)}
+          </del>
+        );
+      }
+      // Italic *...* or _..._
+      if ((part.startsWith('*') && part.endsWith('*')) || (part.startsWith('_') && part.endsWith('_'))) {
+        const inner = part.slice(1, -1);
+        return (
+          <em key={`i-${pIdx}`} className="italic text-slate-200">
+            {parseFormattedNodes(inner)}
+          </em>
+        );
+      }
+
+      // Rehydrate token placeholders into React elements
+      const tokRegex = /(\uFFF0TKN\d+\uFFF1)/g;
+      const subSegments = part.split(tokRegex);
+
+      return (
+        <React.Fragment key={`txt-${pIdx}`}>
+          {subSegments.map((sub, sIdx) => {
+            if (tokenMap.has(sub)) {
+              return <React.Fragment key={`tok-${sIdx}`}>{tokenMap.get(sub)}</React.Fragment>;
+            }
+            return sub;
+          })}
+        </React.Fragment>
+      );
+    });
+  };
+
+  return <>{parseFormattedNodes(protectedText)}</>;
 }
 
-// Sub-parser for bold, italic, and strikethrough in plain text
-function parseFormatting(text: string): React.ReactNode[] {
-  // Regex to match **bold**, __bold__, *italic*, _italic_, ~~strikethrough~~
-  const formatRegex = /(\*\*[^*]+?\*\*|__[^_]+?__|~~[^~]+?~~|\*[^*]+?\*|_[^_]+?_)/g;
-  const parts = text.split(formatRegex);
 
-  return parts.map((part, pIdx) => {
-    if (!part) return null;
-
-    // Bold **...** or __...__
-    if ((part.startsWith('**') && part.endsWith('**')) || (part.startsWith('__') && part.endsWith('__'))) {
-      const inner = part.slice(2, -2);
-      return (
-        <strong key={pIdx} className="font-bold text-slate-100">
-          {parseFormatting(inner)}
-        </strong>
-      );
-    }
-    // Strikethrough ~~...~~
-    if (part.startsWith('~~') && part.endsWith('~~')) {
-      const inner = part.slice(2, -2);
-      return (
-        <del key={pIdx} className="line-through text-slate-500">
-          {parseFormatting(inner)}
-        </del>
-      );
-    }
-    // Italic *...* or _..._
-    if ((part.startsWith('*') && part.endsWith('*')) || (part.startsWith('_') && part.endsWith('_'))) {
-      const inner = part.slice(1, -1);
-      return (
-        <em key={pIdx} className="italic text-slate-200">
-          {parseFormatting(inner)}
-        </em>
-      );
-    }
-
-    // Unformatted text
-    return part;
-  });
-}
 
 // Markdown Table Renderer
 function parseMarkdownTable(tableLines: string[], enableLinks: boolean): React.ReactNode {
