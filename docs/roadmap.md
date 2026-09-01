@@ -12,8 +12,9 @@
 ---
 
 ## Phase 2: In-Browser Lean 4 Kernel Execution (v1.1 - v1.2)
+- [x] **Interactive Tactic State Inspector & Simulator**: Step-by-step goal state visualization and transitions (intro, rcases, rw, calc, exact) across logic, arithmetic, algebra, and topology.
+- [x] **Interactive Commutative Diagrams (TikZ-cd & SVG)**: Factorization squares, Short Exact Sequences, Snake Lemma, Natural Transformations, and Pullback/Fiber Product Universal Properties.
 - [ ] **WebAssembly Lean 4 Runtime**: Integrate Lean 4 WASM / WebWorker sandbox for client-side instant proof checking without remote servers.
-- [ ] **Interactive Tactic State Inspector**: Step-by-step goal state visualization for Lean formal proofs.
 - [ ] **Continuous Axiom Linter**: Automatic validation of `#print axioms` in user-submitted pull requests.
 
 ---
