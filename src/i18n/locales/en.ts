@@ -25,7 +25,7 @@ export const en: TranslationDict = {
   hero: {
     badge: 'Next-Generation Unified Mathematical Knowledge Infrastructure',
     title: 'Mathematical Structured Knowledge Base',
-    subtitle: 'A multi-disciplinary knowledge network powered by Directed Acyclic Graph (DAG) and Lean 4 formal verification, exploring over two millennia of rigorous human mathematical wisdom.',
+    subtitle: 'Mathematical Knowledge Network, Exploring Rigorous Mathematical Wisdom',
     ctaCosmos: 'Explore 3D Cosmos',
     ctaLean: 'Lean 4 Formal Lab',
     ctaEditor: 'Atomic Block Editor',

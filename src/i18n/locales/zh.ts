@@ -25,7 +25,7 @@ export const zh: TranslationDict = {
   hero: {
     badge: '下一代现代数学统一结构化知识基础设施',
     title: '数学结构化知识库',
-    subtitle: '基于有向无环图 (DAG) 与 Lean 4 形式化验证的多学科数学知识网络，探索两千余年人类严谨数理智慧',
+    subtitle: '数学知识网络，探索严谨数理智慧',
     ctaCosmos: '探索 3D 知识宇宙',
     ctaLean: 'Lean 4 形式化实验室',
     ctaEditor: '原子化块级创作',

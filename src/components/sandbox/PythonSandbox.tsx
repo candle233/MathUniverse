@@ -44,6 +44,10 @@ import {
   RefreshCw,
   Eye,
   Settings2,
+  Columns,
+  Maximize2,
+  Minimize2,
+  LayoutGrid,
 } from 'lucide-react';
 
 interface PythonSandboxProps {
@@ -53,6 +57,9 @@ interface PythonSandboxProps {
 
 export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
   const { isZh } = useLanguage();
+  // Layout mode: 'split' (side by side) | 'expanded' (wide visualizer canvas)
+  const [layoutMode, setLayoutMode] = useState<'split' | 'expanded'>('split');
+
   // Code & Parameter state
   const [code, setCode] = useState<string>(snippet.code);
   const [params, setParams] = useState<Record<string, number>>(() => {
@@ -66,7 +73,10 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
   });
 
   // Active view tab: 'terminal' | 'latex' | 'plot2d' | 'plot3d' | 'verify'
-  const [activeTab, setActiveTab] = useState<'terminal' | 'latex' | 'plot2d' | 'plot3d' | 'verify'>('plot2d');
+  const [activeTab, setActiveTab] = useState<'terminal' | 'latex' | 'plot2d' | 'plot3d' | 'verify'>(() => {
+    if (snippet.plotType === '3d_surface') return 'plot3d';
+    return 'plot2d';
+  });
 
   // Pyodide Worker State
   const [workerState, setWorkerState] = useState<PyodideState>('idle');
@@ -320,11 +330,39 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
       const lineInt = 2 * Math.PI * r * r;
       const fluxInt = 2 * Math.PI * r * r;
 
-      const mesh = generateParametricSurfaceMesh('hyperbolic_paraboloid', 24, 24);
+      const mesh = generateParametricSurfaceMesh('hyperbolic_paraboloid', 28, 28);
+
+      // 2D boundary circle curve & circulation vector field
+      const boundaryCirclePts: Array<{ x: number; y: number }> = [];
+      const circleSteps = 80;
+      for (let i = 0; i <= circleSteps; i++) {
+        const theta = (i / circleSteps) * 2 * Math.PI;
+        boundaryCirclePts.push({ x: r * Math.cos(theta), y: r * Math.sin(theta) });
+      }
+
+      // Rotational vector field F = (-y, x)
+      const fieldFnX = (x: number, y: number) => -y;
+      const fieldFnY = (x: number, y: number) => x;
+      const span = Math.max(r * 1.5, 3);
+      const arrows = generateVectorFieldGrid(fieldFnX, fieldFnY, [-span, span], [-span, span], 12);
 
       const payload: PlotDataPayload = {
-        mode: '3d_surface',
-        title: isZh ? `斯托克斯定理微分流形与边界积分 (R = ${r})` : `Stokes theorem: differentiable manifold & boundary integral (R = ${r})`,
+        mode: activeTab === 'plot3d' ? '3d_surface' : '2d_vector_field',
+        title: isZh
+          ? `斯托克斯定理：边界圆周环量与二维旋度场 (R = ${r.toFixed(2)})`
+          : `Stokes theorem: 2D circulation vector field F=(-y, x) & boundary circle (R = ${r.toFixed(2)})`,
+        xRange: [-span - 0.5, span + 0.5],
+        yRange: [-span - 0.5, span + 0.5],
+        vectorField: { grid: arrows },
+        curves: [
+          {
+            id: 'boundary-circle',
+            label: isZh ? `边界流形 ∂Ω: x² + y² = R² (R = ${r.toFixed(2)})` : `Boundary manifold ∂Ω: x² + y² = R² (R = ${r.toFixed(2)})`,
+            color: '#06b6d4',
+            points: boundaryCirclePts,
+            strokeWidth: 2.5,
+          },
+        ],
         surface3D: mesh,
       };
 
@@ -473,6 +511,20 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
 
         {/* Runtime Selector & Controls */}
         <div className="flex items-center gap-2">
+          {/* Layout Mode Switcher Button */}
+          <button
+            onClick={() => setLayoutMode((m) => (m === 'split' ? 'expanded' : 'split'))}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+              layoutMode === 'expanded'
+                ? 'bg-purple-500/20 text-purple-300 border-purple-500/50 shadow-sm font-bold'
+                : 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
+            }`}
+            title={isZh ? '切换分栏 / 宽屏展开模式' : 'Toggle Split / Wide Expanded Mode'}
+          >
+            {layoutMode === 'expanded' ? <Columns className="w-3.5 h-3.5" /> : <LayoutGrid className="w-3.5 h-3.5" />}
+            <span>{layoutMode === 'expanded' ? (isZh ? '分栏模式' : 'Split View') : (isZh ? '宽屏展开' : 'Expanded View')}</span>
+          </button>
+
           {workerState !== 'ready' ? (
             <button
               onClick={() => {
@@ -520,47 +572,15 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
       )}
 
       {/* Main Sandbox Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12">
-        {/* Left Column: Code Editor & Parameter Sliders */}
-        <div className="lg:col-span-6 p-4 border-r border-slate-800 bg-slate-950 font-mono text-xs flex flex-col justify-between space-y-4">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-[11px] text-slate-500 pb-1">
-              <span className="flex items-center gap-1">
-                <Terminal className="w-3 h-3 text-cyan-400" /> {isZh ? 'Python / SymPy 交互代码编辑器:' : 'Python / SymPy interactive code editor:'}
-              </span>
-              <span className="text-slate-500 font-mono">{isZh ? 'UTF-8 · 可自由编辑代码' : 'UTF-8 · freely editable code'}</span>
-            </div>
-
-            <div className="relative rounded-xl border border-slate-800 bg-slate-900/80 p-3">
-              <textarea
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                rows={12}
-                className="w-full bg-transparent text-slate-200 font-mono text-xs leading-relaxed outline-none resize-y"
-                spellCheck={false}
-              />
-            </div>
-          </div>
-
-          {/* Parameter Sliders */}
-          {snippet.presetParams && (
-            <ParameterSliders
-              configs={snippet.presetParams as any}
-              values={params}
-              onChange={handleParamChange}
-              onReset={handleResetParams}
-            />
-          )}
-        </div>
-
-        {/* Right Column: Multi-Modal Output Visualizer */}
-        <div className="lg:col-span-6 p-4 bg-slate-900/30 flex flex-col justify-between space-y-3">
+      <div className={`grid grid-cols-1 ${layoutMode === 'split' ? 'lg:grid-cols-12' : 'grid-cols-1 gap-4 p-4'}`}>
+        {/* Visualizer Column (Top in expanded mode, Right in split mode) */}
+        <div className={`${layoutMode === 'split' ? 'lg:col-span-6 lg:order-2 p-4 bg-slate-900/30' : 'w-full p-4 rounded-2xl bg-slate-900/40 border border-slate-800'} flex flex-col justify-between space-y-3`}>
           {/* Navigation Tabs */}
-          <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-            <div className="flex items-center gap-1 bg-slate-900 p-1 rounded-lg border border-slate-800 text-xs">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-2 flex-wrap gap-2">
+            <div className="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs flex-wrap">
               <button
                 onClick={() => setActiveTab('plot2d')}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded transition-colors cursor-pointer ${
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition-colors cursor-pointer ${
                   activeTab === 'plot2d'
                     ? 'bg-cyan-500 text-slate-950 font-bold'
                     : 'text-slate-400 hover:text-slate-200'
@@ -570,7 +590,7 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
               </button>
               <button
                 onClick={() => setActiveTab('plot3d')}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded transition-colors cursor-pointer ${
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition-colors cursor-pointer ${
                   activeTab === 'plot3d'
                     ? 'bg-purple-500 text-white font-bold'
                     : 'text-slate-400 hover:text-slate-200'
@@ -580,7 +600,7 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
               </button>
               <button
                 onClick={() => setActiveTab('latex')}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded transition-colors cursor-pointer ${
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition-colors cursor-pointer ${
                   activeTab === 'latex'
                     ? 'bg-blue-500 text-white font-bold'
                     : 'text-slate-400 hover:text-slate-200'
@@ -590,7 +610,7 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
               </button>
               <button
                 onClick={() => setActiveTab('terminal')}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded transition-colors cursor-pointer ${
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition-colors cursor-pointer ${
                   activeTab === 'terminal'
                     ? 'bg-slate-700 text-slate-100 font-bold'
                     : 'text-slate-400 hover:text-slate-200'
@@ -600,7 +620,7 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
               </button>
               <button
                 onClick={() => setActiveTab('verify')}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded transition-colors cursor-pointer ${
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition-colors cursor-pointer ${
                   activeTab === 'verify'
                     ? 'bg-emerald-500 text-slate-950 font-bold'
                     : 'text-slate-400 hover:text-slate-200'
@@ -617,17 +637,20 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
           </div>
 
           {/* Viewport Content */}
-          <div className="min-h-[320px] flex-1 flex flex-col justify-center">
+          <div className="min-h-[340px] flex-1 flex flex-col justify-center">
             {/* Tab 1: 2D Plot Canvas */}
             {activeTab === 'plot2d' && (
-              <Plot2DCanvas payload={plotPayload || tsComputedData.plotPayload || undefined} height={340} />
+              <Plot2DCanvas
+                payload={plotPayload || tsComputedData.plotPayload || undefined}
+                height={layoutMode === 'expanded' ? 480 : 360}
+              />
             )}
 
             {/* Tab 2: 3D Surface */}
             {activeTab === 'plot3d' && (
               <Plot3DSurface
                 defaultType={snippet.id === 'py-stokes-sim' ? 'hyperbolic_paraboloid' : 'mobius'}
-                height={340}
+                height={layoutMode === 'expanded' ? 480 : 360}
               />
             )}
 
@@ -645,7 +668,7 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
 
             {/* Tab 4: Terminal Console */}
             {activeTab === 'terminal' && (
-              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs space-y-2 h-[340px] overflow-y-auto">
+              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs space-y-2 h-[360px] overflow-y-auto">
                 <div className="text-slate-500 text-[11px]">{isZh ? '=== 标准输出 (stdout) ===' : '=== Standard output (stdout) ==='}</div>
                 <pre className="text-slate-200 whitespace-pre-wrap leading-relaxed">
                   {stdout || (isZh ? '无输出内容' : 'No output')}
@@ -677,6 +700,38 @@ export default function PythonSandbox({ snippet, nodeId }: PythonSandboxProps) {
             </span>
             <span>{isZh ? 'Watchdog: 8s 保护' : 'Watchdog: 8s guard'}</span>
           </div>
+        </div>
+
+        {/* Code Editor & Parameter Sliders Column */}
+        <div className={`${layoutMode === 'split' ? 'lg:col-span-6 lg:order-1 border-r border-slate-800' : 'w-full grid grid-cols-1 md:grid-cols-2 gap-4'} p-4 bg-slate-950 font-mono text-xs flex flex-col justify-between space-y-4`}>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-[11px] text-slate-500 pb-1">
+              <span className="flex items-center gap-1">
+                <Terminal className="w-3 h-3 text-cyan-400" /> {isZh ? 'Python / SymPy 交互代码编辑器:' : 'Python / SymPy interactive code editor:'}
+              </span>
+              <span className="text-slate-500 font-mono">{isZh ? 'UTF-8 · 可自由编辑代码' : 'UTF-8 · freely editable code'}</span>
+            </div>
+
+            <div className="relative rounded-xl border border-slate-800 bg-slate-900/80 p-3">
+              <textarea
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                rows={layoutMode === 'expanded' ? 8 : 12}
+                className="w-full bg-transparent text-slate-200 font-mono text-xs leading-relaxed outline-none resize-y"
+                spellCheck={false}
+              />
+            </div>
+          </div>
+
+          {/* Parameter Sliders */}
+          {snippet.presetParams && (
+            <ParameterSliders
+              configs={snippet.presetParams as any}
+              values={params}
+              onChange={handleParamChange}
+              onReset={handleResetParams}
+            />
+          )}
         </div>
       </div>
     </div>

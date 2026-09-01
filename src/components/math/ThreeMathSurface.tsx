@@ -1,7 +1,21 @@
 'use client';
 
-import React, { useRef, useEffect, useState, useMemo } from 'react';
-import { Sparkles, RotateCw, Layers, Sliders, Box, Eye, Move } from 'lucide-react';
+import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
+import {
+  Sparkles,
+  RotateCw,
+  Layers,
+  Sliders,
+  Box,
+  Eye,
+  Move,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  Maximize2,
+  Minimize2,
+  Download,
+} from 'lucide-react';
 import { InlineLaTeX } from '@/components/math/LaTeXRenderer';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -275,7 +289,9 @@ export const surfaceDefinitions: SurfaceDefinition[] = [
 export default function ThreeMathSurface({ surface = 'mobius' }: { surface?: string }) {
   const { isZh } = useLanguage();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const fullscreenCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+
   const [selectedId, setSelectedId] = useState<string>(surface);
   const [isRotating, setIsRotating] = useState(true);
   const isRotatingRef = useRef(true);
@@ -285,6 +301,8 @@ export default function ThreeMathSurface({ surface = 'mobius' }: { surface?: str
 
   const [wireframe, setWireframe] = useState(false);
   const [paramA, setParamA] = useState(1.5);
+  const [zoom, setZoom] = useState(1.0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Canvas dimensions state
   const [canvasDimensions, setCanvasDimensions] = useState({ width: 800, height: 460 });
@@ -297,8 +315,10 @@ export default function ThreeMathSurface({ surface = 'mobius' }: { surface?: str
 
   // Generate 3D point grid based on mathematical formulas
   const meshData = useMemo(() => {
-    return currentSurface.generateMesh(36, 18, paramA);
-  }, [currentSurface, paramA]);
+    const uRes = isFullscreen ? 48 : 36;
+    const vRes = isFullscreen ? 24 : 18;
+    return currentSurface.generateMesh(uRes, vRes, paramA);
+  }, [currentSurface, paramA, isFullscreen]);
 
   // Automatically update canvas size on container resize
   useEffect(() => {
@@ -326,119 +346,142 @@ export default function ThreeMathSurface({ surface = 'mobius' }: { surface?: str
     };
   }, []);
 
+  const resetView = useCallback(() => {
+    rotationRef.current = { x: 0.5, y: 0.6 };
+    setZoom(1.0);
+  }, []);
+
+  // Keyboard shortcut listener
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullscreen) {
+        setIsFullscreen(false);
+      } else if (e.key === ' ' && isFullscreen) {
+        setIsRotating((r) => !r);
+      } else if ((e.key === 'w' || e.key === 'W') && isFullscreen) {
+        setWireframe((w) => !w);
+      } else if (e.key === '0' && isFullscreen) {
+        resetView();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isFullscreen, resetView]);
+
   // Animation & Rendering Loop
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
     let animId: number;
 
     const render = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      if (isRotatingRef.current && !isDraggingRef.current) {
-        rotationRef.current.x += 0.006;
-        rotationRef.current.y += 0.008;
-      }
-
-      const cx = canvas.width / 2;
-      const cy = canvas.height / 2;
-      const scale = 110;
-      const rotation = rotationRef.current;
-
-      // 3D rotation matrices
-      const cosX = Math.cos(rotation.x);
-      const sinX = Math.sin(rotation.x);
-      const cosY = Math.cos(rotation.y);
-      const sinY = Math.sin(rotation.y);
-
-      // Project points to 2.5D screen space
-      const projected = meshData.points.map((p) => {
-        // Rotate Y
-        const x1 = p.x * cosY + p.z * sinY;
-        const y1 = p.y;
-        const z1 = -p.x * sinY + p.z * cosY;
-
-        // Rotate X
-        const x2 = x1;
-        const y2 = y1 * cosX - z1 * sinX;
-        const z2 = y1 * sinX + z1 * cosX;
-
-        // Perspective projection
-        const fov = 4.0;
-        const distance = fov + z2;
-        const projScale = distance > 0.1 ? (fov / distance) * scale : scale;
-
-        return {
-          sx: cx + x2 * projScale,
-          sy: cy + y2 * projScale,
-          depth: z2,
-        };
-      });
-
-      if (meshData.isCurve) {
-        // Draw 3D trajectory curve (Lorenz)
-        ctx.beginPath();
-        for (let i = 0; i < projected.length - 1; i++) {
-          const p1 = projected[i];
-          const p2 = projected[i + 1];
-          const grad = ctx.createLinearGradient(p1.sx, p1.sy, p2.sx, p2.sy);
-          const hue = 180 + (i % 120);
-          grad.addColorStop(0, `hsl(${hue}, 90%, 65%)`);
-          grad.addColorStop(1, `hsl(${hue + 5}, 90%, 65%)`);
-          ctx.strokeStyle = grad;
-          ctx.lineWidth = 1.6;
-          ctx.beginPath();
-          ctx.moveTo(p1.sx, p1.sy);
-          ctx.lineTo(p2.sx, p2.sy);
-          ctx.stroke();
-        }
-      } else {
-        // Sort faces by depth for painter's algorithm
-        const sortedFaces = meshData.faces
-          .map((faceIndices) => {
-            const avgDepth =
-              faceIndices.reduce((sum, idx) => sum + (projected[idx]?.depth || 0), 0) / faceIndices.length;
-            return { indices: faceIndices, depth: avgDepth };
-          })
-          .sort((a, b) => b.depth - a.depth);
-
-        // Draw quad faces
-        sortedFaces.forEach(({ indices, depth }) => {
-          const p0 = projected[indices[0]];
-          const p1 = projected[indices[1]];
-          const p2 = projected[indices[2]];
-          const p3 = projected[indices[3]];
-
-          if (!p0 || !p1 || !p2 || !p3) return;
-
-          ctx.beginPath();
-          ctx.moveTo(p0.sx, p0.sy);
-          ctx.lineTo(p1.sx, p1.sy);
-          ctx.lineTo(p2.sx, p2.sy);
-          ctx.lineTo(p3.sx, p3.sy);
-          ctx.closePath();
-
-          if (wireframe) {
-            ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
-            ctx.lineWidth = 1;
-            ctx.stroke();
-          } else {
-            // Lighting calculation based on face normal
-            const normLight = Math.max(0.15, Math.min(0.9, (depth + 2.0) / 4.0));
-            const r = Math.floor(20 + normLight * 40);
-            const g = Math.floor(100 + normLight * 120);
-            const b = Math.floor(180 + normLight * 75);
-
-            ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.75)`;
-            ctx.fill();
-            ctx.strokeStyle = `rgba(${r + 30}, ${g + 30}, ${b + 20}, 0.3)`;
-            ctx.lineWidth = 0.8;
-            ctx.stroke();
+      const activeCanvas = isFullscreen ? fullscreenCanvasRef.current : canvasRef.current;
+      if (activeCanvas) {
+        const ctx = activeCanvas.getContext('2d');
+        if (ctx) {
+          if (isFullscreen) {
+            activeCanvas.width = window.innerWidth * 0.94;
+            activeCanvas.height = window.innerHeight * 0.76;
           }
-        });
+
+          ctx.clearRect(0, 0, activeCanvas.width, activeCanvas.height);
+
+          if (isRotatingRef.current && !isDraggingRef.current) {
+            rotationRef.current.x += 0.006;
+            rotationRef.current.y += 0.008;
+          }
+
+          const cx = activeCanvas.width / 2;
+          const cy = activeCanvas.height / 2;
+          const scale = 110 * zoom * (activeCanvas.width / 800);
+          const rotation = rotationRef.current;
+
+          // 3D rotation matrices
+          const cosX = Math.cos(rotation.x);
+          const sinX = Math.sin(rotation.x);
+          const cosY = Math.cos(rotation.y);
+          const sinY = Math.sin(rotation.y);
+
+          // Project points to 2.5D screen space
+          const projected = meshData.points.map((p) => {
+            const x1 = p.x * cosY + p.z * sinY;
+            const y1 = p.y;
+            const z1 = -p.x * sinY + p.z * cosY;
+
+            const x2 = x1;
+            const y2 = y1 * cosX - z1 * sinX;
+            const z2 = y1 * sinX + z1 * cosX;
+
+            const fov = 4.0;
+            const distance = fov + z2;
+            const projScale = distance > 0.1 ? (fov / distance) * scale : scale;
+
+            return {
+              sx: cx + x2 * projScale,
+              sy: cy + y2 * projScale,
+              depth: z2,
+            };
+          });
+
+          if (meshData.isCurve) {
+            // Draw 3D trajectory curve (Lorenz)
+            ctx.beginPath();
+            for (let i = 0; i < projected.length - 1; i++) {
+              const p1 = projected[i];
+              const p2 = projected[i + 1];
+              const grad = ctx.createLinearGradient(p1.sx, p1.sy, p2.sx, p2.sy);
+              const hue = 180 + (i % 120);
+              grad.addColorStop(0, `hsl(${hue}, 90%, 65%)`);
+              grad.addColorStop(1, `hsl(${hue + 5}, 90%, 65%)`);
+              ctx.strokeStyle = grad;
+              ctx.lineWidth = isFullscreen ? 2.2 : 1.6;
+              ctx.beginPath();
+              ctx.moveTo(p1.sx, p1.sy);
+              ctx.lineTo(p2.sx, p2.sy);
+              ctx.stroke();
+            }
+          } else {
+            // Sort faces by depth for painter's algorithm
+            const sortedFaces = meshData.faces
+              .map((faceIndices) => {
+                const avgDepth =
+                  faceIndices.reduce((sum, idx) => sum + (projected[idx]?.depth || 0), 0) / faceIndices.length;
+                return { indices: faceIndices, depth: avgDepth };
+              })
+              .sort((a, b) => b.depth - a.depth);
+
+            sortedFaces.forEach(({ indices, depth }) => {
+              const p0 = projected[indices[0]];
+              const p1 = projected[indices[1]];
+              const p2 = projected[indices[2]];
+              const p3 = projected[indices[3]];
+
+              if (!p0 || !p1 || !p2 || !p3) return;
+
+              ctx.beginPath();
+              ctx.moveTo(p0.sx, p0.sy);
+              ctx.lineTo(p1.sx, p1.sy);
+              ctx.lineTo(p2.sx, p2.sy);
+              ctx.lineTo(p3.sx, p3.sy);
+              ctx.closePath();
+
+              if (wireframe) {
+                ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+              } else {
+                const normLight = Math.max(0.15, Math.min(0.9, (depth + 2.0) / 4.0));
+                const r = Math.floor(20 + normLight * 40);
+                const g = Math.floor(100 + normLight * 120);
+                const b = Math.floor(180 + normLight * 75);
+
+                ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.78)`;
+                ctx.fill();
+                ctx.strokeStyle = `rgba(${r + 30}, ${g + 30}, ${b + 20}, 0.35)`;
+                ctx.lineWidth = 0.8;
+                ctx.stroke();
+              }
+            });
+          }
+        }
       }
 
       animId = requestAnimationFrame(render);
@@ -446,7 +489,7 @@ export default function ThreeMathSurface({ surface = 'mobius' }: { surface?: str
 
     render();
     return () => cancelAnimationFrame(animId);
-  }, [meshData, wireframe]);
+  }, [meshData, wireframe, zoom, isFullscreen]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     isDraggingRef.current = true;
@@ -466,134 +509,323 @@ export default function ThreeMathSurface({ surface = 'mobius' }: { surface?: str
     isDraggingRef.current = false;
   };
 
+  const handleWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
+    setZoom((z) => Math.max(0.2, Math.min(5, z * factor)));
+  };
+
+  const handleDownloadSnapshot = () => {
+    const activeCanvas = isFullscreen ? fullscreenCanvasRef.current : canvasRef.current;
+    if (!activeCanvas) return;
+    const url = activeCanvas.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `mathuniverse_3d_manifold_${Date.now()}.png`;
+    a.click();
+  };
+
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-950 overflow-hidden shadow-2xl p-6 space-y-6">
-      {/* Header & Surface Selector */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-800">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
-            <Box className="w-4 h-4" />
-          </div>
-          <div>
-            <h3 className="font-bold text-slate-100 text-sm">
-              {isZh ? '3D 微分流形与经典极小曲面工作室 (3D Differential Manifolds Studio)' : '3D Differential Manifolds & Minimal Surfaces Studio'}
-            </h3>
-            <p className="text-xs text-slate-400">
-              {isZh
-                ? '交互式 360° 拖拽观察流形曲率、拓扑单侧性、极小曲面与混沌吸引子'
-                : 'Interactively drag through 360° to observe manifold curvature, one-sided topology, minimal surfaces, and chaotic attractors'}
-            </p>
-          </div>
-        </div>
-
-        {/* Surface Select Tabs */}
-        <div className="flex items-center gap-1.5 flex-wrap">
-          {surfaceDefinitions.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => setSelectedId(s.id)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                selectedId === s.id
-                  ? 'bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/20'
-                  : 'bg-slate-900 text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              {isZh ? s.nameZh.split(' ')[0] : s.nameEn}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Surface Description & LaTeX Box */}
-      <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div>
+    <>
+      <div className="rounded-2xl border border-slate-800 bg-slate-950 overflow-hidden shadow-2xl p-6 space-y-6">
+        {/* Header & Surface Selector */}
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-800">
           <div className="flex items-center gap-2">
-            <span className="text-cyan-300 font-bold">{isZh ? currentSurface.nameZh : currentSurface.nameEn}</span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
-              {isZh ? currentSurface.discipline : currentSurface.disciplineEn}
-            </span>
+            <div className="w-8 h-8 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
+              <Box className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="font-bold text-slate-100 text-sm">
+                {isZh ? '3D 微分流形与经典极小曲面工作室 (3D Differential Manifolds Studio)' : '3D Differential Manifolds & Minimal Surfaces Studio'}
+              </h3>
+              <p className="text-xs text-slate-400">
+                {isZh
+                  ? '交互式 360° 拖拽观察流形曲率、拓扑单侧性、极小曲面与混沌吸引子'
+                  : 'Interactively drag through 360° to observe manifold curvature, one-sided topology, minimal surfaces, and chaotic attractors'}
+              </p>
+            </div>
           </div>
-          <p className="text-slate-400 mt-1">{isZh ? currentSurface.description : currentSurface.descriptionEn}</p>
+
+          {/* Surface Select Tabs */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {surfaceDefinitions.map((s) => (
+              <button
+                key={s.id}
+                onClick={() => setSelectedId(s.id)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  selectedId === s.id
+                    ? 'bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/20'
+                    : 'bg-slate-900 text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                {isZh ? s.nameZh.split(' ')[0] : s.nameEn}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* LaTeX Parametric Equation */}
-        <div className="p-2.5 px-3 rounded-lg bg-slate-950 border border-cyan-500/30 text-cyan-200 font-mono text-xs overflow-x-auto">
-          <InlineLaTeX formula={currentSurface.formulaLatex} />
+        {/* Surface Description & LaTeX Box */}
+        <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-cyan-300 font-bold">{isZh ? currentSurface.nameZh : currentSurface.nameEn}</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+                {isZh ? currentSurface.discipline : currentSurface.disciplineEn}
+              </span>
+            </div>
+            <p className="text-slate-400 mt-1">{isZh ? currentSurface.description : currentSurface.descriptionEn}</p>
+          </div>
+
+          {/* LaTeX Parametric Equation */}
+          <div className="p-2.5 px-3 rounded-lg bg-slate-950 border border-cyan-500/30 text-cyan-200 font-mono text-xs overflow-x-auto">
+            <InlineLaTeX formula={currentSurface.formulaLatex} />
+          </div>
         </div>
-      </div>
 
-      {/* 3D Canvas Viewport */}
-      <div
-        ref={containerRef}
-        className="relative w-full h-[460px] bg-slate-950 rounded-2xl border border-slate-800 math-grid-pattern overflow-hidden cursor-grab active:cursor-grabbing"
-      >
-        <canvas
-          ref={canvasRef}
-          width={canvasDimensions.width}
-          height={canvasDimensions.height}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-          className="w-full h-full block"
-        />
+        {/* 3D Canvas Viewport */}
+        <div
+          ref={containerRef}
+          className="relative w-full h-[460px] bg-slate-950 rounded-2xl border border-slate-800 math-grid-pattern overflow-hidden cursor-grab active:cursor-grabbing"
+        >
+          <canvas
+            ref={canvasRef}
+            width={canvasDimensions.width}
+            height={canvasDimensions.height}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            onWheel={handleWheel}
+            className="w-full h-full block"
+          />
 
-        {/* Floating Controls Overlay */}
-        <div className="absolute bottom-3 left-3 flex items-center gap-2">
-          <button
-            onClick={() => setIsRotating(!isRotating)}
-            className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors cursor-pointer ${
-              isRotating
-                ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
-                : 'bg-slate-900 text-slate-400 border-slate-700'
-            }`}
-          >
-            <RotateCw className={`w-3.5 h-3.5 ${isRotating ? 'animate-spin' : ''}`} />
-            <span>{isRotating ? (isZh ? '自转开启' : 'Auto-Rotate On') : (isZh ? '自转暂停' : 'Auto-Rotate Paused')}</span>
-          </button>
-
-          {!meshData.isCurve && (
+          {/* Floating Controls Overlay */}
+          <div className="absolute bottom-3 left-3 flex items-center gap-2 flex-wrap">
             <button
-              onClick={() => setWireframe(!wireframe)}
+              onClick={() => setIsRotating(!isRotating)}
               className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors cursor-pointer ${
-                wireframe
-                  ? 'bg-purple-500/20 text-purple-300 border-purple-500/40'
+                isRotating
+                  ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
                   : 'bg-slate-900 text-slate-400 border-slate-700'
               }`}
             >
-              <Layers className="w-3.5 h-3.5" />
-              <span>{wireframe ? (isZh ? '线框骨架' : 'Wireframe') : (isZh ? '实体着色' : 'Solid Shading')}</span>
+              <RotateCw className={`w-3.5 h-3.5 ${isRotating ? 'animate-spin' : ''}`} />
+              <span>{isRotating ? (isZh ? '自转开启' : 'Auto-Rotate On') : (isZh ? '自转暂停' : 'Auto-Rotate Paused')}</span>
             </button>
-          )}
+
+            {!meshData.isCurve && (
+              <button
+                onClick={() => setWireframe(!wireframe)}
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors cursor-pointer ${
+                  wireframe
+                    ? 'bg-purple-500/20 text-purple-300 border-purple-500/40'
+                    : 'bg-slate-900 text-slate-400 border-slate-700'
+                }`}
+              >
+                <Layers className="w-3.5 h-3.5" />
+                <span>{wireframe ? (isZh ? '线框骨架' : 'Wireframe') : (isZh ? '实体着色' : 'Solid Shading')}</span>
+              </button>
+            )}
+
+            <button
+              onClick={() => setZoom((z) => Math.min(4, z * 1.2))}
+              className="p-1.5 rounded-xl bg-slate-900/90 border border-slate-800 text-slate-300 hover:text-cyan-300 transition-colors cursor-pointer"
+              title={isZh ? '放大' : 'Zoom in'}
+            >
+              <ZoomIn className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => setZoom((z) => Math.max(0.3, z / 1.2))}
+              className="p-1.5 rounded-xl bg-slate-900/90 border border-slate-800 text-slate-300 hover:text-cyan-300 transition-colors cursor-pointer"
+              title={isZh ? '缩小' : 'Zoom out'}
+            >
+              <ZoomOut className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={resetView}
+              className="p-1.5 rounded-xl bg-slate-900/90 border border-slate-800 text-slate-300 hover:text-cyan-300 transition-colors cursor-pointer"
+              title={isZh ? '重置视角' : 'Reset view'}
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={handleDownloadSnapshot}
+              className="p-1.5 rounded-xl bg-slate-900/90 border border-slate-800 text-slate-300 hover:text-cyan-300 transition-colors cursor-pointer"
+              title={isZh ? '导出 PNG' : 'Export PNG'}
+            >
+              <Download className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => setIsFullscreen(true)}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-xs font-bold transition-all cursor-pointer"
+              title={isZh ? '全屏放大 3D 流形视图' : 'Expand to Fullscreen'}
+            >
+              <Maximize2 className="w-3.5 h-3.5" />
+              <span>{isZh ? '全屏放大' : 'Fullscreen'}</span>
+            </button>
+          </div>
+
+          {/* Drag Hint */}
+          <div className="absolute bottom-3 right-3 p-2 px-3 rounded-xl glass-panel text-[11px] text-slate-400 flex items-center gap-1.5 pointer-events-none">
+            <Move className="w-3.5 h-3.5 text-cyan-400" />
+            <span>{isZh ? '按住鼠标左键 360° 自由旋转 · 滚轮缩放' : 'Drag to rotate · Scroll to zoom'}</span>
+          </div>
         </div>
 
-        {/* Drag Hint */}
-        <div className="absolute bottom-3 right-3 p-2 px-3 rounded-xl glass-panel text-[11px] text-slate-400 flex items-center gap-1.5 pointer-events-none">
-          <Move className="w-3.5 h-3.5 text-cyan-400" />
-          <span>{isZh ? '按住鼠标左键可 360° 自由旋转流形' : 'Hold the left mouse button to freely rotate the manifold through 360°'}</span>
-        </div>
-      </div>
-
-      {/* Parameter Adjustment Slider */}
-      <div className="p-4 bg-slate-900/60 rounded-xl border border-slate-800 flex items-center justify-between gap-4 text-xs font-mono">
-        <span className="text-slate-300 flex items-center gap-1.5 font-semibold">
-          <Sliders className="w-4 h-4 text-cyan-400" /> {isZh ? '曲面形变与缩放参数 (Param Factor):' : 'Surface Deformation & Scale (Param Factor):'}
-        </span>
-        <div className="flex items-center gap-3 flex-1 max-w-sm">
-          <input
-            type="range"
-            min={0.4}
-            max={2.8}
-            step={0.1}
-            value={paramA}
-            onChange={(e) => setParamA(parseFloat(e.target.value))}
-            className="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-400"
-          />
-          <span className="text-cyan-300 font-bold px-2 py-0.5 rounded bg-slate-950 border border-slate-800">
-            {paramA.toFixed(1)}x
+        {/* Parameter Adjustment Slider */}
+        <div className="p-4 bg-slate-900/60 rounded-xl border border-slate-800 flex items-center justify-between gap-4 text-xs font-mono">
+          <span className="text-slate-300 flex items-center gap-1.5 font-semibold">
+            <Sliders className="w-4 h-4 text-cyan-400" /> {isZh ? '曲面形变与缩放参数 (Param Factor):' : 'Surface Deformation & Scale (Param Factor):'}
           </span>
+          <div className="flex items-center gap-3 flex-1 max-w-sm">
+            <input
+              type="range"
+              min={0.4}
+              max={2.8}
+              step={0.1}
+              value={paramA}
+              onChange={(e) => setParamA(parseFloat(e.target.value))}
+              className="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-400"
+            />
+            <span className="text-cyan-300 font-bold px-2 py-0.5 rounded bg-slate-950 border border-slate-800">
+              {paramA.toFixed(1)}x
+            </span>
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* Fullscreen Magnification Modal */}
+      {isFullscreen && (
+        <div className="fixed inset-0 z-[100] flex flex-col bg-slate-950/95 backdrop-blur-2xl p-4 sm:p-6 animate-in fade-in zoom-in-95 duration-200">
+          {/* Header */}
+          <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-800">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 shadow-md shadow-cyan-500/10">
+                <Box className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-100 text-base">
+                  {isZh ? currentSurface.nameZh : currentSurface.nameEn} — 3D 微分几何流形高清全屏工作室
+                </h3>
+                <p className="text-xs text-slate-400 font-mono">
+                  {isZh ? currentSurface.description : currentSurface.descriptionEn}
+                </p>
+              </div>
+            </div>
+
+            {/* Controls */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={() => setIsRotating((r) => !r)}
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
+                  isRotating
+                    ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
+                    : 'bg-slate-900 text-slate-400 border-slate-800'
+                }`}
+              >
+                <RotateCw className={`w-3.5 h-3.5 ${isRotating ? 'animate-spin' : ''}`} />
+                <span>{isRotating ? (isZh ? '自转开启' : 'Rotate On') : (isZh ? '自转暂停' : 'Rotate Paused')}</span>
+              </button>
+
+              {!meshData.isCurve && (
+                <button
+                  onClick={() => setWireframe((w) => !w)}
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
+                    wireframe
+                      ? 'bg-purple-500/20 text-purple-300 border-purple-500/40'
+                      : 'bg-slate-900 text-slate-400 border-slate-800'
+                  }`}
+                >
+                  <Layers className="w-3.5 h-3.5" />
+                  <span>{wireframe ? (isZh ? '线框骨架' : 'Wireframe') : (isZh ? '实体着色' : 'Solid')}</span>
+                </button>
+              )}
+
+              <button
+                onClick={() => setZoom((z) => Math.min(5, z * 1.2))}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-medium cursor-pointer"
+              >
+                <ZoomIn className="w-3.5 h-3.5" />
+                <span>{isZh ? '放大' : 'Zoom In'}</span>
+              </button>
+
+              <button
+                onClick={() => setZoom((z) => Math.max(0.3, z / 1.2))}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-medium cursor-pointer"
+              >
+                <ZoomOut className="w-3.5 h-3.5" />
+                <span>{isZh ? '缩小' : 'Zoom Out'}</span>
+              </button>
+
+              <button
+                onClick={resetView}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-medium cursor-pointer"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>{isZh ? '重置视角' : 'Reset'}</span>
+              </button>
+
+              <button
+                onClick={handleDownloadSnapshot}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs font-bold transition-all cursor-pointer"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>{isZh ? '导出 PNG' : 'Export PNG'}</span>
+              </button>
+
+              <button
+                onClick={() => setIsFullscreen(false)}
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-slate-950 border border-rose-500/40 text-xs font-bold transition-all cursor-pointer"
+              >
+                <Minimize2 className="w-3.5 h-3.5" />
+                <span>{isZh ? '退出全屏 (ESC)' : 'Exit (ESC)'}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Surface Pill Switcher */}
+          <div className="flex items-center gap-1.5 flex-wrap pt-3">
+            <span className="text-xs text-slate-400 font-mono">{isZh ? '切换流形模型:' : 'Switch Manifold:'}</span>
+            {surfaceDefinitions.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setSelectedId(item.id)}
+                className={`px-3 py-1 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  selectedId === item.id
+                    ? 'bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/20'
+                    : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
+                }`}
+              >
+                {isZh ? item.nameZh.split(' ')[0] : item.nameEn}
+              </button>
+            ))}
+          </div>
+
+          {/* Viewport */}
+          <div className="flex-1 w-full relative my-3 rounded-2xl border border-slate-800 bg-slate-950 overflow-hidden shadow-2xl flex items-center justify-center">
+            <canvas
+              ref={fullscreenCanvasRef}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
+              onWheel={handleWheel}
+              className="w-full h-full block cursor-grab active:cursor-grabbing"
+            />
+
+            {/* LaTeX Floating Formula */}
+            <div className="absolute bottom-4 left-4 p-3 rounded-2xl bg-slate-900/90 border border-cyan-500/40 text-cyan-200 font-mono text-xs backdrop-blur-md shadow-2xl">
+              <InlineLaTeX formula={currentSurface.formulaLatex} />
+            </div>
+          </div>
+
+          {/* Footer Tips */}
+          <div className="flex items-center justify-between text-xs text-slate-500 font-mono pt-2 border-t border-slate-800/80">
+            <span>{isZh ? '💡 快捷键提示: [拖拽] 360° 旋转 · [滚轮] 放大/缩小 · [空格] 启停自动旋转 · [W] 切换线框 · [0] 重置 · [ESC] 退出' : '💡 Tips: [Drag] 360° Rotate · [Scroll] Zoom · [Space] Toggle Rotation · [W] Wireframe · [0] Reset · [ESC] Exit'}</span>
+            <span className="text-cyan-400 font-bold">{isZh ? '高精度曲面剖分渲染' : 'High-Precision Mesh Tessellation'}</span>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

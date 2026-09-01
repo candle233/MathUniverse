@@ -1,9 +1,21 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { InlineLaTeX } from '@/components/math/LaTeXRenderer';
 import { useLanguage } from '@/context/LanguageContext';
-import { Activity, Play, Pause, RotateCcw, Sliders, Sparkles, Compass, MousePointer } from 'lucide-react';
+import {
+  Activity,
+  Play,
+  Pause,
+  RotateCcw,
+  Sliders,
+  Sparkles,
+  Compass,
+  MousePointer,
+  Maximize2,
+  Minimize2,
+  Download,
+} from 'lucide-react';
 
 export interface DynamicalSystemModel {
   id: string;
@@ -109,9 +121,11 @@ interface TrajectoryPoint {
 export default function DynamicalSystemsLab() {
   const { isZh } = useLanguage();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const fullscreenCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [selectedModelId, setSelectedModelId] = useState<string>('lotka-volterra');
   const [isRunning, setIsRunning] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Canvas dimensions state
   const [canvasDimensions, setCanvasDimensions] = useState({ width: 840, height: 460 });
@@ -119,6 +133,19 @@ export default function DynamicalSystemsLab() {
   const model = dynamicalModels.find((m) => m.id === selectedModelId) || dynamicalModels[0];
   const [params, setParams] = useState(model.defaultParams);
   const trajectoriesRef = useRef<TrajectoryPoint[][]>([]);
+
+  // Keyboard shortcut listener
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullscreen) {
+        setIsFullscreen(false);
+      } else if (e.key === ' ' && isFullscreen) {
+        setIsRunning((r) => !r);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isFullscreen]);
 
   // Reset params & trajectories when switching models
   useEffect(() => {
@@ -192,16 +219,27 @@ export default function DynamicalSystemsLab() {
 
   // Main Render & RK4 Integration Loop
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
     let animId: number;
 
     const render = () => {
-      const width = canvas.width;
-      const height = canvas.height;
+      const activeCanvas = isFullscreen ? fullscreenCanvasRef.current : canvasRef.current;
+      if (!activeCanvas) {
+        animId = requestAnimationFrame(render);
+        return;
+      }
+      const ctx = activeCanvas.getContext('2d');
+      if (!ctx) {
+        animId = requestAnimationFrame(render);
+        return;
+      }
+
+      if (isFullscreen) {
+        activeCanvas.width = window.innerWidth * 0.94;
+        activeCanvas.height = window.innerHeight * 0.76;
+      }
+
+      const width = activeCanvas.width;
+      const height = activeCanvas.height;
 
       ctx.clearRect(0, 0, width, height);
 
@@ -229,8 +267,8 @@ export default function DynamicalSystemsLab() {
       }
 
       // 2. Draw Vector Field Quiver Arrows
-      const gridCols = 24;
-      const gridRows = 18;
+      const gridCols = isFullscreen ? 32 : 24;
+      const gridRows = isFullscreen ? 22 : 18;
       const [minX, maxX] = model.xRange;
       const [minY, maxY] = model.yRange;
 
@@ -245,7 +283,7 @@ export default function DynamicalSystemsLab() {
           const sx = toScreenX(mx, width);
           const sy = toScreenY(my, height);
 
-          const arrowLen = 14;
+          const arrowLen = isFullscreen ? 16 : 14;
           const u = (dx / len) * arrowLen;
           const v = -(dy / len) * arrowLen;
 
@@ -293,7 +331,7 @@ export default function DynamicalSystemsLab() {
         const color = colors[idx % colors.length];
 
         ctx.strokeStyle = color;
-        ctx.lineWidth = 2.2;
+        ctx.lineWidth = isFullscreen ? 2.8 : 2.2;
         ctx.beginPath();
         ctx.moveTo(toScreenX(traj[0].x, width), toScreenY(traj[0].y, height));
 
@@ -308,7 +346,7 @@ export default function DynamicalSystemsLab() {
         const hy = toScreenY(head.y, height);
 
         ctx.beginPath();
-        ctx.arc(hx, hy, 4.5, 0, 2 * Math.PI);
+        ctx.arc(hx, hy, isFullscreen ? 5.5 : 4.5, 0, 2 * Math.PI);
         ctx.fillStyle = '#ffffff';
         ctx.fill();
         ctx.strokeStyle = color;
@@ -321,15 +359,14 @@ export default function DynamicalSystemsLab() {
 
     render();
     return () => cancelAnimationFrame(animId);
-  }, [isRunning, model, params]);
+  }, [isRunning, model, params, isFullscreen]);
 
   // Click Canvas to spawn new trajectory
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
+    const canvas = e.currentTarget;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
 
-    // Convert CSS-space pointer coords into bitmap space so they match the rendered coordinates
     const scaleX = canvas.width / (rect.width || 1);
     const scaleY = canvas.height / (rect.height || 1);
     const sx = (e.clientX - rect.left) * scaleX;
@@ -337,6 +374,16 @@ export default function DynamicalSystemsLab() {
 
     const { x, y } = toMathCoords(sx, sy, canvas.width, canvas.height);
     trajectoriesRef.current.push([{ x, y }]);
+  };
+
+  const handleDownloadSnapshot = () => {
+    const activeCanvas = isFullscreen ? fullscreenCanvasRef.current : canvasRef.current;
+    if (!activeCanvas) return;
+    const url = activeCanvas.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `mathuniverse_phase_portrait_${Date.now()}.png`;
+    a.click();
   };
 
   const handleClearTrajectories = () => {
@@ -418,7 +465,7 @@ export default function DynamicalSystemsLab() {
         </div>
 
         {/* Controls Overlay */}
-        <div className="absolute bottom-3 right-3 flex items-center gap-2">
+        <div className="absolute bottom-3 right-3 flex items-center gap-2 flex-wrap">
           <button
             onClick={() => setIsRunning(!isRunning)}
             className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
@@ -428,7 +475,7 @@ export default function DynamicalSystemsLab() {
             }`}
           >
             {isRunning ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-            <span>{isRunning ? (isZh ? '暂停模拟' : 'Pause Simulation') : (isZh ? '继续积分' : 'Resume Integration')}</span>
+            <span>{isRunning ? (isZh ? '暂停模拟' : 'Pause') : (isZh ? '继续积分' : 'Resume')}</span>
           </button>
 
           <button
@@ -436,7 +483,25 @@ export default function DynamicalSystemsLab() {
             className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 text-xs font-semibold transition-colors cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            <span>{isZh ? '清空轨迹' : 'Clear Trajectories'}</span>
+            <span>{isZh ? '清空轨迹' : 'Clear'}</span>
+          </button>
+
+          <button
+            onClick={handleDownloadSnapshot}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 text-xs font-semibold transition-colors cursor-pointer"
+            title={isZh ? '导出 PNG' : 'Export PNG'}
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>{isZh ? '导出图片' : 'Export PNG'}</span>
+          </button>
+
+          <button
+            onClick={() => setIsFullscreen(true)}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-xs font-bold transition-all cursor-pointer"
+            title={isZh ? '全屏放大相平面实验室' : 'Expand to Fullscreen'}
+          >
+            <Maximize2 className="w-3.5 h-3.5" />
+            <span>{isZh ? '全屏放大' : 'Fullscreen'}</span>
           </button>
         </div>
       </div>
@@ -475,6 +540,107 @@ export default function DynamicalSystemsLab() {
           />
         </div>
       </div>
+
+      {/* Fullscreen Magnification Modal */}
+      {isFullscreen && (
+        <div className="fixed inset-0 z-[100] flex flex-col bg-slate-950/95 backdrop-blur-2xl p-4 sm:p-6 animate-in fade-in zoom-in-95 duration-200">
+          {/* Modal Header */}
+          <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-800">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 shadow-md shadow-cyan-500/10">
+                <Activity className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-100 text-base">
+                  {isZh ? model.nameZh : model.nameEn} — 相平面与动力系统高清全屏实验室
+                </h3>
+                <p className="text-xs text-slate-400 font-mono">
+                  {isZh
+                    ? `点击相平面任意位置释放流线粒子 · 实时 RK4 龙格-库塔数值积分`
+                    : `Click anywhere on the phase plane to release flow particles · Real-time RK4 integration`}
+                </p>
+              </div>
+            </div>
+
+            {/* Modal Controls */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={() => setIsRunning(!isRunning)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
+                  isRunning
+                    ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
+                    : 'bg-slate-900 text-slate-400 border-slate-800'
+                }`}
+              >
+                {isRunning ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                <span>{isRunning ? (isZh ? '暂停模拟' : 'Pause') : (isZh ? '继续积分' : 'Resume')}</span>
+              </button>
+
+              <button
+                onClick={handleClearTrajectories}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-semibold cursor-pointer"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>{isZh ? '清空轨迹' : 'Clear'}</span>
+              </button>
+
+              <button
+                onClick={handleDownloadSnapshot}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs font-bold transition-all cursor-pointer"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>{isZh ? '导出 PNG' : 'Export PNG'}</span>
+              </button>
+
+              <button
+                onClick={() => setIsFullscreen(false)}
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-slate-950 border border-rose-500/40 text-xs font-bold transition-all cursor-pointer"
+              >
+                <Minimize2 className="w-3.5 h-3.5" />
+                <span>{isZh ? '退出全屏 (ESC)' : 'Exit (ESC)'}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Model Switcher Pills */}
+          <div className="flex items-center gap-1.5 flex-wrap pt-3">
+            <span className="text-xs text-slate-400 font-mono">{isZh ? '切换动力系统模型:' : 'Switch Model:'}</span>
+            {dynamicalModels.map((m) => (
+              <button
+                key={m.id}
+                onClick={() => setSelectedModelId(m.id)}
+                className={`px-3 py-1 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  selectedModelId === m.id
+                    ? 'bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/20'
+                    : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
+                }`}
+              >
+                {isZh ? m.nameZh.split(' ')[0] : m.nameEn}
+              </button>
+            ))}
+          </div>
+
+          {/* Fullscreen Viewport */}
+          <div className="flex-1 w-full relative my-3 rounded-2xl border border-slate-800 bg-slate-950 overflow-hidden shadow-2xl flex items-center justify-center cursor-crosshair">
+            <canvas
+              ref={fullscreenCanvasRef}
+              onClick={handleCanvasClick}
+              className="w-full h-full block"
+            />
+
+            {/* LaTeX Floating Formula */}
+            <div className="absolute bottom-4 left-4 p-3 rounded-2xl bg-slate-900/90 border border-cyan-500/40 text-cyan-200 font-mono text-xs backdrop-blur-md shadow-2xl">
+              <InlineLaTeX formula={model.formulaLatex} />
+            </div>
+          </div>
+
+          {/* Footer Tips */}
+          <div className="flex items-center justify-between text-xs text-slate-500 font-mono pt-2 border-t border-slate-800/80">
+            <span>{isZh ? '💡 快捷键提示: [点击] 释放粒子流线 · [空格] 暂停/继续 · [ESC] 退出全屏' : '💡 Tips: [Click] Release particle · [Space] Pause/Resume · [ESC] Exit'}</span>
+            <span className="text-cyan-400 font-bold">{isZh ? 'RK4 4阶经典数值积分' : 'RK4 4th-Order Integration'}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

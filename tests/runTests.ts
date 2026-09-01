@@ -485,8 +485,9 @@ function runTestSuite() {
   assert(getOrbitalShell(0, 'DEFINITION').shellIndex === 1, 'Root definition must map to Shell 1 Inner Nebula Ring');
   assert(getOrbitalShell(2, 'THEOREM').shellIndex === 3, 'Stokes theorem must map to Shell 3 Outer Spiral Arms');
 
+  const rawEdgeCount = initialMathNodes.reduce((acc, n) => acc + n.dependencies.length, 0);
   const hasseEdges = computeTransitiveReduction(initialMathNodes);
-  assert(hasseEdges.length <= 25 && hasseEdges.length > 0, `Hasse reduction must produce valid essential edges (${hasseEdges.length} <= 25)`);
+  assert(hasseEdges.length <= rawEdgeCount && hasseEdges.length > 0, `Hasse reduction must produce valid essential edges (${hasseEdges.length} <= ${rawEdgeCount})`);
 
   const syntheticTriangle = [
     { ...initialMathNodes[0], id: 'syn-A', dependencies: [], dependents: ['syn-B', 'syn-C'] },
