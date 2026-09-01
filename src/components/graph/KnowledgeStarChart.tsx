@@ -32,6 +32,7 @@ export default function KnowledgeStarChart({ selectedNodeId }: { selectedNodeId?
     return initialMathNodes.find((n) => n.id === selectedNodeId) || initialMathNodes[0];
   });
   const [selectedDiscipline, setSelectedDiscipline] = useState<string>('all');
+  const [graphViewMode, setGraphViewMode] = useState<'ALL' | 'PREREQUISITE_DAG' | 'SEMANTIC_GRAPH'>('ALL');
   const [hoveredNode, setHoveredNode] = useState<MathNode | null>(null);
   const [zoom, setZoom] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -222,52 +223,105 @@ export default function KnowledgeStarChart({ selectedNodeId }: { selectedNodeId?
       }
       const visibleIdSet = new Set(visibleStars.map((s) => s.id));
 
-      // 3. Draw Links (DAG Directed Edges) — Culled if neither endpoint is visible
+      // 3. Draw Links (Dual-Graph: Prerequisite DAG + Semantic Multi-Graph)
       visibleStars.forEach((sourceStar) => {
-        sourceStar.node.dependencies.forEach((targetId) => {
-          const targetStar = allNodes.find((n) => n.id === targetId);
-          if (!targetStar) return;
+        // 3A. Prerequisite DAG Edges (Solid cyan/slate arrows)
+        if (graphViewMode === 'ALL' || graphViewMode === 'PREREQUISITE_DAG') {
+          sourceStar.node.dependencies.forEach((targetId) => {
+            const targetStar = allNodes.find((n) => n.id === targetId);
+            if (!targetStar) return;
 
-          // Only render edge if at least one endpoint is in viewport
-          if (!visibleIdSet.has(sourceStar.id) && !visibleIdSet.has(targetStar.id)) return;
+            // Only render edge if at least one endpoint is in viewport
+            if (!visibleIdSet.has(sourceStar.id) && !visibleIdSet.has(targetStar.id)) return;
 
-          const isUpstream =
-            highlightedSet.ancestors.has(targetId) &&
-            (selectedNode?.id === sourceStar.id || highlightedSet.ancestors.has(sourceStar.id));
-          const isSelectedEdge = selectedNode?.id === sourceStar.id || selectedNode?.id === targetId;
+            const isUpstream =
+              highlightedSet.ancestors.has(targetId) &&
+              (selectedNode?.id === sourceStar.id || highlightedSet.ancestors.has(sourceStar.id));
+            const isSelectedEdge = selectedNode?.id === sourceStar.id || selectedNode?.id === targetId;
 
-          ctx.beginPath();
-          ctx.moveTo(sourceStar.x, sourceStar.y);
-          ctx.lineTo(targetStar.x, targetStar.y);
+            ctx.beginPath();
+            ctx.moveTo(sourceStar.x, sourceStar.y);
+            ctx.lineTo(targetStar.x, targetStar.y);
 
-          if (isSelectedEdge || isUpstream) {
-            ctx.strokeStyle = '#38bdf8';
-            ctx.lineWidth = 2.5;
+            if (isSelectedEdge || isUpstream) {
+              ctx.strokeStyle = '#38bdf8';
+              ctx.lineWidth = 2.5;
+              ctx.setLineDash([]);
+            } else {
+              ctx.strokeStyle = 'rgba(51, 65, 85, 0.45)';
+              ctx.lineWidth = 1;
+              ctx.setLineDash([4, 4]);
+            }
+            ctx.stroke();
+
+            // Draw directional arrow on edge
+            const midX = (sourceStar.x + targetStar.x) / 2;
+            const midY = (sourceStar.y + targetStar.y) / 2;
+            const angle = Math.atan2(targetStar.y - sourceStar.y, targetStar.x - sourceStar.x);
+
+            ctx.save();
+            ctx.translate(midX, midY);
+            ctx.rotate(angle);
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-6, -3);
+            ctx.lineTo(-6, 3);
+            ctx.closePath();
+            ctx.fillStyle = isSelectedEdge || isUpstream ? '#38bdf8' : 'rgba(100, 116, 139, 0.6)';
+            ctx.fill();
+            ctx.restore();
+          });
+        }
+
+        // 3B. Semantic Multi-Graph Edges (Neon violet / emerald glowing dashed lines)
+        if (graphViewMode === 'ALL' || graphViewMode === 'SEMANTIC_GRAPH') {
+          (sourceStar.node.semanticEdges || []).forEach((edge) => {
+            const targetStar = allNodes.find((n) => n.id === edge.toNodeId);
+            if (!targetStar) return;
+
+            if (!visibleIdSet.has(sourceStar.id) && !visibleIdSet.has(targetStar.id)) return;
+
+            const isSelectedEdge = selectedNode?.id === sourceStar.id || selectedNode?.id === targetStar.id;
+
+            let strokeColor = 'rgba(192, 132, 252, 0.4)'; // violet default
+            if (edge.relationType === 'EQUIVALENT_TO') strokeColor = 'rgba(56, 189, 248, 0.6)';
+            else if (edge.relationType === 'GENERALIZES') strokeColor = 'rgba(52, 211, 153, 0.6)';
+            else if (edge.relationType === 'SPECIALIZES') strokeColor = 'rgba(251, 191, 36, 0.6)';
+            else if (edge.relationType === 'MOTIVATES') strokeColor = 'rgba(244, 114, 182, 0.6)';
+
+            ctx.beginPath();
+            // Quadratic curve offset for semantic multi-edges
+            const midX = (sourceStar.x + targetStar.x) / 2;
+            const midY = (sourceStar.y + targetStar.y) / 2;
+            const dx = targetStar.x - sourceStar.x;
+            const dy = targetStar.y - sourceStar.y;
+            const norm = Math.hypot(dx, dy) || 1;
+            const ctrlX = midX - (dy / norm) * 25;
+            const ctrlY = midY + (dx / norm) * 25;
+
+            ctx.moveTo(sourceStar.x, sourceStar.y);
+            ctx.quadraticCurveTo(ctrlX, ctrlY, targetStar.x, targetStar.y);
+
+            ctx.strokeStyle = isSelectedEdge ? '#c084fc' : strokeColor;
+            ctx.lineWidth = isSelectedEdge ? 2.5 : 1.5;
+            ctx.setLineDash([6, 3]);
+            ctx.stroke();
             ctx.setLineDash([]);
-          } else {
-            ctx.strokeStyle = 'rgba(51, 65, 85, 0.45)';
-            ctx.lineWidth = 1;
-            ctx.setLineDash([4, 4]);
-          }
-          ctx.stroke();
 
-          // Draw directional arrow on edge
-          const midX = (sourceStar.x + targetStar.x) / 2;
-          const midY = (sourceStar.y + targetStar.y) / 2;
-          const angle = Math.atan2(targetStar.y - sourceStar.y, targetStar.x - sourceStar.x);
-
-          ctx.save();
-          ctx.translate(midX, midY);
-          ctx.rotate(angle);
-          ctx.beginPath();
-          ctx.moveTo(0, 0);
-          ctx.lineTo(-6, -3);
-          ctx.lineTo(-6, 3);
-          ctx.closePath();
-          ctx.fillStyle = isSelectedEdge || isUpstream ? '#38bdf8' : 'rgba(100, 116, 139, 0.6)';
-          ctx.fill();
-          ctx.restore();
-        });
+            // Draw diamond / relation badge on semantic edge center
+            if (!isLowLOD && (isSelectedEdge || zoom > 0.8)) {
+              ctx.save();
+              ctx.fillStyle = isSelectedEdge ? '#c084fc' : '#1e1b4b';
+              ctx.strokeStyle = '#c084fc';
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              ctx.arc(ctrlX, ctrlY, 3.5, 0, 2 * Math.PI);
+              ctx.fill();
+              ctx.stroke();
+              ctx.restore();
+            }
+          });
+        }
       });
 
       // 4. Draw Visible Star Nodes (with Level of Detail optimization)
@@ -377,7 +431,7 @@ export default function KnowledgeStarChart({ selectedNodeId }: { selectedNodeId?
     render();
 
     return () => cancelAnimationFrame(animId);
-  }, [offset, zoom, selectedNode, hoveredNode, highlightedSet, selectedDiscipline, cullingEnabled, isZh, locale]);
+  }, [offset, zoom, selectedNode, hoveredNode, highlightedSet, selectedDiscipline, graphViewMode, cullingEnabled, isZh, locale]);
 
   const mouseDownPosRef = useRef({ x: 0, y: 0, time: 0 });
 
@@ -553,8 +607,42 @@ export default function KnowledgeStarChart({ selectedNodeId }: { selectedNodeId?
           ))}
         </div>
 
-        {/* Streaming Mode & Zoom Controls */}
-        <div className="flex items-center gap-1.5">
+        {/* Graph Mode Switcher & Streaming Mode & Zoom Controls */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Dual Graph Mode Switcher */}
+          <div className="flex items-center bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs font-semibold">
+            <button
+              onClick={() => setGraphViewMode('ALL')}
+              className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                graphViewMode === 'ALL'
+                  ? 'bg-cyan-500 text-slate-950 font-bold'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {isZh ? '双图全貌 (Dual)' : 'Dual Graph'}
+            </button>
+            <button
+              onClick={() => setGraphViewMode('PREREQUISITE_DAG')}
+              className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                graphViewMode === 'PREREQUISITE_DAG'
+                  ? 'bg-sky-500 text-slate-950 font-bold'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {isZh ? '推导 DAG' : 'Prereq DAG'}
+            </button>
+            <button
+              onClick={() => setGraphViewMode('SEMANTIC_GRAPH')}
+              className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                graphViewMode === 'SEMANTIC_GRAPH'
+                  ? 'bg-purple-500 text-slate-950 font-bold'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {isZh ? '语义关联网' : 'Semantic'}
+            </button>
+          </div>
+
           <button
             onClick={() => setCullingEnabled(!cullingEnabled)}
             className={`px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-all flex items-center gap-1 cursor-pointer ${
@@ -638,7 +726,7 @@ export default function KnowledgeStarChart({ selectedNodeId }: { selectedNodeId?
         <div className="absolute top-4 left-4 p-3 rounded-xl glass-panel text-xs text-slate-300 space-y-1.5 pointer-events-none">
           <div className="font-semibold text-slate-200 text-[11px] mb-1 flex items-center gap-1">
             <Move className="w-3 h-3 text-cyan-400" />
-            <span>{isZh ? '拖拽平移 / 动态加载' : 'Drag to Pan / Dynamic Loading'}</span>
+            <span>{isZh ? '拖拽平移 / 双图视口' : 'Drag to Pan / Dual-Graph'}</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-cyan-400 inline-block"></span>
@@ -652,11 +740,19 @@ export default function KnowledgeStarChart({ selectedNodeId }: { selectedNodeId?
             <span className="w-3 h-3 rounded-full bg-emerald-400 inline-block"></span>
             <span>{isZh ? '下游推论后继 (Dependents)' : 'Downstream dependents (successors)'}</span>
           </div>
+          <div className="pt-1 border-t border-slate-800/80 flex items-center gap-2 text-[10px] text-slate-400">
+            <span className="w-3 h-0.5 bg-sky-400 inline-block"></span>
+            <span>{isZh ? '实线箭头: 逻辑推导 DAG' : 'Solid: Prereq DAG Edge'}</span>
+          </div>
+          <div className="flex items-center gap-2 text-[10px] text-slate-400">
+            <span className="w-3 h-0.5 border-b border-purple-400 border-dashed inline-block"></span>
+            <span>{isZh ? '虚线弧线: 语义关联网 (等价/推广)' : 'Dashed: Semantic Multi-Graph Edge'}</span>
+          </div>
         </div>
 
         {/* Selected Node Details Floating Drawer */}
         {selectedNode && (
-          <div className="absolute top-4 right-4 w-80 max-w-[calc(100%-2rem)] p-4 rounded-2xl glass-panel-glow border border-cyan-500/40 text-left shadow-2xl animate-in fade-in slide-in-from-right-4 duration-200 z-20 pointer-events-auto">
+          <div className="absolute top-4 right-4 w-80 max-w-[calc(100%-2rem)] max-h-[calc(100%-2rem)] overflow-y-auto p-4 rounded-2xl glass-panel-glow border border-cyan-500/40 text-left shadow-2xl animate-in fade-in slide-in-from-right-4 duration-200 z-20 pointer-events-auto">
             <div className="flex items-center justify-between mb-2">
               <span
                 className={`text-xs px-2.5 py-0.5 rounded-full border font-medium ${
@@ -691,7 +787,7 @@ export default function KnowledgeStarChart({ selectedNodeId }: { selectedNodeId?
             </div>
 
             {/* Prerequisites & Dependents counts */}
-            <div className="grid grid-cols-2 gap-2 text-xs mb-4">
+            <div className="grid grid-cols-2 gap-2 text-xs mb-3">
               <div className="p-2 rounded-lg bg-slate-900/60 border border-slate-800">
                 <span className="text-slate-400 block text-[11px]">{isZh ? '前置依赖' : 'Prerequisites'}</span>
                 <span className="font-bold text-purple-300">
@@ -709,6 +805,36 @@ export default function KnowledgeStarChart({ selectedNodeId }: { selectedNodeId?
                 </span>
               </div>
             </div>
+
+            {/* Semantic Relations List */}
+            {selectedNode.semanticEdges && selectedNode.semanticEdges.length > 0 && (
+              <div className="mb-4 p-2.5 rounded-xl bg-purple-950/20 border border-purple-500/30 text-xs space-y-1.5">
+                <span className="text-[11px] font-bold text-purple-300 block">
+                  {isZh ? '语义关联 (Semantic Relations):' : 'Semantic Relations:'}
+                </span>
+                <div className="space-y-1">
+                  {selectedNode.semanticEdges.map((edge) => {
+                    const target = initialMathNodes.find((n) => n.id === edge.toNodeId);
+                    return (
+                      <div
+                        key={edge.id}
+                        onClick={() => {
+                          if (target) setSelectedNode(target);
+                        }}
+                        className="flex items-center justify-between p-1.5 rounded bg-slate-900/80 hover:bg-purple-900/40 border border-slate-800 text-[11px] cursor-pointer transition-colors"
+                      >
+                        <span className="text-purple-300 font-medium truncate mr-1">
+                          {target ? getNodeTitle(target, locale) : edge.toNodeId}
+                        </span>
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-purple-900/80 text-purple-200 font-mono shrink-0">
+                          {edge.relationType}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Action CTA Link */}
             <Link

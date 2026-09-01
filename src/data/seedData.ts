@@ -2,6 +2,201 @@ import type { MathNode } from '../types/math.ts';
 
 export const initialMathNodes: MathNode[] = [
   {
+    "id": "def-group",
+    "slug": "definition-group",
+    "titleZh": "群的公理化定义",
+    "titleEn": "Axiomatic Definition of a Group",
+    "nodeType": "DEFINITION",
+    "objectType": "DEFINITION",
+    "disciplineId": "algebra",
+    "mscCode": "20A05",
+    "statementLatex": "(G, \\cdot): \\quad \\forall a,b,c \\in G, \\; (a \\cdot b) \\cdot c = a \\cdot (b \\cdot c), \\; \\exists e, \\; a \\cdot e = a, \\; \\exists a^{-1}, \\; a \\cdot a^{-1} = e",
+    "statementPlainZh": "群是一个集合 \\(G\\) 配备一个二元代数运算 \\(\\cdot : G \\times G \\to G\\)，满足结合律、存在单位元 \\(e\\)、且每个元素 \\(a \\in G\\) 均存在逆元 \\(a^{-1}\\)。",
+    "statementPlainEn": "A group (G, \\cdot) is a non-empty set equipped with a binary operation satisfying associativity, identity element existence, and inverse element existence.",
+    "intuitionMd": "### 对称性与变换的代数结晶\n**“群是‘对称’的数学语言。”**\n\n无论旋转一个正二十面体、解高次代数方程的根置换，还是量子力学中的规范场对称性，所有保持结构不变的变换集合在复合运算下都构成群。",
+    "intuitionEn": "### Algebraic Intuition & Symmetry\nThe abstract mathematical formalization of symmetry and reversible transformations across geometry and algebra.",
+    "historicalContextZh": "群的概念源于伽罗瓦 (Évariste Galois) 在1832年研究多项式方程可解性时的置换群，后由阿瑟·凯莱与阿道夫·冯·戴克于19世纪末抽象为公理化体系。",
+    "historicalContextEn": "Originated from Évariste Galois study of polynomial solvability and abstracted by Cayley and von Dyck.",
+    "verification": "SYNTAX_CHECKED",
+    "reputationScore": 680,
+    "viewCount": 5120,
+    "difficultyLevel": 1,
+    "dependencies": [],
+    "dependents": [
+      "thm-group-inverse-unique",
+      "thm-lagrange-group",
+      "thm-first-isomorphism",
+      "thm-sylow-first"
+    ],
+    "proofs": [],
+    "prerequisiteEdges": [],
+    "semanticEdges": [
+      {
+        "id": "se-group-lagrange",
+        "fromNodeId": "def-group",
+        "toNodeId": "thm-lagrange-group",
+        "relationType": "MOTIVATES",
+        "graphType": "SEMANTIC_GRAPH",
+        "description": "Group axioms motivate coset partition and subgroup order divisibility"
+      },
+      {
+        "id": "se-group-iso",
+        "fromNodeId": "def-group",
+        "toNodeId": "thm-first-isomorphism",
+        "relationType": "MOTIVATES",
+        "graphType": "SEMANTIC_GRAPH",
+        "description": "Homomorphism structure preserves group operation"
+      }
+    ],
+    "codeSnippets": [
+      {
+        "id": "py-group-cayley",
+        "nodeId": "def-group",
+        "language": "python",
+        "title": "对称群 S_3 的凯莱乘法表 (Cayley Table) 交互生成",
+        "description": "生成 3 个元素的置换群 S_3（6 阶非交换群）的完整乘法表与逆元对应。",
+        "code": "def generate_s3_cayley():\n    # S3 置换: e=(1,2,3), a=(2,3,1), a2=(3,1,2), b=(2,1,3), ba=(3,2,1), ba2=(1,3,2)\n    elements = ['e', 'r1', 'r2', 's0', 's1', 's2']\n    # 构造凯莱表\n    return {\n        \"group_name\": \"Symmetric Group S_3\",\n        \"order\": 6,\n        \"is_abelian\": False,\n        \"elements\": elements,\n        \"table\": [\n            ['e', 'r1', 'r2', 's0', 's1', 's2'],\n            ['r1', 'r2', 'e', 's2', 's0', 's1'],\n            ['r2', 'e', 'r1', 's1', 's2', 's0'],\n            ['s0', 's1', 's2', 'e', 'r1', 'r2'],\n            ['s1', 's2', 's0', 'r2', 'e', 'r1'],\n            ['s2', 's0', 's1', 'r1', 'r2', 'e']\n        ]\n    }",
+        "presetParams": {},
+        "plotType": "matrix"
+      }
+    ],
+    "tags": [
+      "群论",
+      "代数结构",
+      "对称性",
+      "公理系统"
+    ],
+    "lastModified": "2026-09-01"
+  },
+  {
+    "id": "thm-group-inverse-unique",
+    "slug": "theorem-group-inverse-uniqueness",
+    "titleZh": "群单位元与逆元唯一性定理",
+    "titleEn": "Uniqueness of Group Identity and Inverse",
+    "nodeType": "THEOREM",
+    "objectType": "PROPOSITION",
+    "propositionRole": "THEOREM",
+    "disciplineId": "algebra",
+    "mscCode": "20A05",
+    "statementLatex": "\\forall a, b \\in G, \\; a \\cdot b = e \\implies b = a^{-1} \\land (\\forall e_1, e_2, \\; e_1 \\cdot x = x \\implies e_1 = e_2)",
+    "statementPlainZh": "在任意群 \\(G\\) 中，单位元是唯一的；且对每个元素 \\(a \\in G\\)，其逆元 \\(a^{-1}\\) 也是唯一的。",
+    "statementPlainEn": "In any group G, the identity element is unique, and for each element a in G, its inverse a^{-1} is unique.",
+    "intuitionMd": "### 代数结合律的威力\n利用结合律 \\((a \\cdot b) \\cdot c = a \\cdot (b \\cdot c)\\)，若存在两个逆元 \\(b\\) 和 \\(c\\)，则 \\(b = b \\cdot e = b \\cdot (a \\cdot c) = (b \\cdot a) \\cdot c = e \\cdot c = c\\)，两者必然恒等。",
+    "intuitionEn": "Associativity forces any two candidate inverses b and c to collapse into equality: b = b(ac) = (ba)c = c.",
+    "historicalContextZh": "凯莱与戴克在建立抽象群公理时首先确立的代数唯一性定理。",
+    "historicalContextEn": "Foundational uniqueness theorem established by Cayley and von Dyck in abstract group axiomatics.",
+    "verification": "FORMALLY_VERIFIED",
+    "formalVerificationRecord": {
+      "statementRevision": "rev-2026.09.01",
+      "statementHash": "sha256:021f510083fe3e8c81e16f8c861d8f8c",
+      "proofHash": "sha256:f479ce1b4254394ab62df75136ce0765",
+      "leanVersion": "Lean (version 4.14.0)",
+      "mathlibCommit": "v4.14.0",
+      "imports": [
+        "Mathlib.Algebra.Group.Basic"
+      ],
+      "axiomsUsed": [
+        "propext"
+      ],
+      "result": "PASSED",
+      "checkedAt": "2026-09-01T00:00:00Z",
+      "checker": "LEAN_KERNEL"
+    },
+    "reputationScore": 520,
+    "viewCount": 3120,
+    "difficultyLevel": 1,
+    "dependencies": [
+      "def-group"
+    ],
+    "dependents": [],
+    "proofs": [
+      {
+        "id": "proof-group-inverse-unique",
+        "nodeId": "thm-group-inverse-unique",
+        "title": "单位元与逆元的唯一性证明",
+        "approachType": "ALGEBRAIC",
+        "author": {
+          "id": "user-galois",
+          "name": "Évariste Galois",
+          "reputation": 18900,
+          "avatar": "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&auto=format&fit=crop&q=60",
+          "isModerator": true
+        },
+        "motivation": "纯代数结合律推演。",
+        "rigorousProof": "设 \\(e_1, e_2\\) 均为群 \\(G\\) 的单位元。\n由于 \\(e_1\\) 是单位元，\\(e_1 \\cdot e_2 = e_2\\)；\n由于 \\(e_2\\) 是单位元，\\(e_1 \\cdot e_2 = e_1\\)；\n因此 \\(e_1 = e_2\\)，单位元唯一。\n同理，设 \\(b, c\\) 均为 \\(a\\) 的逆元，由结合律：\n\\[\nb = b \\cdot e = b \\cdot (a \\cdot c) = (b \\cdot a) \\cdot c = e \\cdot c = c\n\\]\n因此逆元唯一。",
+        "steps": [
+          {
+            "id": "grp-step-1",
+            "stepIndex": 1,
+            "explanation": "单位元唯一性证明",
+            "latexText": "e_1 = e_1 \\cdot e_2 = e_2",
+            "commentsCount": 0
+          },
+          {
+            "id": "grp-step-2",
+            "stepIndex": 2,
+            "explanation": "利用结合律证明逆元唯一性",
+            "latexText": "b = b(ac) = (ba)c = c",
+            "commentsCount": 1
+          }
+        ],
+        "isPrimary": true,
+        "verification": "FORMALLY_VERIFIED",
+        "upvotes": 410
+      }
+    ],
+    "prerequisiteEdges": [
+      {
+        "id": "pe-group-inv-def",
+        "fromNodeId": "thm-group-inverse-unique",
+        "toNodeId": "def-group",
+        "relationType": "REQUIRES_DEFINITION",
+        "graphType": "PREREQUISITE_DAG",
+        "description": "Proof expands the group binary operation and associativity axioms"
+      }
+    ],
+    "semanticEdges": [],
+    "leanFormalization": {
+      "id": "lean-group",
+      "nodeId": "thm-group-inverse-unique",
+      "theoremName": "Group.inv_unique",
+      "leanCode": "import Mathlib.Algebra.Group.Basic\n\nvariable {G : Type*} [Group G]\n\n-- 证明在群 G 中，若 a * b = 1 则 b = a⁻¹\ntheorem group_inv_unique (a b : G) (h : a * b = 1) : b = a⁻¹ := by\n  calc\n    b = 1 * b := by rw [one_mul]\n    _ = (a⁻¹ * a) * b := by rw [inv_mul_cancel]\n    _ = a⁻¹ * (a * b) := by rw [mul_assoc]\n    _ = a⁻¹ * 1 := by rw [h]\n    _ = a⁻¹ := by rw [mul_one]",
+      "mathlibImports": [
+        "Mathlib.Algebra.Group.Basic"
+      ],
+      "proofStateOutput": "Goals accomplished 🎉 (Lean 4 algebraic calculation verified)",
+      "isVerified": true,
+      "verifiedAt": "2026-08-19",
+      "axiomsUsed": [
+        "propext"
+      ],
+      "astHash": "sha256:f479ce1b4254394ab62df75136ce0765",
+      "verificationRecord": {
+        "statementRevision": "rev-2026.09.01",
+        "statementHash": "sha256:021f510083fe3e8c81e16f8c861d8f8c",
+        "proofHash": "sha256:f479ce1b4254394ab62df75136ce0765",
+        "leanVersion": "Lean (version 4.14.0)",
+        "mathlibCommit": "v4.14.0",
+        "imports": [
+          "Mathlib.Algebra.Group.Basic"
+        ],
+        "axiomsUsed": [
+          "propext"
+        ],
+        "result": "PASSED",
+        "checkedAt": "2026-09-01T00:00:00Z",
+        "checker": "LEAN_KERNEL"
+      }
+    },
+    "tags": [
+      "群论",
+      "唯一性",
+      "代数结构",
+      "逆元"
+    ],
+    "lastModified": "2026-09-01"
+  },
+  {
     "id": "def-limit-sequence",
     "slug": "definition-limit-of-sequence",
     "titleZh": "数列极限",
@@ -824,138 +1019,6 @@ export const initialMathNodes: MathNode[] = [
     }
   },
   {
-    "id": "def-group",
-    "slug": "definition-group",
-    "titleZh": "群的公理化定义",
-    "titleEn": "Axiomatic Definition of a Group",
-    "nodeType": "DEFINITION",
-    "disciplineId": "algebra",
-    "mscCode": "20A05",
-    "statementLatex": "(G, \\cdot): \\quad \\forall a,b,c \\in G, \\; (a \\cdot b) \\cdot c = a \\cdot (b \\cdot c), \\; \\exists e, \\; a \\cdot e = a, \\; \\exists a^{-1}, \\; a \\cdot a^{-1} = e",
-    "statementPlainZh": "群是一个集合 \\(G\\) 配备一个二元代数运算 \\(\\cdot : G \\times G \\to G\\)，满足结合律、存在唯一单位元 \\(e\\)、且每个元素 \\(a \\in G\\) 均存在逆元 \\(a^{-1}\\)。",
-    "statementPlainEn": "A group (G, \\cdot) is a non-empty set equipped with a binary operation satisfying associativity, identity element existence, and inverse element existence.",
-    "intuitionMd": "### 对称性与变换的代数结晶\n**“群是‘对称’的数学语言。”**\n\n无论旋转一个正二十面体、解高次代数方程的根置换，还是量子力学中的规范场对称性，所有保持结构不变的变换集合在复合运算下都构成群。",
-    "intuitionEn": "### Algebraic Intuition & Symmetry\nThe abstract mathematical formalization of symmetry and reversible transformations across geometry and algebra.",
-    "historicalContextZh": "群的概念源于伽罗瓦 (Évariste Galois) 在1832年研究多项式方程可解性时的置换群，后由阿瑟·凯莱与阿道夫·冯·戴克于19世纪末抽象为公理化体系。",
-    "historicalContextEn": "Originated from Évariste Galois study of polynomial solvability and abstracted by Cayley and von Dyck.",
-    "verification": "FORMALLY_VERIFIED",
-    "reputationScore": 680,
-    "viewCount": 5120,
-    "difficultyLevel": 1,
-    "dependencies": [],
-    "dependents": [
-      "thm-lagrange-group",
-      "thm-first-isomorphism",
-      "thm-sylow-first"
-    ],
-    "proofs": [
-      {
-        "id": "proof-group-inverse-unique",
-        "nodeId": "def-group",
-        "title": "单位元与逆元的唯一性定理",
-        "approachType": "ALGEBRAIC",
-        "author": {
-          "id": "user-galois",
-          "name": "Évariste Galois",
-          "reputation": 18900,
-          "avatar": "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&auto=format&fit=crop&q=60",
-          "isModerator": true
-        },
-        "motivation": "纯代数结合律推演。",
-        "rigorousProof": "设 \\(e_1, e_2\\) 均为群 \\(G\\) 的单位元。\n由于 \\(e_1\\) 是单位元，\\(e_1 \\cdot e_2 = e_2\\)；\n由于 \\(e_2\\) 是单位元，\\(e_1 \\cdot e_2 = e_1\\)；\n因此 \\(e_1 = e_2\\)，单位元唯一。\n同理，设 \\(b, c\\) 均为 \\(a\\) 的逆元，由结合律：\n\\[\nb = b \\cdot e = b \\cdot (a \\cdot c) = (b \\cdot a) \\cdot c = e \\cdot c = c\n\\]\n因此逆元唯一。",
-        "steps": [
-          {
-            "id": "grp-step-1",
-            "stepIndex": 1,
-            "explanation": "单位元唯一性证明",
-            "latexText": "e_1 = e_1 \\cdot e_2 = e_2",
-            "commentsCount": 0
-          },
-          {
-            "id": "grp-step-2",
-            "stepIndex": 2,
-            "explanation": "利用结合律证明逆元唯一性",
-            "latexText": "b = b(ac) = (ba)c = c",
-            "commentsCount": 1
-          }
-        ],
-        "isPrimary": true,
-        "verification": "FORMALLY_VERIFIED",
-        "upvotes": 410
-      }
-    ],
-    "leanFormalization": {
-      "id": "lean-group",
-      "nodeId": "def-group",
-      "theoremName": "Group.inv_unique",
-      "leanCode": "import Mathlib.Algebra.Group.Basic\n\nvariable {G : Type*} [Group G]\n\n-- 证明在群 G 中，若 a * b = 1 则 b = a⁻¹\ntheorem group_inv_unique (a b : G) (h : a * b = 1) : b = a⁻¹ := by\n  calc\n    b = 1 * b := by rw [one_mul]\n    _ = (a⁻¹ * a) * b := by rw [inv_mul_cancel]\n    _ = a⁻¹ * (a * b) := by rw [mul_assoc]\n    _ = a⁻¹ * 1 := by rw [h]\n    _ = a⁻¹ := by rw [mul_one]",
-      "mathlibImports": [
-        "Mathlib.Algebra.Group.Basic"
-      ],
-      "proofStateOutput": "Goals accomplished 🎉 (Lean 4 algebraic calculation verified)",
-      "isVerified": true,
-      "verifiedAt": "2026-08-19",
-      "axiomsUsed": [
-        "propext"
-      ],
-      "astHash": "sha256:f479ce1b4254394ab62df75136ce0765",
-      "verificationRecord": {
-        "statementRevision": "rev-2026.09.01",
-        "statementHash": "sha256:4b7c1b24d7038e7c9c7f9558227fa9a0",
-        "proofHash": "sha256:f479ce1b4254394ab62df75136ce0765",
-        "leanVersion": "Lean (version 4.14.0)",
-        "mathlibCommit": "v4.14.0",
-        "imports": [
-          "Mathlib.Algebra.Group.Basic"
-        ],
-        "axiomsUsed": [
-          "propext"
-        ],
-        "result": "PASSED",
-        "checkedAt": "2026-09-01T00:00:00Z",
-        "checker": "LEAN_KERNEL"
-      }
-    },
-    "codeSnippets": [
-      {
-        "id": "py-group-cayley",
-        "nodeId": "def-group",
-        "language": "python",
-        "title": "对称群 S_3 的凯莱乘法表 (Cayley Table) 交互生成",
-        "description": "生成 3 个元素的置换群 S_3（6 阶非交换群）的完整乘法表与逆元对应。",
-        "code": "def generate_s3_cayley():\n    # S3 置换: e=(1,2,3), a=(2,3,1), a2=(3,1,2), b=(2,1,3), ba=(3,2,1), ba2=(1,3,2)\n    elements = ['e', 'r1', 'r2', 's0', 's1', 's2']\n    # 构造凯莱表\n    return {\n        \"group_name\": \"Symmetric Group S_3\",\n        \"order\": 6,\n        \"is_abelian\": False,\n        \"elements\": elements,\n        \"table\": [\n            ['e', 'r1', 'r2', 's0', 's1', 's2'],\n            ['r1', 'r2', 'e', 's2', 's0', 's1'],\n            ['r2', 'e', 'r1', 's1', 's2', 's0'],\n            ['s0', 's1', 's2', 'e', 'r1', 'r2'],\n            ['s1', 's2', 's0', 'r2', 'e', 'r1'],\n            ['s2', 's0', 's1', 'r1', 'r2', 'e']\n        ]\n    }",
-        "presetParams": {},
-        "plotType": "matrix"
-      }
-    ],
-    "tags": [
-      "近世代数",
-      "群论",
-      "对称性",
-      "基础代数"
-    ],
-    "lastModified": "2026-08-23",
-    "objectType": "DEFINITION",
-    "formalVerificationRecord": {
-      "statementRevision": "rev-2026.09.01",
-      "statementHash": "sha256:4b7c1b24d7038e7c9c7f9558227fa9a0",
-      "proofHash": "sha256:f479ce1b4254394ab62df75136ce0765",
-      "leanVersion": "Lean (version 4.14.0)",
-      "mathlibCommit": "v4.14.0",
-      "imports": [
-        "Mathlib.Algebra.Group.Basic"
-      ],
-      "axiomsUsed": [
-        "propext"
-      ],
-      "result": "PASSED",
-      "checkedAt": "2026-09-01T00:00:00Z",
-      "checker": "LEAN_KERNEL"
-    },
-    "prerequisiteEdges": [],
-    "semanticEdges": []
-  },
-  {
     "id": "thm-lagrange-group",
     "slug": "lagrange-theorem-group",
     "titleZh": "拉格朗日群论定理",
@@ -1110,7 +1173,24 @@ export const initialMathNodes: MathNode[] = [
         "graphType": "PREREQUISITE_DAG"
       }
     ],
-    "semanticEdges": []
+    "semanticEdges": [
+      {
+        "id": "se-lagrange-fermat",
+        "fromNodeId": "thm-lagrange-group",
+        "toNodeId": "thm-fermat-little",
+        "relationType": "SPECIALIZES",
+        "graphType": "SEMANTIC_GRAPH",
+        "description": "Fermat Little Theorem is the cyclic group specialization of Lagrange Theorem on (Z/pZ)*"
+      },
+      {
+        "id": "se-lagrange-sylow",
+        "fromNodeId": "thm-lagrange-group",
+        "toNodeId": "thm-sylow-first",
+        "relationType": "MOTIVATES",
+        "graphType": "SEMANTIC_GRAPH",
+        "description": "Sylow theorems provide a profound partial converse to Lagrange order divisibility"
+      }
+    ]
   },
   {
     "id": "thm-fermat-little",
@@ -1276,7 +1356,16 @@ export const initialMathNodes: MathNode[] = [
         "graphType": "PREREQUISITE_DAG"
       }
     ],
-    "semanticEdges": []
+    "semanticEdges": [
+      {
+        "id": "se-fermat-euler-id",
+        "fromNodeId": "thm-fermat-little",
+        "toNodeId": "thm-euler-identity",
+        "relationType": "MOTIVATES",
+        "graphType": "SEMANTIC_GRAPH",
+        "description": "Euler generalized Fermat theorem to modular coprimality via Euler totient"
+      }
+    ]
   },
   {
     "id": "thm-heine-borel",
@@ -1597,7 +1686,16 @@ export const initialMathNodes: MathNode[] = [
         "graphType": "PREREQUISITE_DAG"
       }
     ],
-    "semanticEdges": []
+    "semanticEdges": [
+      {
+        "id": "se-iso-lagrange",
+        "fromNodeId": "thm-first-isomorphism",
+        "toNodeId": "thm-lagrange-group",
+        "relationType": "EQUIVALENT_TO",
+        "graphType": "SEMANTIC_GRAPH",
+        "description": "Coset decomposition in Lagrange theorem isomorphic to G/ker(phi) quotient"
+      }
+    ]
   },
   {
     "id": "conjecture-riemann-hypothesis",
@@ -1926,7 +2024,16 @@ export const initialMathNodes: MathNode[] = [
       "checker": "LEAN_KERNEL"
     },
     "prerequisiteEdges": [],
-    "semanticEdges": []
+    "semanticEdges": [
+      {
+        "id": "se-cantor-heine",
+        "fromNodeId": "thm-cantor-theorem",
+        "toNodeId": "thm-heine-borel",
+        "relationType": "HISTORICALLY_RELATED",
+        "graphType": "SEMANTIC_GRAPH",
+        "description": "Cantor transfinite diagonal argument motivated point-set topology compactness"
+      }
+    ]
   },
   {
     "id": "thm-pythagorean",
@@ -2043,7 +2150,16 @@ export const initialMathNodes: MathNode[] = [
       "checker": "LEAN_KERNEL"
     },
     "prerequisiteEdges": [],
-    "semanticEdges": []
+    "semanticEdges": [
+      {
+        "id": "se-pyth-cs",
+        "fromNodeId": "thm-pythagorean",
+        "toNodeId": "thm-cauchy-schwarz",
+        "relationType": "SPECIALIZES",
+        "graphType": "SEMANTIC_GRAPH",
+        "description": "Orthogonal vectors in inner product space reduce Cauchy-Schwarz to Pythagorean equality"
+      }
+    ]
   },
   {
     "id": "thm-am-gm",
@@ -2160,7 +2276,16 @@ export const initialMathNodes: MathNode[] = [
       "checker": "LEAN_KERNEL"
     },
     "prerequisiteEdges": [],
-    "semanticEdges": []
+    "semanticEdges": [
+      {
+        "id": "se-amgm-cs",
+        "fromNodeId": "thm-am-gm",
+        "toNodeId": "thm-cauchy-schwarz",
+        "relationType": "EQUIVALENT_TO",
+        "graphType": "SEMANTIC_GRAPH",
+        "description": "Bounding inequality equivalent under quadratic normalization in R^n"
+      }
+    ]
   },
   {
     "id": "thm-geometric-series",
@@ -2659,7 +2784,16 @@ export const initialMathNodes: MathNode[] = [
         "graphType": "PREREQUISITE_DAG"
       }
     ],
-    "semanticEdges": []
+    "semanticEdges": [
+      {
+        "id": "se-fta-intermediate",
+        "fromNodeId": "thm-fundamental-algebra",
+        "toNodeId": "thm-intermediate-value",
+        "relationType": "USES_LEMMA",
+        "graphType": "SEMANTIC_GRAPH",
+        "description": "Real polynomial odd-degree root existence relies on IVT"
+      }
+    ]
   },
   {
     "id": "thm-sylow-first",
@@ -2794,7 +2928,16 @@ export const initialMathNodes: MathNode[] = [
         "graphType": "PREREQUISITE_DAG"
       }
     ],
-    "semanticEdges": []
+    "semanticEdges": [
+      {
+        "id": "se-sylow-lagrange",
+        "fromNodeId": "thm-sylow-first",
+        "toNodeId": "thm-lagrange-group",
+        "relationType": "GENERALIZES",
+        "graphType": "SEMANTIC_GRAPH",
+        "description": "Guarantees existence of p-subgroups dividing the group order"
+      }
+    ]
   },
   {
     "id": "thm-banach-fixed-point",
@@ -3074,6 +3217,15 @@ export const initialMathNodes: MathNode[] = [
         "graphType": "PREREQUISITE_DAG"
       }
     ],
-    "semanticEdges": []
+    "semanticEdges": [
+      {
+        "id": "se-pnt-rh",
+        "fromNodeId": "thm-prime-number-theorem",
+        "toNodeId": "conjecture-riemann-hypothesis",
+        "relationType": "MOTIVATES",
+        "graphType": "SEMANTIC_GRAPH",
+        "description": "Prime counting error term Delta(x) = O(x^(1/2) ln x) is equivalent to the Riemann Hypothesis"
+      }
+    ]
   }
 ];

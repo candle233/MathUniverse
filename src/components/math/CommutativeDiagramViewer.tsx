@@ -69,6 +69,8 @@ const DIAGRAM_TAB_EN: Record<string, string> = {
   'diag-first-iso': 'First Iso. Theorem',
   'diag-short-exact': 'Short Exact Seq.',
   'diag-snake-lemma': 'Snake Lemma',
+  'diag-natural-trans': 'Natural Transformation',
+  'diag-pullback-square': 'Pullback / Fiber Product',
 };
 
 export const presetDiagrams: DiagramConfig[] = [
@@ -149,6 +151,52 @@ export const presetDiagrams: DiagramConfig[] = [
       { from: 'kerC', to: 'cokerA', label: '\\delta \\text{ (连接同态)}', labelEn: '\\delta \\text{ (connecting homomorphism)}', style: 'dashed' },
     ],
     commutativeRelation: '0 \\to \\ker a \\to \\ker b \\to \\ker c \\xrightarrow{\\delta} \\mathrm{coker}\\,a \\to \\mathrm{coker}\\,b \\to \\mathrm{coker}\\,c \\to 0',
+  },
+  {
+    id: 'diag-natural-trans',
+    title: '自然变换交换方块 (Natural Transformation Commutative Square)',
+    titleEn: 'Natural Transformation Commutative Square',
+    discipline: '范畴论 (Category Theory)',
+    description: '函子 F 与 G 之间的自然变换 eta 使得所有态射 f: A -> B 诱导的交换方块成立：eta_B ∘ F(f) = G(f) ∘ eta_A。',
+    descriptionEn: 'A natural transformation η: F ⇒ G ensures that for every morphism f: A → B, the diagram commutes: η_B ∘ F(f) = G(f) ∘ η_A.',
+    nodes: [
+      { id: 'FA', label: 'F(A)', x: 90, y: 70, type: 'space' },
+      { id: 'FB', label: 'F(B)', x: 310, y: 70, type: 'space' },
+      { id: 'GA', label: 'G(A)', x: 90, y: 220, type: 'space' },
+      { id: 'GB', label: 'G(B)', x: 310, y: 220, type: 'space' },
+    ],
+    arrows: [
+      { from: 'FA', to: 'FB', label: 'F(f)', style: 'solid' },
+      { from: 'FA', to: 'GA', label: '\\eta_A', style: 'solid' },
+      { from: 'FB', to: 'GB', label: '\\eta_B', style: 'solid' },
+      { from: 'GA', to: 'GB', label: 'G(f)', style: 'solid' },
+    ],
+    commutativeRelation: '\\eta_B \\circ F(f) = G(f) \\circ \\eta_A',
+  },
+  {
+    id: 'diag-pullback-square',
+    title: '拉回 / 纤维积泛性质交换图 (Pullback / Fiber Product Universal Property)',
+    titleEn: 'Pullback / Fiber Product Universal Property Diagram',
+    discipline: '范畴论 / 代数几何',
+    description: '纤维积 X ×_Z Y 满足泛性质：对任意满足 f ∘ q_1 = g ∘ q_2 的对象 Q，存在唯一诱导态射 u: Q -> X ×_Z Y。',
+    descriptionEn: 'The pullback X ×_Z Y satisfies the universal property: for any cone Q with f ∘ q_1 = g ∘ q_2, there exists a unique u: Q → X ×_Z Y.',
+    nodes: [
+      { id: 'Q', label: 'Q', x: 60, y: 40, type: 'space' },
+      { id: 'P', label: 'X \\times_Z Y', x: 150, y: 110, type: 'group' },
+      { id: 'X', label: 'X', x: 330, y: 110, type: 'space' },
+      { id: 'Y', label: 'Y', x: 150, y: 250, type: 'space' },
+      { id: 'Z', label: 'Z', x: 330, y: 250, type: 'space' },
+    ],
+    arrows: [
+      { from: 'Q', to: 'X', label: 'q_1', style: 'dashed' },
+      { from: 'Q', to: 'Y', label: 'q_2', style: 'dashed' },
+      { from: 'Q', to: 'P', label: '\\exists ! u', style: 'dashed' },
+      { from: 'P', to: 'X', label: 'p_1', style: 'solid' },
+      { from: 'P', to: 'Y', label: 'p_2', style: 'solid' },
+      { from: 'X', to: 'Z', label: 'f', style: 'solid' },
+      { from: 'Y', to: 'Z', label: 'g', style: 'solid' },
+    ],
+    commutativeRelation: 'f \\circ p_1 = g \\circ p_2 \\quad \\land \\quad p_1 \\circ u = q_1, \\; p_2 \\circ u = q_2',
   },
 ];
 
